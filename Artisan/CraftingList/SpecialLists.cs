@@ -1,5 +1,6 @@
-﻿using Artisan.QuestSync;
+using Artisan.QuestSync;
 using Artisan.RawInformation;
+using Artisan.UI;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.DalamudServices;
@@ -46,17 +47,17 @@ namespace Artisan.CraftingLists
         {
             try
             {
-                ImGui.TextWrapped($@"This section is for building lists based on certain criteria rather than individually. Give your list a name and select your criteria from below then select ""Build List"" and a new list will be created with all items that match the criteria. If you do not select any checkboxes then that category will be treated as ""Any"" or ""All"" except for which job crafts it.");
+                ImGui.TextWrapped(L10n.Tr("This section is for building lists based on certain criteria rather than individually. Give your list a name and select your criteria from below then select \"Build List\" and a new list will be created with all items that match the criteria. If you do not select any checkboxes then that category will be treated as \"Any\" or \"All\" except for which job crafts it."));
 
                 ImGui.Separator();
 
-                ImGui.TextWrapped("List Name");
+                ImGui.TextWrapped(L10n.Tr("List Name"));
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X / 2);
                 ImGui.InputText("###NameInput", ref listName, 300);
 
                 ImGui.Columns(6, border: false);
 
-                ImGui.TextWrapped("Select Job(s)");
+                ImGui.TextWrapped(L10n.Tr("Select Job(s)"));
                 if (ImGui.BeginListBox("###JobSelectListBox", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 110)))
                 {
                     ImGui.Columns(2, border: false);
@@ -75,36 +76,36 @@ namespace Artisan.CraftingLists
                 }
 
 
-                ImGui.TextWrapped($"Already Crafted Recipe");
+                ImGui.TextWrapped(L10n.Tr("Already Crafted Recipe"));
                 if (ImGui.BeginListBox("###AlreadyCraftedRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = alreadyCrafted[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         alreadyCrafted[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = alreadyCrafted[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         alreadyCrafted[2] = no;
                     }
                     ImGui.EndListBox();
                 }
 
-                ImGui.TextWrapped($"Collectable Recipe");
+                ImGui.TextWrapped(L10n.Tr("Collectable Recipe"));
                 if (ImGui.BeginListBox("###CollectableRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = isCollectable[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         isCollectable[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = isCollectable[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         isCollectable[2] = no;
                     }
@@ -113,7 +114,7 @@ namespace Artisan.CraftingLists
                 }
                 ImGui.NextColumn();
 
-                ImGui.TextWrapped($"Max Durability");
+                ImGui.TextWrapped(L10n.Tr("Max Durability"));
                 if (ImGui.BeginListBox("###SpecialListDurability", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 110)))
                 {
                     ImGui.Columns(2, border: false);
@@ -131,18 +132,18 @@ namespace Artisan.CraftingLists
                     DurY = ImGui.GetCursorPosY();
                 }
 
-                ImGui.TextWrapped($"Level-based Recipes");
+                ImGui.TextWrapped(L10n.Tr("Level-based Recipes"));
                 if (ImGui.BeginListBox("###IsLevelBasedRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, "DefaultID", false);
                     bool yes = isLevelBased[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         isLevelBased[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = isLevelBased[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         isLevelBased[2] = no;
                     }
@@ -151,18 +152,18 @@ namespace Artisan.CraftingLists
                 }
 
 
-                ImGui.TextWrapped($"HQable Recipe");
+                ImGui.TextWrapped(L10n.Tr("HQable Recipe"));
                 if (ImGui.BeginListBox("###HQRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = isHQAble[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         isHQAble[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = isHQAble[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         isHQAble[2] = no;
                     }
@@ -171,43 +172,43 @@ namespace Artisan.CraftingLists
                 }
 
                 ImGui.NextColumn();
-                ImGui.TextWrapped("Minimum Level");
+                ImGui.TextWrapped(L10n.Tr("Minimum Level"));
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
                 ImGui.SliderInt("###SpecialListMinLevel", ref minLevel, 1, 100);
                 ImGui.PopStyleVar();
 
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped($"Recipe from a Book");
+                ImGui.TextWrapped(L10n.Tr("Recipe from a Book"));
                 if (ImGui.BeginListBox("###UnlockableRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = hasToBeUnlocked[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         hasToBeUnlocked[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = hasToBeUnlocked[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         hasToBeUnlocked[2] = no;
                     }
                     ImGui.EndListBox();
                 }
 
-                ImGui.TextWrapped($"Quest Only Recipe");
+                ImGui.TextWrapped(L10n.Tr("Quest Only Recipe"));
                 if (ImGui.BeginListBox("###QuestRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = questRecipe[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         questRecipe[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = questRecipe[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         questRecipe[2] = no;
                     }
@@ -215,8 +216,8 @@ namespace Artisan.CraftingLists
                 }
 
 
-                ImGui.TextWrapped($"Name Contains");
-                ImGuiComponents.HelpMarker("Supports RegEx.");
+                ImGui.TextWrapped(L10n.Tr("Name Contains"));
+                ImGuiComponents.HelpMarker(L10n.Tr("Supports RegEx."));
                 ImGuiEx.SetNextItemFullWidth();
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
                 ImGui.InputText($"###NameContains", ref Contains, 100);
@@ -224,42 +225,42 @@ namespace Artisan.CraftingLists
                 ImGui.PopStyleVar();
                 ImGui.NextColumn();
 
-                ImGui.TextWrapped("Max Level");
+                ImGui.TextWrapped(L10n.Tr("Max Level"));
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
                 ImGui.SliderInt("###SpecialListMaxLevel", ref maxLevel, 1, 100);
                 ImGui.PopStyleVar();
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped($"Expert Recipe");
+                ImGui.TextWrapped(L10n.Tr("Expert Recipe"));
                 if (ImGui.BeginListBox("###ExpertRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = isExpert[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         isExpert[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = isExpert[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         isExpert[2] = no;
                     }
                     ImGui.EndListBox();
                 }
 
-                ImGui.TextWrapped($"Secondary Recipe");
+                ImGui.TextWrapped(L10n.Tr("Secondary Recipe"));
                 if (ImGui.BeginListBox("###SecondaryRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
                     bool yes = isSecondary[1];
-                    if (ImGui.Checkbox("Yes", ref yes))
+                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
                     {
                         isSecondary[1] = yes;
                     }
                     ImGui.NextColumn();
                     bool no = isSecondary[2];
-                    if (ImGui.Checkbox("No", ref no))
+                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
                     {
                         isSecondary[2] = no;
                     }
@@ -269,11 +270,11 @@ namespace Artisan.CraftingLists
                 ImGui.NextColumn();
 
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped($"Min. Craftsmanship");
+                ImGui.TextWrapped(L10n.Tr("Min. Craftsmanship"));
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
                 ImGui.SliderInt($"###MinCraftsmanship", ref minCraftsmanship, LuminaSheets.RecipeSheet.Values.Min(x => x.RequiredCraftsmanship), LuminaSheets.RecipeSheet.Values.Max(x => x.RequiredCraftsmanship));
                 ImGui.PopStyleVar();
-                ImGui.TextWrapped("Amount Result");
+                ImGui.TextWrapped(L10n.Tr("Amount Result"));
                 if (ImGui.BeginListBox("###Yields", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 120f.Scale())))
                 {
                     ImGui.Columns(2, border: false);
@@ -291,11 +292,11 @@ namespace Artisan.CraftingLists
 
                 ImGui.NextColumn();
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped($"Min. Control");
+                ImGui.TextWrapped(L10n.Tr("Min. Control"));
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
                 ImGui.SliderInt($"###MinControl", ref minControl, LuminaSheets.RecipeSheet.Values.Min(x => x.RequiredControl), LuminaSheets.RecipeSheet.Values.Max(x => x.RequiredControl));
                 ImGui.PopStyleVar();
-                ImGui.TextWrapped("Stars");
+                ImGui.TextWrapped(L10n.Tr("Stars"));
                 if (ImGui.BeginListBox("###Stars", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 120f.Scale())))
                 {
                     foreach (var star in Stars)
@@ -315,7 +316,7 @@ namespace Artisan.CraftingLists
                 ImGui.Columns(1);
                 //ImGui.SetCursorPosY(DurY + 10);
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4);
-                ImGui.TextWrapped("Base Stats");
+                ImGui.TextWrapped(L10n.Tr("Base Stats"));
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4);
                 if (ImGui.BeginListBox("###Stats", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 120)))
                 {
@@ -337,26 +338,26 @@ namespace Artisan.CraftingLists
                 ImGui.Columns(1);
 
                 ImGui.Spacing();
-                if (ImGui.Button("Build List", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                if (ImGui.Button(L10n.Tr("Build List"), new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 0)))
                 {
                     if (listName.IsNullOrWhitespace())
                     {
-                        Notify.Error("Please give your list a name.");
+                        Notify.Error(L10n.Tr("Please give your list a name."));
                         return;
                     }
 
-                    Notify.Info("Your list is being created. Please wait.");
+                    Notify.Info(L10n.Tr("Your list is being created. Please wait."));
                     Task.Run(() => CreateList(false)).ContinueWith(result => NotifySuccess(result));
                 }
-                if (ImGui.Button("Build List (with subcrafts)", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 0)))
+                if (ImGui.Button(L10n.Tr("Build List (with subcrafts)"), new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 0)))
                 {
                     if (listName.IsNullOrWhitespace())
                     {
-                        Notify.Error("Please give your list a name.");
+                        Notify.Error(L10n.Tr("Please give your list a name."));
                         return;
                     }
 
-                    Notify.Info("Your list is being created. Please wait.");
+                    Notify.Info(L10n.Tr("Your list is being created. Please wait."));
                     Task.Run(() => CreateList(true)).ContinueWith(result => NotifySuccess(result));
                 }
             }
@@ -367,7 +368,7 @@ namespace Artisan.CraftingLists
         {
             if (result.Result)
             {
-                Notify.Success($"{listName} has been created.");
+                Notify.Success(L10n.Tr("{0} has been created.", listName));
                 return true;
             }
             return false;
@@ -607,7 +608,7 @@ namespace Artisan.CraftingLists
 
             if (recipes.Count == 0)
             {
-                Notify.Error("Your list has no items");
+                Notify.Error(L10n.Tr("Your list has no items"));
                 return false;
             }
 

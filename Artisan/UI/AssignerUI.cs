@@ -15,6 +15,8 @@ namespace Artisan.UI
 {
     internal class AssignerUI
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
 
         private static RecipeConfig DummyConfig = new();
         private static int quickAssignLevel = 1;
@@ -38,7 +40,7 @@ namespace Artisan.UI
         {
             try
             {
-                ImGuiEx.TextWrapped($"This tab allows you to quickly assign solvers and consumables to recipes based on recipe criteria.");
+                ImGuiEx.TextWrapped(T("This tab allows you to quickly assign solvers and consumables to recipes based on recipe criteria."));
                 ImGui.Separator();
                 ImGui.Spacing();
                 DrawCriteria();
@@ -49,7 +51,7 @@ namespace Artisan.UI
 
         private static void DrawCriteria()
         {
-            ImGuiEx.TextCentered($"Criteria");
+            ImGuiEx.TextCentered(T("Criteria"));
             DrawAssignOptions();
         }
 
@@ -70,8 +72,8 @@ namespace Artisan.UI
             DummyConfig.DrawSquadronManual();
             DummyConfig.DrawSolver(c, false, false);
 
-            ImGui.Checkbox("Show which crafts have been assigned as a notification", ref Notification);
-            if (ImGui.Button("Assign To All", new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
+            ImGui.Checkbox(T("Show which crafts have been assigned as a notification"), ref Notification);
+            if (ImGui.Button(T("Assign To All"), new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
             {
                 foreach (var rec in filteredRecipes)
                 {
@@ -87,7 +89,7 @@ namespace Artisan.UI
                     };
                     if (Notification)
                     {
-                        P.TM.Enqueue(() => Notify.Success($"Assigned {rec.CraftType.Value.Name} - {rec.ItemResult.Value.Name}"));
+                        P.TM.Enqueue(() => Notify.Success(T("Assigned {0} - {1}", rec.CraftType.Value.Name, rec.ItemResult.Value.Name)));
                         P.TM.DelayNext(75);
                     }
                 }

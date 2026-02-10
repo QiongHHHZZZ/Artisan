@@ -85,6 +85,7 @@ namespace Artisan
         public bool MaxQuantityMode = false;
         public bool HideQuestHelper = false;
         public bool DisableTheme = true;
+        public bool UseChineseUI = true;
         public bool RequestToStopDuty = false;
         public bool RequestToResumeDuty = false;
         public int RequestToResumeDelay = 5;
@@ -178,9 +179,25 @@ namespace Artisan
         public static Configuration Load()
         {
             var fallback = Svc.PluginInterface.GetPluginConfig() as Configuration ?? new();
+            var configPath = Svc.PluginInterface.ConfigFile.FullName;
+
+            if (!File.Exists(configPath))
+            {
+                try
+                {
+                    Svc.PluginInterface.SavePluginConfig(fallback);
+                }
+                catch (Exception saveException)
+                {
+                    Svc.Log.Warning($"Config file was missing and could not be created at {configPath}: {saveException}");
+                }
+
+                return fallback;
+            }
+
             try
             {
-                var contents = File.ReadAllText(Svc.PluginInterface.ConfigFile.FullName);
+                var contents = File.ReadAllText(configPath);
                 var json = JObject.Parse(contents);
                 var version = (int?)json["Version"] ?? 0;
                 ConvertConfig(json, version);
@@ -188,7 +205,7 @@ namespace Artisan
             }
             catch (Exception e)
             {
-                Svc.Log.Error($"Failed to load config from {Svc.PluginInterface.ConfigFile.FullName}: {e}");
+                Svc.Log.Error($"Failed to load config from {configPath}: {e}");
                 return fallback;
             }
         }

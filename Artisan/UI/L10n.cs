@@ -1,14 +1,92 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Artisan.UI;
 
 internal static class L10n
 {
+    private static readonly Regex FailedMinQualityPattern = new(@"^Craft completed but didn't meet minimum quality\(P:\s*(?<p>\d+(?:\.\d+)?)%, Q:\s*(?<q>\d+(?:\.\d+)?)%\)\.$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex FailedDurabilityPattern = new(@"^Craft failed due to durability shortage\. \(P:\s*(?<p>\d+(?:\.\d+)?)%, Q:\s*(?<q>\d+(?:\.\d+)?)%\)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex SucceededSomeQualityPattern = new(@"^Craft completed but didn't max out quality \((?<hq>\d+)%\) in (?<s>\d+(?:\.\d+)?)s$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex SynthIsPattern = new(@"^Synth is (?<act>.+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex MacroPattern = new(@"^Macro: (?<name>.+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex ScriptPattern = new(@"^Script: (?<name>.+)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex RaphaelUnsupportedPattern = new(@"^Does not work before unlocking (?<action>.+)\. Please use Standard Recipe Solver$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex MacroFallbackPattern = new(@"^Macro has completed, the fallback solver is not working(?:\s*\((?<unlock>You need to unlock Manipulation)\)\s*)?so you will have to manually finish this$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly IReadOnlyDictionary<string, string> SolverExactZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["opener"] = "起手",
+        ["mume"] = "坚信",
+        ["finish"] = "收尾",
+        ["finish emergency"] = "紧急收尾",
+        ["mid start quality"] = "中期起手",
+        ["mid quality"] = "中期品质",
+        ["mid quality gs-only last chance"] = "中期阔步：最后机会",
+        ["GS Combo"] = "阔步连段",
+        ["Requires Level 90"] = "需要达到 90 级",
+        ["You need to unlock Manipulation"] = "需要先解锁“掌握”",
+        ["You do not meet the minimum stats for this macro"] = "当前属性未达到该宏最低要求",
+        ["Macro has completed. Now continuing with solver."] = "宏已完成，继续由求解器接管。",
+        ["Macro has completed. Please continue to manually craft."] = "宏已完成，请手动继续制作。",
+        ["You have broken gear"] = "装备耐久已损坏",
+        ["No active solver selected."] = "未选择可用求解器。",
+        ["You have mismatched stats"] = "当前属性与制作需求不匹配",
+    };
+
+    private static readonly IReadOnlyDictionary<string, string> SolverTokenZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["emergency cp"] = "制作力告急",
+        ["durability"] = "耐久",
+        ["progress finish vene"] = "进度收尾（崇敬）",
+        ["high-prio progress"] = "优先进度",
+        ["high-prio iq"] = "优先内静",
+        ["high-prio tricks"] = "优先秘诀",
+        ["good omen vene"] = "吉兆→崇敬",
+        ["iq"] = "内静",
+        ["progress"] = "进度",
+        ["no options"] = "无可选动作",
+        ["good omen -> high-prio tricks"] = "吉兆→优先秘诀",
+        ["gs -> prep w/tp"] = "阔步→预备加工（配合专心致志）",
+        ["emergency prep w/tp"] = "紧急预备加工（配合专心致志）",
+        ["tp -> prep"] = "专心致志→预备加工",
+        ["critical dura"] = "耐久告急",
+        ["critical dura & sturdy"] = "耐久告急且结实",
+        ["critical dura & emergency cp"] = "耐久告急且制作力告急",
+        ["utilize good+tp"] = "利用高品质+专心致志",
+        ["utilize good"] = "利用高品质",
+        ["after observe?"] = "观察后衔接？",
+        ["last chance"] = "最后机会",
+        ["gs->inno"] = "阔步→改革",
+        ["gs+inno+good"] = "阔步+改革+高品质",
+        ["good"] = "高品质",
+        ["sturdy"] = "结实",
+        ["good omen tp+prep"] = "吉兆+专心致志+预备加工",
+        ["good omen gs"] = "吉兆阔步",
+        ["prep w/tp"] = "预备加工（配合专心致志）",
+        ["advanced combo"] = "上级加工连段",
+        ["alt"] = "替代方案",
+        ["emergency daring"] = "紧急大胆加工",
+        ["emergency hasty"] = "紧急仓促加工",
+        ["emergency gs+byregot"] = "紧急阔步+比尔格",
+        ["emergency byregot bait good"] = "紧急比尔格（诱导高品质）",
+        ["emergency byregot"] = "紧急比尔格",
+        ["no iq"] = "无内静层数",
+        ["at cap"] = "已达上限",
+        ["no cp/dura"] = "制作力/耐久不足",
+        ["immediate"] = "立即收尾",
+        ["inno->byregot"] = "改革→比尔格",
+        ["gs->byregot"] = "阔步→比尔格",
+        ["gs->inno->byregot"] = "阔步→改革→比尔格",
+        ["not enough"] = "条件不足",
+    };
+
     private static readonly IReadOnlyDictionary<string, string> ZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["Open Config"] = "打开设置",
+        ["Artisan Crafting Window"] = "Artisan 制作窗口",
         ["Overview"] = "总览",
         ["Settings"] = "设置",
         ["Endurance"] = "耐力模式",
@@ -18,6 +96,8 @@ internal static class L10n
         ["Crafting Lists"] = "制作清单",
         ["List Builder"] = "清单构建",
         ["FC Workshops"] = "部队工房",
+        ["Craft Menu"] = "制作菜单",
+        ["Cosmic Craft Menu"] = "宇宙制作菜单",
         ["Simulator"] = "模拟器",
         ["About"] = "关于",
         ["Artisan - Overview"] = "Artisan - 总览",
@@ -42,6 +122,10 @@ internal static class L10n
         ["Default Consumables"] = "默认消耗品",
         ["Macro Settings"] = "宏设置",
         ["Standard Recipe Solver Settings"] = "标准配方求解器设置",
+        ["Standard Recipe Solver"] = "标准求解器",
+        ["Progress Only Solver"] = "仅推进度求解器",
+        ["Raphael Recipe Solver"] = "Raphael 求解器",
+        ["Expert Recipe Solver"] = "专家求解器",
         ["Expert Recipe Solver Settings"] = "专家配方求解器设置",
         ["Raphael Solver Settings"] = "Raphael 求解器设置",
         ["Script Solver Settings (Currently Disabled)"] = "脚本求解器设置（当前禁用）",
@@ -49,7 +133,7 @@ internal static class L10n
         ["List Settings"] = "清单设置",
         ["Ingredient Table Settings"] = "材料表设置",
         ["Simulator Settings"] = "模拟器设置",
-        ["Use Chinese UI (L10n)"] = "启用中文界面（L10n）",
+        ["Use Chinese UI (L10n)"] = "启用中文界面（本地化）",
         ["Disable highlighting box"] = "禁用高亮框",
         ["This is the box that highlights the actions on your hotbars for manual play."] = "这是手动模式下用于高亮你热键栏动作的提示框。",
         ["Disable recommendation toasts"] = "禁用推荐动作提示弹窗",
@@ -86,7 +170,7 @@ internal static class L10n
         ["Default Hide \"Category\" Column"] = "默认隐藏“分类”列",
         ["Default Hide \"Gathered Zone\" Column"] = "默认隐藏“采集地区”列",
         ["Default Hide \"ID\" Column"] = "默认隐藏“ID”列",
-        ["Default \"Only show HQ Crafts\" Enabled"] = "默认启用“仅显示 HQ 制作”",
+        ["Default \"Only show HQ Crafts\" Enabled"] = "默认启用“仅显示高品质制作”",
         ["Default \"Colour Validation\" Enabled"] = "默认启用“颜色校验”",
         ["Fetch Prices from Universalis"] = "从 Universalis 获取价格",
         ["Limit Universalis to current DC"] = "将 Universalis 限制为当前数据中心",
@@ -201,6 +285,8 @@ internal static class L10n
         ["Create Crafting List for this Part"] = "为该部件创建制作清单",
         ["Create Crafting List for this Part (Including pre-crafts)"] = "为该部件创建制作清单（含前置制作）",
         ["Project Phases"] = "项目阶段",
+        ["Part"] = "部件",
+        ["Phase"] = "阶段",
         ["Set Quantity"] = "每套数量",
         ["Sets Required"] = "所需套数",
         ["Create Crafting List for this Phase"] = "为该阶段创建制作清单",
@@ -213,7 +299,8 @@ internal static class L10n
         ["Set delay (ms)"] = "设置延迟（毫秒）",
         ["Disable Endurance"] = "关闭耐力模式",
         ["Trial Craft Repeat"] = "试作重复",
-        ["Using {0}"] = "当前使用 {0}",
+        ["Using {0}"] = "当前使用：{0}",
+        ["({0})"] = "（{0}）",
         [" ({0})"] = "（{0}）",
         ["Remaining Crafts: {0}"] = "剩余制作次数：{0}",
         ["Approximate Remaining Duration: {0}"] = "预计剩余时长：{0}",
@@ -238,7 +325,7 @@ internal static class L10n
         ["Number of Times:"] = "制作次数：",
         ["Use Quick Synthesis where possible"] = "可用时使用快速制作",
         ["Disable Endurance Mode Upon Failed Craft"] = "制作失败时关闭耐力模式",
-        ["Disable Endurance Mode Upon Crafting an NQ item"] = "制作出 NQ 物品时关闭耐力模式",
+        ["Disable Endurance Mode Upon Crafting an NQ item"] = "制作出普通品质物品时关闭耐力模式",
         ["Max Quantity Mode"] = "最大数量模式",
         ["Will set ingredients for you, to maximise the amount of crafts possible."] = "自动设置材料分配，以尽可能提高可制作次数。",
         ["No recipe has been set for Endurance mode. Disabling Endurance mode."] = "耐力模式未设置配方，已自动关闭。",
@@ -265,7 +352,7 @@ internal static class L10n
         ["Collectable Recipe"] = "收藏品配方",
         ["Max Durability"] = "最大耐久",
         ["Level-based Recipes"] = "按等级分组的配方",
-        ["HQable Recipe"] = "可 HQ 配方",
+        ["HQable Recipe"] = "可高品质配方",
         ["Minimum Level"] = "最低等级",
         ["Recipe from a Book"] = "秘籍配方",
         ["Quest Only Recipe"] = "任务配方",
@@ -293,7 +380,7 @@ internal static class L10n
         ["Reorder Mode (Click and Drag to Reorder)"] = "重排模式（拖拽排序）",
         ["Reorder Mode"] = "重排模式",
         ["Macro Editor Select"] = "宏编辑器选择",
-        ["{0} (CP Cost: {1}) (ID: {2})"] = "{0}（CP 消耗：{1}）（ID：{2}）",
+        ["{0} (CP Cost: {1}) (ID: {2})"] = "{0}（制作力消耗：{1}）（ID：{2}）",
         ["Macro Name"] = "宏名称",
         ["{0} has been saved."] = "{0} 已保存。",
         ["Unable to parse clipboard. Please check your clipboard contains a working macro with actions."] = "无法解析剪贴板，请确认其中包含可用的宏动作。",
@@ -359,7 +446,7 @@ internal static class L10n
         ["Please add items to your list to populate the ingredients tab."] = "请先向清单添加物品以填充材料标签页。",
         ["Something went wrong creating the table. Try again?"] = "生成材料表时出错，是否重试？",
         ["Ingredient table is still populating. Please wait."] = "材料表仍在生成中，请稍候。",
-        ["Only show HQ crafts"] = "仅显示 HQ 制作",
+        ["Only show HQ crafts"] = "仅显示高品质制作",
         ["Enable Colour Validation"] = "启用颜色校验",
         ["Export Required Ingredients as Plain Text"] = "导出所需材料为纯文本",
         ["Required items copied to clipboard."] = "所需材料已复制到剪贴板。",
@@ -369,6 +456,8 @@ internal static class L10n
         ["No items remaining to be copied."] = "没有需要复制的剩余材料。",
         ["Hold shift to change from remaining to required."] = "按住 Shift 可从“剩余”切换为“所需”。",
         ["Need Help?"] = "需要帮助？",
+        [" - Inventory has all required items"] = " - 背包中已拥有全部所需材料",
+        [" - Inventory has all required items or is not required due to owning crafted materials using this ingredient"] = " - 背包中已拥有全部所需材料，或因已持有该材料可制作的成品而无需此材料",
         [" - Combination of Retainer & Inventory has all required items"] = " - 雇员与库存合计已满足全部需求",
         [" - Combination of Inventory & Craftable has all required items."] = " - 库存与可制作合计已满足全部需求。",
         ["Close Help"] = "关闭帮助",
@@ -391,11 +480,11 @@ internal static class L10n
         ["Once you're at 100% quality, the macro will skip over all actions relating to quality, including buffs."] = "当质量达到 100% 后，宏将跳过所有与品质相关的动作（包括增益）。",
         ["Skip Observes If Not Poor"] = "非 Poor 状态时跳过观察",
         ["Upgrade Quality Actions"] = "升级品质动作",
-        ["If you get a Good or Excellent condition and your macro is on a step that increases quality (not including Byregot's Blessing) then it will upgrade the action to Precise Touch."] = "当状态为 Good 或 Excellent 且当前步骤是提升品质的动作（不含 Byregot's Blessing）时，会升级为 Precise Touch。",
+        ["If you get a Good or Excellent condition and your macro is on a step that increases quality (not including Byregot's Blessing) then it will upgrade the action to Precise Touch."] = "当状态为高品质或最高品质，且当前步骤是提升品质的动作（不含比尔格的祝福）时，会升级为精确加工。",
         ["Upgrade Progress Actions"] = "升级进度动作",
         ["If you get a Good or Excellent condition and your macro is on a step that increases progress then it will upgrade the action to Intensive Synthesis."] = "当状态为 Good 或 Excellent 且当前步骤是提升进度的动作时，会升级为 Intensive Synthesis。",
-        ["Minimum CP"] = "最低 CP",
-        ["Artisan will not start crafting if you do not meet this minimum CP with this macro selected."] = "若未达到该宏的最低 CP 要求，Artisan 将不会开始制作。",
+        ["Minimum CP"] = "最低制作力",
+        ["Artisan will not start crafting if you do not meet this minimum CP with this macro selected."] = "若未达到该宏的最低制作力要求，Artisan 将不会开始制作。",
         ["Minimum Craftsmanship"] = "最低作业精度",
         ["Artisan will not start crafting if you do not meet this minimum craftsmanship with this macro selected."] = "若未达到该宏要求的最低作业精度，Artisan 将不会开始制作。",
         ["Minimum Control"] = "最低加工精度",
@@ -440,16 +529,16 @@ internal static class L10n
         ["Normal Macro: {0} seconds"] = "普通宏：{0} 秒",
         ["Endurance Mode Toggle"] = "耐力模式开关",
         ["Missing Ingredients:\r\n- {0}"] = "缺少材料：\r\n- {0}",
-        ["Use Material Miracle"] = "使用 Material Miracle",
-        ["Minimum steps to execute before trying Material Miracle"] = "尝试 Material Miracle 前最少执行步数",
-        ["Use multiple material miracles"] = "使用多个 Material Miracle",
+        ["Use Material Miracle"] = "使用材料奇迹",
+        ["Minimum steps to execute before trying Material Miracle"] = "尝试材料奇迹前最少执行步数",
+        ["Use multiple material miracles"] = "使用多个材料奇迹",
         [" Warning: Detected Materia difference. Please update gearset"] = " 警告：检测到魔晶石与装备集不一致，请更新装备集",
         ["Simulator Select"] = "模拟器选择",
         ["GUI Sim"] = "图形模拟",
         ["Mass Sim Mode"] = "批量模拟模式",
         ["Preconfigured Mode"] = "预设模式",
         ["Manual Mode"] = "手动模式",
-        ["In this simulator, you can test out different solvers against recipes and analyze how well they perform. You can set your HQ ingredient layouts, set consumables and even which gearset to use. The simulator can be configured to randomize conditions or use \"Normal\" condition only, so actual execution mileage may vary."] = "在此模拟器中，你可以测试不同求解器在各配方上的表现。你可以设置 HQ 材料布局、消耗品，甚至指定使用的装备集。模拟器可配置为随机状态或仅使用“普通”状态，因此实际执行结果可能会有差异。",
+        ["In this simulator, you can test out different solvers against recipes and analyze how well they perform. You can set your HQ ingredient layouts, set consumables and even which gearset to use. The simulator can be configured to randomize conditions or use \"Normal\" condition only, so actual execution mileage may vary."] = "在此模拟器中，你可以测试不同求解器在各配方上的表现。你可以设置高品质材料布局、消耗品，甚至指定使用的装备集。模拟器可配置为随机状态或仅使用“普通”状态，因此实际执行结果可能会有差异。",
         ["Please have a gearset selected from above to use this feature."] = "请先在上方选择一个装备集后再使用此功能。",
         ["Export As Macro"] = "导出为宏",
         ["Please provide a name for the macro"] = "请先为宏填写名称",
@@ -471,8 +560,20 @@ internal static class L10n
         ["Cancel Raphael Generation"] = "取消 Raphael 生成",
         ["Run Simulated Solver"] = "运行模拟求解",
         ["Assume Normal Condition only"] = "仅按普通状态模拟",
+        ["No valid solver found."] = "未找到可用求解器。",
+        ["Craft did not finish (solver failed to return any more steps before finishing)."] = "制作未完成（求解器在完成前未返回更多步骤）。",
+        ["Craft failed due to durability shortage. (P: {0:f0}%, Q: {1:f0}%)"] = "制作失败：耐久不足。（进展：{0:f0}%，品质：{1:f0}%）",
+        ["Craft completed but didn't meet minimum quality(P: {0:f0}%, Q: {1:f0}%)."] = "制作完成，但未达到最低品质要求（进展：{0:f0}%，品质：{1:f0}%）。",
+        ["Craft completed and managed to hit 1st quality threshold in {0:f0}s."] = "制作完成，并在 {0:f0} 秒达到第 1 档品质门槛。",
+        ["Craft completed and managed to hit 2nd quality threshold in {0:f0}s."] = "制作完成，并在 {0:f0} 秒达到第 2 档品质门槛。",
+        ["Craft completed and managed to hit 3rd quality threshold in {0:f0}s!"] = "制作完成，并在 {0:f0} 秒达到第 3 档品质门槛！",
+        ["Craft completed with full quality in {0:f0}s!"] = "制作完成，并在 {0:f0} 秒达成满品质！",
+        ["Craft completed but didn't max out quality ({0}%) in {1:f0}s"] = "制作完成，但未达到满品质（{0}%），耗时 {1:f0} 秒。",
+        ["Craft completed, no quality required in {0:f0}s!"] = "制作完成（无品质要求），耗时 {0:f0} 秒！",
+        ["Craft completed and minimum quality required met in {0:f0}s!"] = "制作完成，并满足最低品质要求，耗时 {0:f0} 秒！",
+        ["You shouldn't be able to see this. Report it please."] = "你不应看到这条信息，请反馈该问题。",
         ["Simulator Result - {0}"] = "模拟结果 - {0}",
-        ["Quality (IQ: {0})"] = "品质（IQ：{0}）",
+        ["Quality (IQ: {0})"] = "品质（内静层数：{0}）",
         ["Progress"] = "进度",
         ["Durability"] = "耐久",
         ["Select Solver"] = "选择求解器",
@@ -481,7 +582,7 @@ internal static class L10n
         ["Crafter Stats"] = "制作属性",
         ["Craftsmanship: {0} ({1} + {2})"] = "作业精度：{0}（{1} + {2}）",
         ["Control: {0} ({1} + {2})"] = "加工精度：{0}（{1} + {2}）",
-        ["CP: {0} ({1} + {2})"] = "CP：{0}（{1} + {2}）",
+        ["CP: {0} ({1} + {2})"] = "制作力：{0}（{1} + {2}）",
         ["Splendorous/Cosmic Tool: {0}"] = "天工/宇宙工具：{0}",
         ["Specialist: {0}"] = "专精：{0}",
         ["Manipulation Unlocked: {0}"] = "掌握俭约加工：{0}",
@@ -493,11 +594,11 @@ internal static class L10n
         ["Level:"] = "等级：",
         ["Craftsmanship:"] = "作业精度：",
         ["Control:"] = "加工精度：",
-        ["CP:"] = "CP：",
+        ["CP:"] = "制作力：",
         ["Splendorous/Cosmic:"] = "天工/宇宙：",
         ["Specialist:"] = "专精：",
         ["Manipulation Unlocked:"] = "掌握俭约加工：",
-        ["Starting Quality: {0} / {1} ({2}% HQ chance, {3}% quality)"] = "起始品质：{0} / {1}（HQ概率 {2}%，品质 {3}%）",
+        ["Starting Quality: {0} / {1} ({2}% HQ chance, {3}% quality)"] = "起始品质：{0} / {1}（高品质概率 {2}%，品质 {3}%）",
         ["Master Recipe"] = "秘传配方",
         ["Normal Recipe"] = "普通配方",
         ["Ingredient Layouts"] = "材料布局",
@@ -511,6 +612,16 @@ internal static class L10n
         ["Num iterations"] = "迭代次数",
         ["Please wait..."] = "请稍候...",
         ["Run!"] = "开始运行！",
+        ["Craft in progress"] = "制作进行中",
+        ["Craft failed due to durability"] = "制作失败：耐久不足",
+        ["Craft failed due to minimum quality not being met"] = "制作失败：未达到最低品质要求",
+        ["Craft has completed 1st quality breakpoint"] = "制作完成：达到第 1 档品质门槛",
+        ["Craft has completed 2nd quality breakpoint"] = "制作完成：达到第 2 档品质门槛",
+        ["Craft has completed 3rd quality breakpoint"] = "制作完成：达到第 3 档品质门槛",
+        ["Craft has completed with max quality"] = "制作完成：满品质",
+        ["Craft has completed without max quality"] = "制作完成：未满品质",
+        ["Craft has completed, no quality required"] = "制作完成：无品质要求",
+        ["Craft has completed, quality required met"] = "制作完成：满足品质要求",
         ["Execution errors"] = "执行错误",
         ["Fails (durability)"] = "失败（耐久耗尽）",
         ["Fails (quality)"] = "失败（品质不足）",
@@ -544,12 +655,13 @@ internal static class L10n
         [" and retainer"] = " 与雇员",
         ["[Recipe Amount Result] x [Number of Crafts] is less than [Inventory Amount].\n\n"] = "[配方单次产出] x [制作次数] 小于 [库存数量]。\n\n",
         ["Assume Max Starting Quality (for simulator)"] = "假定起始品质最大（用于模拟器）",
+        ["Simulated Starting Quality"] = "模拟起始品质",
         ["Clicking and dragging on the space on the headers between columns (as shown by it lighting up) allows you to re-order the columns."] = "在表头列与列之间的空隙（高亮处）点击并拖拽，可重新排列列顺序。",
         ["Difficulty: {0} | Durability: {1} | Quality: {2}"] = "难度：{0} | 耐久：{1} | 品质：{2}",
         ["Don't see any items? Check the table headers for a red heading. This indicates this column is being filtered on. Right clicking the header will clear the filter."] = "看不到任何项目？请检查表头是否有红色标题。这表示该列正在被筛选。右键该表头可清除筛选。",
         ["Finally, this is sorted by the in-game difficulty of the crafts, hopefully grouping together similar crafts."] = "最后还会按游戏内制作难度排序，尽量将相似制作集中在一起。",
         ["For example: {0} requires {1}, which in turn requires {2}, giving this recipe a depth of 3 if all these items are on the list.\n"] = "例如：{0} 需要 {1}，而 {1} 又需要 {2}；若这些都在清单中，则该配方深度为 3。\n",
-        ["For ingredients that can be crafted, this will only show inventory{0} counts that are HQ."] = "对于可制作材料，此选项仅显示库存{0}中的 HQ 数量。",
+        ["For ingredients that can be crafted, this will only show inventory{0} counts that are HQ."] = "对于可制作材料，此选项仅显示库存{0}中的高品质数量。",
         ["Items that do not have other recipe dependencies have a depth of 1, so go to the top of the list, e.g {0}\n\n"] = "没有其他配方依赖的项目深度为 1，因此会排在清单顶部，例如 {0}\n\n",
         ["Permanently delete this crafting list.\r\nHold Ctrl + Click.\r\nThis cannot be undone."] = "永久删除该制作清单。\r\n按住 Ctrl 并点击。\r\n此操作无法撤销。",
         ["Please run this recipe in the simulator for results."] = "请在模拟器中运行该配方以查看结果。",
@@ -562,8 +674,8 @@ internal static class L10n
         ["This tab will allow you to view macros in the Raphael integration cache."] = "此页可查看 Raphael 集成缓存中的宏。",
         ["Old Cache (not in use)"] = "旧缓存（已不使用）",
         ["New Cache"] = "新缓存",
-        ["Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type/Initial Quality"] = "等级/进度/品质/耐久-作业精度/加工精度/CP-类型/初始品质",
-        ["Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type"] = "等级/进度/品质/耐久-作业精度/加工精度/CP-类型",
+        ["Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type/Initial Quality"] = "等级/进度/品质/耐久-作业精度/加工精度/制作力-类型/初始品质",
+        ["Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type"] = "等级/进度/品质/耐久-作业精度/加工精度/制作力-类型",
         ["Clear This Raphael Cache (Hold Ctrl)"] = "清空该 Raphael 缓存（按住 Ctrl）",
         ["ID"] = "ID",
         ["Item Name"] = "物品名称",
@@ -613,11 +725,11 @@ internal static class L10n
         ["Right click to skip this recipe."] = "右键以跳过该配方。",
         ["You will not use consumables on crafts below this level for each of the following jobs:\n\n"] = "以下职业在低于对应等级的制作中将不会使用消耗品：\n\n",
         ["Set this to {0} to disable.\r\n{1}"] = "将该值设为 {0} 可禁用。\r\n{1}",
-        ["Will only use {0} up to the number of {1} stacks. This is useful to tweak conservation of CP."] = "{0} 最多只会使用到 {1} 层。此项可用于微调 CP 保留。",
-        ["Use Material Miracle when available"] = "可用时使用 Material Miracle",
+        ["Will only use {0} up to the number of {1} stacks. This is useful to tweak conservation of CP."] = "{0} 最多只会使用到 {1} 层。此项可用于微调制作力保留。",
+        ["Use Material Miracle when available"] = "可用时使用材料奇迹",
         ["This will switch the Standard Recipe Solver over to the Expert Solver for the duration of the buff. This will not give you proper simulator results as it's a timed buff, not a permanent one with stacks, so we can't really simulate it properly."] = "该选项会在增益持续期间把标准求解器切换为专家求解器。由于这是计时增益而非可叠加的常驻效果，模拟器结果可能不够准确。",
-        ["CP"] = "CP",
-        ["CP: {0} / {1} ({2}%)"] = "CP：{0} / {1}（{2}%）",
+        ["CP"] = "制作力",
+        ["CP: {0} / {1} ({2}%)"] = "制作力：{0} / {1}（{2}%）",
         ["Recipe Options"] = "配方选项",
         ["Open Recipe Log"] = "打开配方日志",
         ["Artisan Crafting List"] = "Artisan 制作清单",
@@ -634,7 +746,7 @@ internal static class L10n
         ["You do not have enough {0} for this solver ({1} required)."] = "该求解器所需 {0} 不足（需要 {1}）。",
         ["An alternative solution will be used/generated when you start crafting."] = "开始制作后将使用/生成替代方案。",
         ["Consumables will not be used due to level difference setting."] = "由于等级差设置，消耗品将不会使用。",
-        ["This would use Material Miracle, which is not compatible with the simulator."] = "此方案会使用 Material Miracle，与模拟器不兼容。",
+        ["This would use Material Miracle, which is not compatible with the simulator."] = "此方案会使用材料奇迹，与模拟器不兼容。",
         ["Unable to generate a simulator without a Raphael solution generated."] = "未生成 Raphael 解时无法生成模拟结果。",
         ["Click to open in simulator"] = "点击在模拟器中打开",
         ["Requirements:"] = "需求：",
@@ -690,6 +802,9 @@ internal static class L10n
         ["Recompile: {0}"] = "重新编译：{0}",
         ["Compilation output:\n{0}"] = "编译输出：\n{0}",
         ["Delete"] = "删除",
+        ["DebugRecipeConfigs"] = "调试配方配置",
+        ["Craft X IPC"] = "Craft X 接口",
+        ["Pandora IPC"] = "Pandora 接口",
         ["New script path"] = "新脚本路径",
         ["Add"] = "添加",
         ["Deletion in progress"] = "正在删除",
@@ -697,8 +812,8 @@ internal static class L10n
         ["These 2 options allow you to make {0} a priority when condition is {1} or {2}.\n\nThis will replace {3} & {4} usage.\n\n{0} will still be used before learning these or under certain circumstances regardless of settings."] = "这两个选项会让 {0} 在状态为 {1} 或 {2} 时优先使用。\n\n启用后会替代 {3} 与 {4} 的使用。\n\n在未学会这些动作前或某些特定情况下，{0} 仍会照常使用。",
         ["Use Quality Starter ({0})"] = "使用品质起手（{0}）",
         ["{0} - Max {1} stacks"] = "{0} - 最多 {1} 层",
-        ["NQ"] = "NQ",
-        ["HQ"] = "HQ",
+        ["NQ"] = "普通品质",
+        ["HQ"] = "高品质",
         ["Yes"] = "是",
         ["No"] = "否",
         ["Close"] = "关闭",
@@ -709,8 +824,86 @@ internal static class L10n
         if (!UseChineseUi())
             return key;
 
-        return ZhCn.TryGetValue(key, out var value) ? value : key;
+        if (ZhCn.TryGetValue(key, out var value))
+            return value;
+
+        var solverComment = TranslateSolverComment(key);
+        if (solverComment != key)
+            return solverComment;
+
+        var failedMinQuality = FailedMinQualityPattern.Match(key);
+        if (failedMinQuality.Success)
+            return $"制作完成，但未达到最低品质要求（进展：{failedMinQuality.Groups["p"].Value}%，品质：{failedMinQuality.Groups["q"].Value}%）。";
+
+        var failedDurability = FailedDurabilityPattern.Match(key);
+        if (failedDurability.Success)
+            return $"制作失败：耐久不足。（进展：{failedDurability.Groups["p"].Value}%，品质：{failedDurability.Groups["q"].Value}%）";
+
+        var succeededSomeQuality = SucceededSomeQualityPattern.Match(key);
+        if (succeededSomeQuality.Success)
+            return $"制作完成，但未达到满品质（{succeededSomeQuality.Groups["hq"].Value}%），耗时 {succeededSomeQuality.Groups["s"].Value} 秒。";
+
+        return key;
     }
+
+    private static string TranslateSolverComment(string key)
+    {
+        if (SolverExactZhCn.TryGetValue(key, out var exact))
+            return exact;
+
+        if (TryTranslatePrefixed(key, "mid pre quality: ", "中前：", out var prefixed))
+            return prefixed;
+        if (TryTranslatePrefixed(key, "mid start quality: ", "中起：", out prefixed))
+            return prefixed;
+        if (TryTranslatePrefixed(key, "mid quality gs-only: ", "中期阔步：", out prefixed))
+            return prefixed;
+        if (TryTranslatePrefixed(key, "mid quality: ", "中期：", out prefixed))
+            return prefixed;
+        if (TryTranslatePrefixed(key, "mid: ", "中段：", out prefixed))
+            return prefixed;
+        if (TryTranslatePrefixed(key, "fq: ", "终结：", out prefixed))
+            return prefixed;
+
+        var synthIs = SynthIsPattern.Match(key);
+        if (synthIs.Success)
+            return $"合成动作：{synthIs.Groups["act"].Value}";
+
+        var macro = MacroPattern.Match(key);
+        if (macro.Success)
+            return $"宏：{macro.Groups["name"].Value}";
+
+        var script = ScriptPattern.Match(key);
+        if (script.Success)
+            return $"脚本：{script.Groups["name"].Value}";
+
+        var raphaelUnsupported = RaphaelUnsupportedPattern.Match(key);
+        if (raphaelUnsupported.Success)
+            return $"在解锁 {raphaelUnsupported.Groups["action"].Value} 前不可用，请改用标准配方求解器。";
+
+        var macroFallback = MacroFallbackPattern.Match(key);
+        if (macroFallback.Success)
+        {
+            var unlockText = macroFallback.Groups["unlock"].Success ? "（需要先解锁“掌握”）" : string.Empty;
+            return $"宏已完成，但后备求解器不可用{unlockText}，请手动完成制作。";
+        }
+
+        return key;
+    }
+
+    private static bool TryTranslatePrefixed(string key, string prefix, string zhPrefix, out string translated)
+    {
+        if (key.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            translated = zhPrefix + TranslateSolverToken(key[prefix.Length..]);
+            return true;
+        }
+
+        translated = key;
+        return false;
+    }
+
+    private static string TranslateSolverToken(string token)
+        => SolverTokenZhCn.TryGetValue(token, out var value) ? value : token;
 
     internal static string Tr(string key, params object[] args)
         => string.Format(CultureInfo.CurrentCulture, Tr(key), args);

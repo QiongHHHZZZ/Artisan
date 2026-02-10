@@ -281,19 +281,19 @@ public class RecipeConfig
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
 
-        if (ImGui.BeginCombo("##solver", solver.Name))
+        if (ImGui.BeginCombo("##solver", T(solver.Name)))
         {
             foreach (var opt in CraftingProcessor.GetAvailableSolversForRecipe(craft, true).OrderByDescending(x => x.Priority))
             {
                 if (opt == default) continue;
                 if (opt.UnsupportedReason.Length > 0)
                 {
-                    ImGui.Text(T("{0} is unsupported - {1}", opt.Name, opt.UnsupportedReason));
+                    ImGui.Text(T("{0} is unsupported - {1}", T(opt.Name), T(opt.UnsupportedReason)));
                 }
                 else
                 {
                     bool selected = opt.Name == solver.Name;
-                    if (ImGui.Selectable(opt.Name, selected))
+                    if (ImGui.Selectable(T(opt.Name), selected))
                     {
                         IPC.IPC.SetTempSolverBackToNormal(craft.RecipeId);
                         SolverType = opt.Def.GetType().FullName!;

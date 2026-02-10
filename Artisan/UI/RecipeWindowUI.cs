@@ -26,6 +26,9 @@ namespace Artisan
 {
     internal class RecipeWindowUI : Window
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         private static string search = string.Empty;
         private static bool searched = false;
         private static WindowSystem _windowSystem;
@@ -121,7 +124,7 @@ namespace Artisan
                 var scale = AtkResNodeFunctions.GetNodeScale(node);
                 var size = new Vector2(node->Width, node->Height) * scale;
                 //position += ImGuiHelpers.MainViewport.Pos;
-                ImGui.CalcTextSize("Craft X Times:");
+                ImGui.CalcTextSize(T("Craft X Times:"));
                 var craftableCount = addonPtr->UldManager.NodeList[24]->GetAsAtkTextNode()->NodeText.ToString() == "" ? 0 : Convert.ToInt32(addonPtr->UldManager.NodeList[24]->GetAsAtkTextNode()->NodeText.ToString().GetNumbers());
 
                 if (craftableCount == 0) return;
@@ -199,7 +202,7 @@ namespace Artisan
 
                 if (P.Config.ReplaceSearch)
                 {
-                    searchLabel->GetAsAtkTextNode()->SetText("Artisan Search");
+                    searchLabel->GetAsAtkTextNode()->SetText(T("Artisan Search"));
                 }
                 else
                 {
@@ -295,7 +298,7 @@ namespace Artisan
                     var position = AtkResNodeFunctions.GetNodePosition(node);
                     var scale = AtkResNodeFunctions.GetNodeScale(node);
                     var size = new Vector2(node->Width, node->Height) * scale;
-                    var textSize = ImGui.CalcTextSize("Create Crafting List");
+                    var textSize = ImGui.CalcTextSize(T("Create Crafting List"));
 
                     ImGuiHelpers.ForceNextWindowMainViewport();
                     ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(position.X, position.Y + (textSize.Y * scale.Y) + (14f * scale.Y)));
@@ -312,14 +315,14 @@ namespace Artisan
 
                     if (ImGui.GetIO().KeyShift)
                     {
-                        if (ImGui.Button($"Create Crafting List (Star only)", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List (Star only)"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCListAgent(atkUnitBase, false, true);
                             P.PluginUi.IsOpen = true;
                             P.PluginUi.OpenWindow = OpenWindow.Lists;
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button($"Create Crafting List (with subcrafts) (Star only)", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List (with subcrafts) (Star only)"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCListAgent(atkUnitBase, true, true);
                             P.PluginUi.IsOpen = true;
@@ -328,14 +331,14 @@ namespace Artisan
                     }
                     else
                     {
-                        if (ImGui.Button($"Create Crafting List", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCListAgent(atkUnitBase, false, false);
                             P.PluginUi.IsOpen = true;
                             P.PluginUi.OpenWindow = OpenWindow.Lists;
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button($"Create Crafting List (with subcrafts)", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List (with subcrafts)"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCListAgent(atkUnitBase, true, false);
                             P.PluginUi.IsOpen = true;
@@ -384,7 +387,7 @@ namespace Artisan
                     var scale = AtkResNodeFunctions.GetNodeScale(node);
                     var size = new Vector2(node->Width, node->Height) * scale;
 
-                    var textSize = ImGui.CalcTextSize("Create Crafting List");
+                    var textSize = ImGui.CalcTextSize(T("Create Crafting List"));
 
                     ImGuiHelpers.ForceNextWindowMainViewport();
                     ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(position.X, position.Y - (textSize.Y * scale.Y) - (5f * scale.Y)));
@@ -401,7 +404,7 @@ namespace Artisan
 
                     if (ImGui.GetIO().KeyShift)
                     {
-                        if (ImGui.Button($"Create Crafting List (Star only)", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List (Star only)"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCList(atkUnitBase, false, true);
                             P.PluginUi.IsOpen = true;
@@ -413,7 +416,7 @@ namespace Artisan
                         ImGui.GetIO().FontGlobalScale = 0.80f * scale.X;
                         using (ImRaii.PushFont(ImGui.GetFont()))
                         {
-                            if (ImGui.Button($"Create Crafting List (with subcrafts) (Star only)", new Vector2(size.X / 2, s.Y)))
+                            if (ImGui.Button(T("Create Crafting List (with subcrafts) (Star only)"), new Vector2(size.X / 2, s.Y)))
                             {
                                 CreateGCList(atkUnitBase, true, true);
                                 P.PluginUi.IsOpen = true;
@@ -424,14 +427,14 @@ namespace Artisan
                     }
                     else
                     {
-                        if (ImGui.Button($"Create Crafting List", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCList(atkUnitBase, false, false);
                             P.PluginUi.IsOpen = true;
                             P.PluginUi.OpenWindow = OpenWindow.Lists;
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button($"Create Crafting List (with subcrafts)", new Vector2(size.X / 2, 0)))
+                        if (ImGui.Button(T("Create Crafting List (with subcrafts)"), new Vector2(size.X / 2, 0)))
                         {
                             CreateGCList(atkUnitBase, true, false);
                             P.PluginUi.IsOpen = true;
@@ -455,7 +458,7 @@ namespace Artisan
         private static unsafe void CreateGCListAgent(AtkUnitBase* atkUnitBase, bool withSubcrafts, bool boostedCraftsOnly)
         {
             NewCraftingList craftingList = new NewCraftingList();
-            craftingList.Name = $"GC Supply List ({DateTime.Now.ToShortDateString()})";
+            craftingList.Name = T("GC Supply List ({0})", DateTime.Now.ToShortDateString());
 
             for (int i = 425; i <= 432; i++)
             {
@@ -492,7 +495,7 @@ namespace Artisan
             craftingList.SetID();
             craftingList.Save(true);
 
-            Notify.Success("Crafting List Created");
+            Notify.Success(T("Crafting List Created"));
         }
 
         private static uint TextureIdToJob(int textureId)
@@ -514,7 +517,7 @@ namespace Artisan
         private static unsafe void CreateGCList(AtkUnitBase* atkUnitBase, bool withSubcrafts, bool boostedCraftOnly)
         {
             NewCraftingList craftingList = new NewCraftingList();
-            craftingList.Name = $"GC Supply List ({DateTime.Now.ToShortDateString()})";
+            craftingList.Name = T("GC Supply List ({0})", DateTime.Now.ToShortDateString());
 
             for (int i = 233; i <= 240; i++)
             {
@@ -550,7 +553,7 @@ namespace Artisan
             craftingList.SetID();
             craftingList.Save(true);
 
-            Notify.Success("Crafting List Created");
+            Notify.Success(T("Crafting List Created"));
         }
 
         private unsafe void DrawWorkshopOverlay()
@@ -576,7 +579,7 @@ namespace Artisan
                 var position = AtkResNodeFunctions.GetNodePosition(node);
                 var scale = AtkResNodeFunctions.GetNodeScale(node);
                 var size = new Vector2(node->Width, node->Height) * scale;
-                var textSize = ImGui.CalcTextSize("Create crafting list for this phase");
+                var textSize = ImGui.CalcTextSize(T("Create crafting list for this phase"));
 
                 ImGuiHelpers.ForceNextWindowMainViewport();
                 ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(position.X + (4f * scale.X), position.Y + size.Y - textSize.Y - (34f * scale.Y)));
@@ -603,7 +606,7 @@ namespace Artisan
                     phaseProgress = addonPtr->GetTextNodeById(16);//->UldManager.NodeList[26]->GetAsAtkTextNode();
                     currentPartNode = addonPtr->GetTextNodeById(13);//UldManager.NodeList[28]->GetAsAtkTextNode();
                 }
-                if (ImGui.Button("Create crafting list for this phase"))
+                if (ImGui.Button(T("Create crafting list for this phase")))
                 {
                     getNodes(out AtkTextNode* itemNameNode1, out AtkTextNode* itemNameNode2, out AtkTextNode* phaseProgress, out AtkTextNode* currentPartNode);
                     var i1 = itemNameNode1->NodeText.GetText();
@@ -619,7 +622,7 @@ namespace Artisan
                             var phase = part.CompanyCraftProcess[phaseNum - 1];
 
                             FCWorkshopUI.CreatePhaseList(phase.Value!, part.CompanyCraftType.Value.Name.GetText(), phaseNum, false, null, project);
-                            Notify.Success("FC Workshop List Created");
+                            Notify.Success(T("FC Workshop List Created"));
                         }
                         else
                         {
@@ -631,13 +634,13 @@ namespace Artisan
                                 var phase = part.CompanyCraftProcess[phaseNum - 1];
 
                                 FCWorkshopUI.CreatePhaseList(phase.Value!, part.CompanyCraftType.Value.Name.GetText(), phaseNum, false, null, project);
-                                Notify.Success("FC Workshop List Created");
+                                Notify.Success(T("FC Workshop List Created"));
                             }
                         }
                     }
                 }
 
-                if (ImGui.Button("Create crafting list for this phase (including precrafts)"))
+                if (ImGui.Button(T("Create crafting list for this phase (including precrafts)")))
                 {
                     getNodes(out AtkTextNode* itemNameNode1, out AtkTextNode* itemNameNode2, out AtkTextNode* phaseProgress, out AtkTextNode* currentPartNode);
                     var i1 = itemNameNode1->NodeText.GetText();
@@ -653,7 +656,7 @@ namespace Artisan
                             var phase = part.CompanyCraftProcess[phaseNum - 1];
 
                             FCWorkshopUI.CreatePhaseList(phase.Value!, part.CompanyCraftType.Value.Name.GetText(), phaseNum, true, null, project);
-                            Notify.Success("FC Workshop List Created");
+                            Notify.Success(T("FC Workshop List Created"));
                         }
                         else
                         {
@@ -665,7 +668,7 @@ namespace Artisan
                                 var phase = part.CompanyCraftProcess[phaseNum - 1];
 
                                 FCWorkshopUI.CreatePhaseList(phase.Value!, part.CompanyCraftType.Value.Name.GetText(), phaseNum, true, null, project);
-                                Notify.Success("FC Workshop List Created");
+                                Notify.Success(T("FC Workshop List Created"));
                             }
                         }
                     }
@@ -829,7 +832,7 @@ namespace Artisan
                 var scale = AtkResNodeFunctions.GetNodeScale(node);
                 var size = new Vector2(node->Width, node->Height) * scale;
                 //position += ImGuiHelpers.MainViewport.Pos;
-                ImGui.CalcTextSize("Craft X Times:");
+                ImGui.CalcTextSize(T("Craft X Times:"));
                 var text = addonPtr->GetTextNodeById(78)->NodeText.ToString();
                 var craftableCount = text == "" ? 0 : Convert.ToInt32(text.GetNumbers());
 
@@ -862,7 +865,7 @@ namespace Artisan
             using (ImRaii.PushFont(ImGui.GetFont()))
             {
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text("Craft X Times:");
+                ImGui.Text(T("Craft X Times:"));
                 ImGui.SameLine();
                 ImGui.PushItemWidth(110f * scale.X);
                 if (ImGui.InputInt($"###TimesRepeat{node->NodeId}", ref P.Config.CraftX, step: 1, stepFast: 1))
@@ -877,7 +880,7 @@ namespace Artisan
                 ImGui.SameLine();
                 if (P.Config.CraftX > 0)
                 {
-                    if (ImGui.Button($"Craft {P.Config.CraftX}"))
+                    if (ImGui.Button(T("Craft {0}", P.Config.CraftX)))
                     {
                         P.Config.CraftingX = true;
                         Endurance.ToggleEndurance(true);
@@ -885,7 +888,7 @@ namespace Artisan
                 }
                 else
                 {
-                    if (ImGui.Button($"Craft All ({craftableCount})"))
+                    if (ImGui.Button(T("Craft All ({0})", craftableCount)))
                     {
                         P.Config.CraftX = craftableCount;
                         P.Config.CraftingX = true;

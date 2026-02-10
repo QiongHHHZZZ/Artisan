@@ -9,36 +9,39 @@ namespace Artisan.UI
 {
     internal static class RaphaelCacheUI
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         private static string _search = string.Empty;
         private static bool _oldVersion = false;
         internal static void Draw()
         {
             try
             {
-                ImGui.TextWrapped("This tab will allow you to view macros in the Raphael integration cache.");
+                ImGui.TextWrapped(T("This tab will allow you to view macros in the Raphael integration cache."));
                 ImGui.Separator();
 
                 if (Svc.ClientState.IsLoggedIn && Crafting.CurState is not Crafting.State.IdleNormal and not Crafting.State.IdleBetween)
                 {
-                    ImGui.Text($"Crafting in progress. Macro settings will be unavailable until you stop crafting.");
+                    ImGui.Text(T("Crafting in progress. Macro settings will be unavailable until you stop crafting."));
                     return;
                 }
                 ImGui.Spacing();
 
-                if (ImGui.RadioButton("Old Cache (not in use)", _oldVersion))
+                if (ImGui.RadioButton(T("Old Cache (not in use)"), _oldVersion))
                     _oldVersion = true;
                 ImGui.SameLine();
-                if (ImGui.RadioButton("New Cache", !_oldVersion))
+                if (ImGui.RadioButton(T("New Cache"), !_oldVersion))
                     _oldVersion = false;
 
-                ImGui.InputText($"Search", ref _search, 300);
+                ImGui.InputText(T("Search"), ref _search, 300);
 
                 if (!_oldVersion)
                 {
 
                     if (ImGui.BeginChild("##selector", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - 32f.Scale()), true))
                     {
-                        ImGuiEx.TextUnderlined($"Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type/Initial Quality");
+                        ImGuiEx.TextUnderlined(T("Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type/Initial Quality"));
                         foreach (var key in P.Config.RaphaelSolverCacheV5.Keys)
                         {
                             var m = P.Config.RaphaelSolverCacheV5[key];
@@ -60,7 +63,7 @@ namespace Artisan.UI
 
                     if (ImGui.BeginChild("##selector", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - 32f.Scale()), true))
                     {
-                        ImGuiEx.TextUnderlined($"Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type");
+                        ImGuiEx.TextUnderlined(T("Level/Progress/Quality/Durability-Craftsmanship/Control/CP-Type"));
                         foreach (var key in P.Config.RaphaelSolverCacheV4.Keys)
                         {
                             var m = P.Config.RaphaelSolverCacheV4[key];
@@ -78,7 +81,7 @@ namespace Artisan.UI
 
                 }
 
-                if (ImGui.Button("Clear This Raphael Cache (Hold Ctrl)", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y)) && ImGui.GetIO().KeyCtrl)
+                if (ImGui.Button(T("Clear This Raphael Cache (Hold Ctrl)"), new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y)) && ImGui.GetIO().KeyCtrl)
                 {
                     if (_oldVersion)
                         P.Config.RaphaelSolverCacheV4.Clear();

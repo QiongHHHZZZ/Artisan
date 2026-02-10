@@ -43,7 +43,7 @@ public static class Simulator
 
     public static string ToOutputString(this CraftStatus status)
     {
-        return status.GetAttribute<DescriptionAttribute>().Description;
+        return UI.L10n.Tr(status.GetAttribute<DescriptionAttribute>().Description);
     }
 
     public enum ExecuteResult
@@ -121,7 +121,7 @@ public static class Simulator
     {
         hintColor = ImGuiColors.DalamudWhite;
         var solver = CraftingProcessor.GetSolverForRecipe(config, craft).CreateSolver(craft);
-        if (solver == null) return "No valid solver found.";
+        if (solver == null) return UI.L10n.Tr("No valid solver found.");
         var startingQuality = GetStartingQuality(recipe, assumeMaxStartingQuality, craft.StatLevel);
         var time = SolverUtils.EstimateCraftTime(solver, craft, startingQuality);
         var result = SolverUtils.SimulateSolverExecution(solver, craft, startingQuality);
@@ -130,18 +130,18 @@ public static class Simulator
 
         string solverHint = status switch
         {
-            CraftStatus.InProgress => "Craft did not finish (solver failed to return any more steps before finishing).",
-            CraftStatus.FailedDurability => $"Craft failed due to durability shortage. (P: {(float)result.Progress / craft.CraftProgress * 100:f0}%, Q: {(float)result.Quality / craft.CraftQualityMax * 100:f0}%)",
-            CraftStatus.FailedMinQuality => $"Craft completed but didn't meet minimum quality(P: {(float)result.Progress / craft.CraftProgress * 100:f0}%, Q: {(float)result.Quality / craft.CraftQualityMax * 100:f0}%).",
-            CraftStatus.SucceededQ1 => $"Craft completed and managed to hit 1st quality threshold in {time.TotalSeconds:f0}s.",
-            CraftStatus.SucceededQ2 => $"Craft completed and managed to hit 2nd quality threshold in {time.TotalSeconds:f0}s.",
-            CraftStatus.SucceededQ3 => $"Craft completed and managed to hit 3rd quality threshold in {time.TotalSeconds:f0}s!",
-            CraftStatus.SucceededMaxQuality => $"Craft completed with full quality in {time.TotalSeconds:f0}s!",
-            CraftStatus.SucceededSomeQuality => $"Craft completed but didn't max out quality ({hq}%) in {time.TotalSeconds:f0}s",
-            CraftStatus.SucceededNoQualityReq => $"Craft completed, no quality required in {time.TotalSeconds:f0}s!",
-            CraftStatus.SucceededMetQualityReq => $"Craft completed and minimum quality required met in {time.TotalSeconds:f0}s!",
-            CraftStatus.Count => "You shouldn't be able to see this. Report it please.",
-            _ => "You shouldn't be able to see this. Report it please.",
+            CraftStatus.InProgress => UI.L10n.Tr("Craft did not finish (solver failed to return any more steps before finishing)."),
+            CraftStatus.FailedDurability => UI.L10n.Tr("Craft failed due to durability shortage. (P: {0:f0}%, Q: {1:f0}%)", (float)result.Progress / craft.CraftProgress * 100, (float)result.Quality / craft.CraftQualityMax * 100),
+            CraftStatus.FailedMinQuality => UI.L10n.Tr("Craft completed but didn't meet minimum quality(P: {0:f0}%, Q: {1:f0}%).", (float)result.Progress / craft.CraftProgress * 100, (float)result.Quality / craft.CraftQualityMax * 100),
+            CraftStatus.SucceededQ1 => UI.L10n.Tr("Craft completed and managed to hit 1st quality threshold in {0:f0}s.", time.TotalSeconds),
+            CraftStatus.SucceededQ2 => UI.L10n.Tr("Craft completed and managed to hit 2nd quality threshold in {0:f0}s.", time.TotalSeconds),
+            CraftStatus.SucceededQ3 => UI.L10n.Tr("Craft completed and managed to hit 3rd quality threshold in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.SucceededMaxQuality => UI.L10n.Tr("Craft completed with full quality in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.SucceededSomeQuality => UI.L10n.Tr("Craft completed but didn't max out quality ({0}%) in {1:f0}s", hq, time.TotalSeconds),
+            CraftStatus.SucceededNoQualityReq => UI.L10n.Tr("Craft completed, no quality required in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.SucceededMetQualityReq => UI.L10n.Tr("Craft completed and minimum quality required met in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.Count => UI.L10n.Tr("You shouldn't be able to see this. Report it please."),
+            _ => UI.L10n.Tr("You shouldn't be able to see this. Report it please."),
         };
 
 

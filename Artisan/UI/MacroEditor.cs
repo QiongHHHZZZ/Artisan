@@ -18,6 +18,9 @@ namespace Artisan.UI
 {
     internal class MacroEditor : Window
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         private MacroSolverSettings.Macro SelectedMacro;
         private bool renameMode = false;
         private string renameMacro = "";
@@ -26,7 +29,7 @@ namespace Artisan.UI
         private static string _rawMacro = string.Empty;
         private bool raphael_cache = false;
 
-        public MacroEditor(MacroSolverSettings.Macro macro, bool raphael_cache = false) : base($"Macro Editor###{macro.ID}", ImGuiWindowFlags.None)
+        public MacroEditor(MacroSolverSettings.Macro macro, bool raphael_cache = false) : base($"{L10n.Tr("Macro Editor")}###{macro.ID}", ImGuiWindowFlags.None)
         {
             this.raphael_cache = raphael_cache;
             SelectedMacro = macro;
@@ -74,7 +77,7 @@ namespace Artisan.UI
                 {
                     if (!renameMode)
                     {
-                        ImGui.TextUnformatted($"Selected Macro: {SelectedMacro.Name}");
+                        ImGui.TextUnformatted(T("Selected Macro: {0}", SelectedMacro.Name ?? string.Empty));
                         ImGui.SameLine();
                         if (ImGuiComponents.IconButton(FontAwesomeIcon.Pen))
                         {
@@ -93,7 +96,7 @@ namespace Artisan.UI
                             renameMacro = String.Empty;
                         }
                     }
-                    if (ImGui.Button("Delete Macro (Hold Ctrl)") && ImGui.GetIO().KeyCtrl)
+                    if (ImGui.Button(T("Delete Macro (Hold Ctrl)")) && ImGui.GetIO().KeyCtrl)
                     {
                         if (raphael_cache)
                         {
@@ -118,62 +121,62 @@ namespace Artisan.UI
                         this.IsOpen = false;
                     }
                     ImGui.SameLine();
-                    if (ImGui.Button("Raw Editor"))
+                    if (ImGui.Button(T("Raw Editor")))
                     {
                         _rawMacro = string.Join("\r\n", SelectedMacro.Steps.Select(x => $"{x.Action.NameOfAction()}"));
                         Raweditor = !Raweditor;
                     }
 
                     ImGui.SameLine();
-                    var exportButton = ImGuiHelpers.GetButtonSize("Export Macro");
+                    var exportButton = ImGuiHelpers.GetButtonSize(T("Export Macro"));
                     ImGui.SetCursorPosX(ImGui.GetContentRegionMax().X - exportButton.X);
 
-                    if (ImGui.Button("Export Macro###ExportButton"))
+                    if (ImGui.Button($"{T("Export Macro")}###ExportButton"))
                     {
                         ImGui.SetClipboardText(JsonConvert.SerializeObject(SelectedMacro));
-                        Notify.Success("Macro Copied to Clipboard.");
+                        Notify.Success(T("Macro Copied to Clipboard."));
                     }
 
                     ImGui.Spacing();
-                    if (ImGui.Checkbox("Skip quality actions if at 100%", ref SelectedMacro.Options.SkipQualityIfMet))
+                    if (ImGui.Checkbox(T("Skip quality actions if at 100%"), ref SelectedMacro.Options.SkipQualityIfMet))
                     {
                         P.Config.Save();
                     }
-                    ImGuiComponents.HelpMarker("Once you're at 100% quality, the macro will skip over all actions relating to quality, including buffs.");
+                    ImGuiComponents.HelpMarker(T("Once you're at 100% quality, the macro will skip over all actions relating to quality, including buffs."));
                     ImGui.SameLine();
-                    if (ImGui.Checkbox("Skip Observes If Not Poor", ref SelectedMacro.Options.SkipObservesIfNotPoor))
+                    if (ImGui.Checkbox(T("Skip Observes If Not Poor"), ref SelectedMacro.Options.SkipObservesIfNotPoor))
                     {
                         P.Config.Save();
                     }
 
 
-                    if (ImGui.Checkbox("Upgrade Quality Actions", ref SelectedMacro.Options.UpgradeQualityActions))
+                    if (ImGui.Checkbox(T("Upgrade Quality Actions"), ref SelectedMacro.Options.UpgradeQualityActions))
                         P.Config.Save();
-                    ImGuiComponents.HelpMarker("If you get a Good or Excellent condition and your macro is on a step that increases quality (not including Byregot's Blessing) then it will upgrade the action to Precise Touch.");
+                    ImGuiComponents.HelpMarker(T("If you get a Good or Excellent condition and your macro is on a step that increases quality (not including Byregot's Blessing) then it will upgrade the action to Precise Touch."));
                     ImGui.SameLine();
 
-                    if (ImGui.Checkbox("Upgrade Progress Actions", ref SelectedMacro.Options.UpgradeProgressActions))
+                    if (ImGui.Checkbox(T("Upgrade Progress Actions"), ref SelectedMacro.Options.UpgradeProgressActions))
                         P.Config.Save();
-                    ImGuiComponents.HelpMarker("If you get a Good or Excellent condition and your macro is on a step that increases progress then it will upgrade the action to Intensive Synthesis.");
+                    ImGuiComponents.HelpMarker(T("If you get a Good or Excellent condition and your macro is on a step that increases progress then it will upgrade the action to Intensive Synthesis."));
 
                     ImGui.PushItemWidth(150f);
-                    if (ImGui.InputInt("Minimum Craftsmanship", ref SelectedMacro.Options.MinCraftsmanship))
+                    if (ImGui.InputInt(T("Minimum Craftsmanship"), ref SelectedMacro.Options.MinCraftsmanship))
                         P.Config.Save();
-                    ImGuiComponents.HelpMarker("Artisan will not start crafting if you do not meet this minimum craftsmanship with this macro selected.");
+                    ImGuiComponents.HelpMarker(T("Artisan will not start crafting if you do not meet this minimum craftsmanship with this macro selected."));
 
                     ImGui.PushItemWidth(150f);
-                    if (ImGui.InputInt("Minimum Control", ref SelectedMacro.Options.MinControl))
+                    if (ImGui.InputInt(T("Minimum Control"), ref SelectedMacro.Options.MinControl))
                         P.Config.Save();
-                    ImGuiComponents.HelpMarker("Artisan will not start crafting if you do not meet this minimum control with this macro selected.");
+                    ImGuiComponents.HelpMarker(T("Artisan will not start crafting if you do not meet this minimum control with this macro selected."));
 
                     ImGui.PushItemWidth(150f);
-                    if (ImGui.InputInt("Minimum CP", ref SelectedMacro.Options.MinCP))
+                    if (ImGui.InputInt(T("Minimum CP"), ref SelectedMacro.Options.MinCP))
                         P.Config.Save();
-                    ImGuiComponents.HelpMarker("Artisan will not start crafting if you do not meet this minimum CP with this macro selected.");
+                    ImGuiComponents.HelpMarker(T("Artisan will not start crafting if you do not meet this minimum CP with this macro selected."));
 
                     if (!Raweditor)
                     {
-                        if (ImGui.Button($"Insert New Action ({Skills.BasicSynthesis.NameOfAction()})"))
+                        if (ImGui.Button(T("Insert New Action ({0})", Skills.BasicSynthesis.NameOfAction())))
                         {
                             SelectedMacro.Steps.Insert(selectedStepIndex + 1, new() { Action = Skills.BasicSynthesis });
                             ++selectedStepIndex;
@@ -182,7 +185,7 @@ namespace Artisan.UI
 
                         if (selectedStepIndex >= 0)
                         {
-                            if (ImGui.Button($"Insert New Action - Same As Previous ({SelectedMacro.Steps[selectedStepIndex].Action.NameOfAction()})"))
+                            if (ImGui.Button(T("Insert New Action - Same As Previous ({0})", SelectedMacro.Steps[selectedStepIndex].Action.NameOfAction())))
                             {
                                 SelectedMacro.Steps.Insert(selectedStepIndex + 1, new() { Action = SelectedMacro.Steps[selectedStepIndex].Action });
                                 ++selectedStepIndex;
@@ -193,12 +196,12 @@ namespace Artisan.UI
 
                         ImGui.Columns(2, "actionColumns", true);
                         ImGui.SetColumnWidth(0, 220f.Scale());
-                        ImGuiEx.LineCentered("###MacroActions", () => ImGuiEx.TextUnderlined("Macro Actions"));
+                        ImGuiEx.LineCentered("###MacroActions", () => ImGuiEx.TextUnderlined(T("Macro Actions")));
                         ImGui.Indent();
                         for (int i = 0; i < SelectedMacro.Steps.Count; i++)
                         {
                             var step = SelectedMacro.Steps[i];
-                            var selectedAction = ImGui.Selectable($"{i + 1}. {(step.Action == Skills.None ? "Artisan Recommendation" : step.Action.NameOfAction())}{(step.HasExcludeCondition ? " | " : "")}{(step.HasExcludeCondition && step.ReplaceOnExclude ? step.ReplacementAction.NameOfAction() : step.HasExcludeCondition ? "Skip" : "")}###selectedAction{i}", i == selectedStepIndex);
+                            var selectedAction = ImGui.Selectable($"{i + 1}. {(step.Action == Skills.None ? T("Artisan Recommendation") : step.Action.NameOfAction())}{(step.HasExcludeCondition ? " | " : "")}{(step.HasExcludeCondition && step.ReplaceOnExclude ? step.ReplacementAction.NameOfAction() : step.HasExcludeCondition ? T("Skip") : "")}###selectedAction{i}", i == selectedStepIndex);
                             if (selectedAction)
                                 selectedStepIndex = i;
                         }
@@ -208,7 +211,7 @@ namespace Artisan.UI
                             var step = SelectedMacro.Steps[selectedStepIndex];
 
                             ImGui.NextColumn();
-                            ImGuiEx.CenterColumnText($"Selected Action: {(step.Action == Skills.None ? "Artisan Recommendation" : step.Action.NameOfAction())}", true);
+                            ImGuiEx.CenterColumnText(T("Selected Action: {0}", step.Action == Skills.None ? T("Artisan Recommendation") : step.Action.NameOfAction()), true);
                             if (selectedStepIndex > 0)
                             {
                                 ImGui.SameLine();
@@ -229,42 +232,42 @@ namespace Artisan.UI
 
                             ImGui.Dummy(new Vector2(0, 0));
                             ImGui.SameLine();
-                            if (ImGui.Checkbox($"Skip Upgrades For This Action", ref step.ExcludeFromUpgrade))
+                            if (ImGui.Checkbox(T("Skip Upgrades For This Action"), ref step.ExcludeFromUpgrade))
                                 P.Config.Save();
 
                             ImGui.Spacing();
-                            ImGuiEx.CenterColumnText($"Skip on these conditions", true);
+                            ImGuiEx.CenterColumnText(T("Skip on these conditions"), true);
 
                             ImGui.BeginChild("ConditionalExcludes", new Vector2(ImGui.GetContentRegionAvail().X, step.HasExcludeCondition ? 200f : 100f), false, ImGuiWindowFlags.AlwaysAutoResize);
                             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0, 0));
                             ImGui.Columns(3, border: false);
-                            if (ImGui.Checkbox($"Normal", ref step.ExcludeNormal))
+                            if (ImGui.Checkbox(T("Normal"), ref step.ExcludeNormal))
                                 P.Config.Save();
-                            if (ImGui.Checkbox($"Poor", ref step.ExcludePoor))
+                            if (ImGui.Checkbox(T("Poor"), ref step.ExcludePoor))
                                 P.Config.Save();
-                            if (ImGui.Checkbox($"Good", ref step.ExcludeGood))
+                            if (ImGui.Checkbox(T("Good"), ref step.ExcludeGood))
                                 P.Config.Save();
-                            if (ImGui.Checkbox($"Excellent", ref step.ExcludeExcellent))
-                                P.Config.Save();
-
-                            ImGui.NextColumn();
-
-                            if (ImGui.Checkbox($"Centered", ref step.ExcludeCentered))
-                                P.Config.Save();
-                            if (ImGui.Checkbox($"Sturdy", ref step.ExcludeSturdy))
-                                P.Config.Save();
-                            if (ImGui.Checkbox($"Pliant", ref step.ExcludePliant))
-                                P.Config.Save();
-                            if (ImGui.Checkbox($"Malleable", ref step.ExcludeMalleable))
+                            if (ImGui.Checkbox(T("Excellent"), ref step.ExcludeExcellent))
                                 P.Config.Save();
 
                             ImGui.NextColumn();
 
-                            if (ImGui.Checkbox($"Primed", ref step.ExcludePrimed))
+                            if (ImGui.Checkbox(T("Centered"), ref step.ExcludeCentered))
                                 P.Config.Save();
-                            if (ImGui.Checkbox($"Good Omen", ref step.ExcludeGoodOmen))
+                            if (ImGui.Checkbox(T("Sturdy"), ref step.ExcludeSturdy))
                                 P.Config.Save();
-                            if (ImGui.Checkbox($"Robust", ref step.ExcludeRobust))
+                            if (ImGui.Checkbox(T("Pliant"), ref step.ExcludePliant))
+                                P.Config.Save();
+                            if (ImGui.Checkbox(T("Malleable"), ref step.ExcludeMalleable))
+                                P.Config.Save();
+
+                            ImGui.NextColumn();
+
+                            if (ImGui.Checkbox(T("Primed"), ref step.ExcludePrimed))
+                                P.Config.Save();
+                            if (ImGui.Checkbox(T("Good Omen"), ref step.ExcludeGoodOmen))
+                                P.Config.Save();
+                            if (ImGui.Checkbox(T("Robust"), ref step.ExcludeRobust))
                                 P.Config.Save();
 
                             ImGui.Columns(1);
@@ -272,37 +275,37 @@ namespace Artisan.UI
 
                             if (step.HasExcludeCondition)
                             {
-                                ImGuiEx.CenterColumnText($"Exclude options", true);
-                                if (ImGui.Checkbox($"Instead of skipping replace with:", ref step.ReplaceOnExclude))
+                                ImGuiEx.CenterColumnText(T("Exclude options"), true);
+                                if (ImGui.Checkbox(T("Instead of skipping replace with:"), ref step.ReplaceOnExclude))
                                     P.Config.Save();
 
                                 if (step.ReplaceOnExclude)
                                 {
                                     if (ImGui.BeginCombo("###Select Replacement", step.ReplacementAction.NameOfAction()))
                                     {
-                                        if (ImGui.Selectable($"Artisan Recommendation"))
+                                        if (ImGui.Selectable(T("Artisan Recommendation")))
                                         {
                                             step.ReplacementAction = Skills.None;
                                             P.Config.Save();
                                         }
 
-                                        ImGuiComponents.HelpMarker("Uses a recommendation from the appropriate default solver, i.e Standard Recipe Solver for regular recipes, Expert Recipe Solver for expert recipes.");
+                                        ImGuiComponents.HelpMarker(T("Uses a recommendation from the appropriate default solver, i.e Standard Recipe Solver for regular recipes, Expert Recipe Solver for expert recipes."));
 
-                                        if (ImGui.Selectable($"Touch Combo"))
+                                        if (ImGui.Selectable(T("Touch Combo")))
                                         {
                                             step.ReplacementAction = Skills.TouchCombo;
                                             P.Config.Save();
                                         }
 
-                                        ImGuiComponents.HelpMarker("This will use the appropriate step of the 3-step touch combo, depending on the last action actually used. Useful if upgrading quality actions or skipping on conditions.");
+                                        ImGuiComponents.HelpMarker(T("This will use the appropriate step of the 3-step touch combo, depending on the last action actually used. Useful if upgrading quality actions or skipping on conditions."));
 
-                                        if (ImGui.Selectable($"Touch Combo (Refined Touch Route)"))
+                                        if (ImGui.Selectable(T("Touch Combo (Refined Touch Route)")))
                                         {
                                             step.ReplacementAction = Skills.TouchComboRefined;
                                             P.Config.Save();
                                         }
 
-                                        ImGuiComponents.HelpMarker($"Similar to the other touch combo, this will alternate between Basic Touch & Refined Touch depending on the previous action used.");
+                                        ImGuiComponents.HelpMarker(T("Similar to the other touch combo, this will alternate between Basic Touch & Refined Touch depending on the previous action used."));
 
                                         ImGui.Separator();
 
@@ -321,7 +324,7 @@ namespace Artisan.UI
                             }
                             ImGui.EndChild();
 
-                            if (ImGui.Button("Delete Action (Hold Ctrl)") && ImGui.GetIO().KeyCtrl)
+                            if (ImGui.Button(T("Delete Action (Hold Ctrl)")) && ImGui.GetIO().KeyCtrl)
                             {
                                 SelectedMacro.Steps.RemoveAt(selectedStepIndex);
                                 P.Config.Save();
@@ -329,31 +332,31 @@ namespace Artisan.UI
                                     selectedStepIndex--;
                             }
 
-                            if (ImGui.BeginCombo("###ReplaceAction", "Replace Action"))
+                            if (ImGui.BeginCombo("###ReplaceAction", T("Replace Action")))
                             {
-                                if (ImGui.Selectable($"Artisan Recommendation"))
+                                if (ImGui.Selectable(T("Artisan Recommendation")))
                                 {
                                     step.Action = Skills.None;
                                     P.Config.Save();
                                 }
 
-                                ImGuiComponents.HelpMarker("Uses a recommendation from the appropriate default solver, i.e Standard Recipe Solver for regular recipes, Expert Recipe Solver for expert recipes.");
+                                ImGuiComponents.HelpMarker(T("Uses a recommendation from the appropriate default solver, i.e Standard Recipe Solver for regular recipes, Expert Recipe Solver for expert recipes."));
 
-                                if (ImGui.Selectable($"Touch Combo"))
+                                if (ImGui.Selectable(T("Touch Combo")))
                                 {
                                     step.Action = Skills.TouchCombo;
                                     P.Config.Save();
                                 }
 
-                                ImGuiComponents.HelpMarker("This will use the appropriate step of the 3-step touch combo, depending on the last action actually used. Useful if upgrading quality actions or skipping on conditions.");
+                                ImGuiComponents.HelpMarker(T("This will use the appropriate step of the 3-step touch combo, depending on the last action actually used. Useful if upgrading quality actions or skipping on conditions."));
 
-                                if (ImGui.Selectable($"Touch Combo (Refined Touch Route)"))
+                                if (ImGui.Selectable(T("Touch Combo (Refined Touch Route)")))
                                 {
                                     step.Action = Skills.TouchComboRefined;
                                     P.Config.Save();
                                 }
 
-                                ImGuiComponents.HelpMarker($"Similar to the other touch combo, this will alternate between Basic Touch & Refined Touch depending on the previous action used.");
+                                ImGuiComponents.HelpMarker(T("Similar to the other touch combo, this will alternate between Basic Touch & Refined Touch depending on the previous action used."));
 
                                 ImGui.Separator();
 
@@ -369,7 +372,7 @@ namespace Artisan.UI
                                 ImGui.EndCombo();
                             }
 
-                            ImGui.Text("Re-order Action");
+                            ImGui.Text(T("Re-order Action"));
                             if (selectedStepIndex > 0)
                             {
                                 ImGui.SameLine();
@@ -403,10 +406,10 @@ namespace Artisan.UI
                     }
                     else
                     {
-                        ImGui.Text($"Macro Actions (line per action)");
-                        ImGuiComponents.HelpMarker("You can either copy/paste macros directly as you would a normal game macro, or list each action on its own per line.\nFor example:\n/ac Muscle Memory\n\nis the same as\n\nMuscle Memory\n\nYou can also use * (asterisk) or 'Artisan Recommendation' to insert Artisan's recommendation as a step.");
+                        ImGui.Text(T("Macro Actions (line per action)"));
+                        ImGuiComponents.HelpMarker(T("You can either copy/paste macros directly as you would a normal game macro, or list each action on its own per line.\nFor example:\n/ac Muscle Memory\n\nis the same as\n\nMuscle Memory\n\nYou can also use * (asterisk) or 'Artisan Recommendation' to insert Artisan's recommendation as a step."));
                         ImGui.InputTextMultiline("###MacroEditor", ref _rawMacro, 10000000, new Vector2(ImGui.GetContentRegionAvail().X - 30f, ImGui.GetContentRegionAvail().Y - 30f));
-                        if (ImGui.Button("Save"))
+                        if (ImGui.Button(T("Save")))
                         {
                             var steps = MacroUI.ParseMacro(_rawMacro);
                             if (steps.Count > 0 && !SelectedMacro.Steps.SequenceEqual(steps))
@@ -414,11 +417,11 @@ namespace Artisan.UI
                                 selectedStepIndex = steps.Count - 1;
                                 SelectedMacro.Steps = steps;
                                 P.Config.Save();
-                                DuoLog.Information($"Macro Updated");
+                                DuoLog.Information(T("Macro Updated"));
                             }
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button("Save and Close"))
+                        if (ImGui.Button(T("Save and Close")))
                         {
                             var steps = MacroUI.ParseMacro(_rawMacro);
                             if (steps.Count > 0 && !SelectedMacro.Steps.SequenceEqual(steps))
@@ -426,13 +429,13 @@ namespace Artisan.UI
                                 selectedStepIndex = steps.Count - 1;
                                 SelectedMacro.Steps = steps;
                                 P.Config.Save();
-                                DuoLog.Information($"Macro Updated");
+                                DuoLog.Information(T("Macro Updated"));
                             }
 
                             Raweditor = !Raweditor;
                         }
                         ImGui.SameLine();
-                        if (ImGui.Button("Close"))
+                        if (ImGui.Button(T("Close")))
                         {
                             Raweditor = !Raweditor;
                         }
@@ -441,15 +444,15 @@ namespace Artisan.UI
 
                     ImGuiEx.LineCentered("MTimeHead", delegate
                     {
-                        ImGuiEx.TextUnderlined($"Estimated Macro Length");
+                        ImGuiEx.TextUnderlined(T("Estimated Macro Length"));
                     });
                     ImGuiEx.LineCentered("MTimeArtisan", delegate
                     {
-                        ImGuiEx.Text($"Artisan: {MacroUI.GetMacroLength(SelectedMacro)} seconds");
+                        ImGuiEx.Text(T("Artisan: {0} seconds", MacroUI.GetMacroLength(SelectedMacro)));
                     });
                     ImGuiEx.LineCentered("MTimeTeamcraft", delegate
                     {
-                        ImGuiEx.Text($"Normal Macro: {MacroUI.GetTeamcraftMacroLength(SelectedMacro)} seconds");
+                        ImGuiEx.Text(T("Normal Macro: {0} seconds", MacroUI.GetTeamcraftMacroLength(SelectedMacro)));
                     });
                 }
                 else

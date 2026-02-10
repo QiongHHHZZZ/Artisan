@@ -25,6 +25,9 @@ namespace Artisan.UI.Tables
 {
     internal class IngredientTable : Table<Ingredient>, IDisposable
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         private static float _nameColumnWidth = 0;
         private static float _requiredColumnWidth = 80;
         private static float _idColumnWidth = 80;
@@ -39,19 +42,19 @@ namespace Artisan.UI.Tables
         private static float _cheapestColumnWidth = 100;
         private static float _numberForSaleWidth = 100;
 
-        public readonly IdColumn _idColumn = new() { Label = "ID" };
-        public readonly NameColumn _nameColumn = new() { Label = "Item Name" };
-        public readonly RequiredColumn _requiredColumn = new() { Label = "Required" };
-        public readonly InventoryCountColumn _inventoryColumn = new() { Label = "Inventory" };
-        public readonly RetainerCountColumn _retainerColumn = new() { Label = "Retainers" };
-        public readonly RemaingCountColumn _remainingColumn = new() { Label = "Remaining Needed" };
-        public readonly CraftableColumn _craftableColumn = new() { Label = "Sources" };
-        public readonly CraftableCountColumn _craftableCountColumn = new() { Label = "Number Craftable" };
-        public readonly CraftItemsColumn _craftItemsColumn = new() { Label = "Used to Craft" };
-        public readonly ItemCategoryColumn _itemCategoryColumn = new() { Label = "Category" };
-        public readonly GatherItemLocationColumn _gatherItemLocationColumn = new() { Label = "Gathered Zone" };
-        public readonly CheapestServerColumn _cheapestServerColumn = new() { Label = "Optimal World For Buying" };
-        public readonly NumberForSaleColumn _numberForSaleColumn = new() { Label = "Quantity For Sale (All Worlds)" };
+        public readonly IdColumn _idColumn = new() { Label = T("ID") };
+        public readonly NameColumn _nameColumn = new() { Label = T("Item Name") };
+        public readonly RequiredColumn _requiredColumn = new() { Label = T("Required") };
+        public readonly InventoryCountColumn _inventoryColumn = new() { Label = T("Inventory") };
+        public readonly RetainerCountColumn _retainerColumn = new() { Label = T("Retainers") };
+        public readonly RemaingCountColumn _remainingColumn = new() { Label = T("Remaining Needed") };
+        public readonly CraftableColumn _craftableColumn = new() { Label = T("Sources") };
+        public readonly CraftableCountColumn _craftableCountColumn = new() { Label = T("Number Craftable") };
+        public readonly CraftItemsColumn _craftItemsColumn = new() { Label = T("Used to Craft") };
+        public readonly ItemCategoryColumn _itemCategoryColumn = new() { Label = T("Category") };
+        public readonly GatherItemLocationColumn _gatherItemLocationColumn = new() { Label = T("Gathered Zone") };
+        public readonly CheapestServerColumn _cheapestServerColumn = new() { Label = T("Optimal World For Buying") };
+        public readonly NumberForSaleColumn _numberForSaleColumn = new() { Label = T("Quantity For Sale (All Worlds)") };
 
         private static bool GatherBuddy =>
             DalamudReflector.TryGetDalamudPlugin("GatherBuddy", out var _, false, true);
@@ -183,7 +186,7 @@ namespace Artisan.UI.Tables
                 if (selected)
                 {
                     ImGui.SetClipboardText(item.Data.Name.ToString());
-                    Notify.Success("Name copied to clipboard");
+                    Notify.Success(T("Name copied to clipboard"));
                 }
 
                 if (ImGui.IsItemHovered())
@@ -197,7 +200,7 @@ namespace Artisan.UI.Tables
                         sb.Append($"{usedin.NameOfRecipe()} - {amountUsed}\r\n");
                     }
                     ImGui.BeginTooltip();
-                    ImGui.Text($"Used in:\r\n{sb}");
+                    ImGui.Text(T("Used in:\r\n{0}", sb));
                     ImGui.EndTooltip();
                 }
             }
@@ -298,7 +301,7 @@ namespace Artisan.UI.Tables
 
             public override string ToName(Ingredient item)
             {
-                return item.Sources.Contains(1) ? item.TotalCraftable.ToString() : "N/A";
+                return item.Sources.Contains(1) ? item.TotalCraftable.ToString() : IngredientTable.T("N/A");
             }
         }
 
@@ -340,7 +343,7 @@ namespace Artisan.UI.Tables
 
             public override string ToName(Ingredient item)
             {
-                if (item.Remaining == 0) return $"No need to buy";
+                if (item.Remaining == 0) return IngredientTable.T("No need to buy");
                 if (item.MarketboardData != null && !CheapestListings.ContainsKey(item.Data.RowId))
                 {
                     double totalCost = 0;
@@ -379,11 +382,11 @@ namespace Artisan.UI.Tables
                 {
                     var listing = CheapestListings[item.Data.RowId];
 
-                    return $"{listing.World} - Cost {listing.Cost.ToString("N0")}, Qty {listing.Qty}";
+                    return IngredientTable.T("{0} - Cost {1}, Qty {2}", listing.World, listing.Cost.ToString("N0"), listing.Qty);
 
                 }
 
-                return "ERROR - No Listings (Possible Universalis Connection Issue)";
+                return IngredientTable.T("ERROR - No Listings (Possible Universalis Connection Issue)");
             }
 
             public override void DrawColumn(Ingredient item, int _)
@@ -397,7 +400,7 @@ namespace Artisan.UI.Tables
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.BeginTooltip();
-                            ImGui.Text($"Click to travel to {server}.");
+                            ImGui.Text(IngredientTable.T("Click to travel to {0}.", server));
                             ImGui.EndTooltip();
                         }
 
@@ -411,12 +414,12 @@ namespace Artisan.UI.Tables
                 {
                     if (item.Remaining == 0)
                     {
-                        ImGui.Text($"No need to buy");
+                        ImGui.Text(IngredientTable.T("No need to buy"));
                         return;
                     }
 
                     using var smallBtnStyle = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(ImGui.GetStyle().FramePadding.X, 0));
-                    if (ImGui.Button($"Fetch Prices"))
+                    if (ImGui.Button(IngredientTable.T("Fetch Prices")))
                     {
                         P.UniversalsisClient.PlayerWorld = Svc.Objects.LocalPlayer?.CurrentWorld.RowId;
                         if (P.Config.LimitUnversalisToDC)
@@ -450,7 +453,7 @@ namespace Artisan.UI.Tables
                     var qty = item.MarketboardData.TotalQuantityOfUnits;
                     var listings = item.MarketboardData.TotalNumberOfListings;
 
-                    return $"{listings:N0} listings - {qty:N0} total items";
+                    return IngredientTable.T("{0:N0} listings - {1:N0} total items", listings, qty);
                 }
                 return "";
             }
@@ -468,7 +471,7 @@ namespace Artisan.UI.Tables
             {
                 Flags -= ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.GatherZone, ItemFilter.NoGatherZone, ItemFilter.TimedNode, ItemFilter.NonTimedNode);
-                SetNames("Gather Zone", "No Gather Zone", "Timed Node", "Non-Timed Node");
+                SetNames(IngredientTable.T("Gather Zone"), IngredientTable.T("No Gather Zone"), IngredientTable.T("Timed Node"), IngredientTable.T("Non-Timed Node"));
 
             }
             public override float Width
@@ -506,7 +509,7 @@ namespace Artisan.UI.Tables
             {
                 Flags -= ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.NonCrystals, ItemFilter.Crystals);
-                SetNames("Non-Crystals", "Crystals");
+                SetNames(IngredientTable.T("Non-Crystals"), IngredientTable.T("Crystals"));
             }
 
 
@@ -577,7 +580,7 @@ namespace Artisan.UI.Tables
             {
                 Flags -= ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.MissingItems, ItemFilter.NoMissingItems);
-                SetNames("Missing Items", "No Missing Items");
+                SetNames(IngredientTable.T("Missing Items"), IngredientTable.T("No Missing Items"));
             }
 
             public override float Width
@@ -647,7 +650,7 @@ namespace Artisan.UI.Tables
             {
                 Flags -= ImGuiTableColumnFlags.NoResize;
                 SetFlags(ItemFilter.Crafted, ItemFilter.Gathered, ItemFilter.Fishing, ItemFilter.Vendor, ItemFilter.MonsterDrop, ItemFilter.Unknown);
-                SetNames("Crafted", "Gathered", "Fishing", "Vendor", "Monster Drop", "Unknown");
+                SetNames(IngredientTable.T("Crafted"), IngredientTable.T("Gathered"), IngredientTable.T("Fishing"), IngredientTable.T("Vendor"), IngredientTable.T("Monster Drop"), IngredientTable.T("Unknown"));
             }
 
 
@@ -661,12 +664,12 @@ namespace Artisan.UI.Tables
             {
                 List<string> outputs = new();
 
-                if (item.Sources.Contains(1)) outputs.Add("Crafted");
-                if (item.Sources.Contains(2)) outputs.Add("Gathered");
-                if (item.Sources.Contains(3)) outputs.Add("Fishing");
-                if (item.Sources.Contains(4)) outputs.Add("Vendor");
-                if (item.Sources.Contains(5)) outputs.Add("Monster Drop");
-                if (item.Sources.Contains(-1)) outputs.Add("Unknown");
+                if (item.Sources.Contains(1)) outputs.Add(IngredientTable.T("Crafted"));
+                if (item.Sources.Contains(2)) outputs.Add(IngredientTable.T("Gathered"));
+                if (item.Sources.Contains(3)) outputs.Add(IngredientTable.T("Fishing"));
+                if (item.Sources.Contains(4)) outputs.Add(IngredientTable.T("Vendor"));
+                if (item.Sources.Contains(5)) outputs.Add(IngredientTable.T("Monster Drop"));
+                if (item.Sources.Contains(-1)) outputs.Add(IngredientTable.T("Unknown"));
 
                 ImGui.Text($"{string.Join(", ", outputs)}");
             }
@@ -712,7 +715,7 @@ namespace Artisan.UI.Tables
 
             if (Marketboard)
             {
-                if (ImGui.Selectable("Market Board Lookup"))
+                if (ImGui.Selectable(T("Market Board Lookup")))
                 {
                     Chat.SendMessage($"/pmb {item.Data.Name.ToDalamudString()}");
                 }
@@ -726,17 +729,17 @@ namespace Artisan.UI.Tables
 
             if (RetainerInfo.GetReachableRetainerBell() == null)
             {
-                ImGui.TextDisabled($"Fetch From Retainer (please stand by a bell)");
+                ImGui.TextDisabled(T("Fetch From Retainer (please stand by a bell)"));
             }
             else
             {
                 if (RetainerInfo.TM.IsBusy)
                 {
-                    ImGui.TextDisabled($"Currently fetching. Please wait.");
+                    ImGui.TextDisabled(T("Currently fetching. Please wait."));
                     return;
                 }
 
-                if (!ImGui.Selectable("Fetch From Retainer"))
+                if (!ImGui.Selectable(T("Fetch From Retainer")))
                     return;
 
                 var howManyToGet = item.Required - item.Inventory;
@@ -761,7 +764,7 @@ namespace Artisan.UI.Tables
 
                 if (item.Sources.Contains(1) && isOnList.Value)
                 {
-                    if (ImGui.Selectable($"Show ingredients used for this"))
+                    if (ImGui.Selectable(T("Show ingredients used for this")))
                     {
                         FilteredItems.Clear();
                         var idx = 0;
@@ -781,7 +784,7 @@ namespace Artisan.UI.Tables
 
             if (CraftFiltered)
             {
-                if (!ImGui.Selectable($"Clear Filters"))
+                if (!ImGui.Selectable(T("Clear Filters")))
                     return;
 
                 CraftFiltered = false;
@@ -797,7 +800,7 @@ namespace Artisan.UI.Tables
 
             if (MonsterLookup)
             {
-                if (!ImGui.Selectable("Monster Loot Lookup"))
+                if (!ImGui.Selectable(T("Monster Loot Lookup")))
                     return;
 
                 try
@@ -811,7 +814,7 @@ namespace Artisan.UI.Tables
             }
             else
             {
-                ImGui.TextDisabled("Monster Loot Lookup (Please install Monster Loot Hunter)");
+                ImGui.TextDisabled(T("Monster Loot Lookup (Please install Monster Loot Hunter)"));
             }
         }
 
@@ -824,7 +827,7 @@ namespace Artisan.UI.Tables
             {
                 if (ItemVendorLocation.ItemHasVendor(item.Data.RowId))
                 {
-                    if (!ImGui.Selectable("Item Vendor Lookup"))
+                    if (!ImGui.Selectable(T("Item Vendor Lookup")))
                         return;
 
                     try
@@ -839,7 +842,7 @@ namespace Artisan.UI.Tables
             }
             else
             {
-                ImGui.TextDisabled("Item Vendor Lookup (Please install Item Vendor Location)");
+                ImGui.TextDisabled(T("Item Vendor Lookup (Please install Item Vendor Location)"));
             }
         }
 
@@ -848,7 +851,7 @@ namespace Artisan.UI.Tables
             if (item.Data.RowId == 0)
                 return;
 
-            if (!ImGui.Selectable("Search for Item"))
+            if (!ImGui.Selectable(T("Search for Item")))
                 return;
 
             try
@@ -869,7 +872,7 @@ namespace Artisan.UI.Tables
 
             if (GatherBuddy)
             {
-                if (!ImGui.Selectable("Gather Item"))
+                if (!ImGui.Selectable(T("Gather Item")))
                     return;
 
                 try
@@ -886,7 +889,7 @@ namespace Artisan.UI.Tables
             }
             else
             {
-                ImGui.TextDisabled("Gather Item (Please install Gatherbuddy)");
+                ImGui.TextDisabled(T("Gather Item (Please install Gatherbuddy)"));
             }
         }
     }

@@ -740,7 +740,7 @@ namespace Artisan.UI
                     P.Config.Save();
                 ImGuiComponents.HelpMarker(T("This will switch the Standard Recipe Solver over to the Expert Solver for the duration of the buff. This will not give you proper simulator results as it's a timed buff, not a permanent one with stacks, so we can't really simulate it properly."));
 				ImGui.PushItemWidth(250);
-				if (ImGui.SliderInt($"Minimum steps to execute before trying Material Miracle###P.Config.MinimumStepsBeforeMiracle", ref P.Config.MinimumStepsBeforeMiracle, 0, 20))
+				if (ImGui.SliderInt($"{T("Minimum steps to execute before trying Material Miracle")}###P.Config.MinimumStepsBeforeMiracle", ref P.Config.MinimumStepsBeforeMiracle, 0, 20))
 					P.Config.Save();
 
                 if (P.Config.UseMaterialMiracle)

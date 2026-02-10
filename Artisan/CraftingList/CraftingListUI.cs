@@ -56,11 +56,10 @@ namespace Artisan.CraftingLists
         {
             try
             {
-                ImGui.TextWrapped($"Crafting lists are a fantastic way to queue up different crafts and have them craft one-by-one. Create a list by importing from Teamcraft using the button at the bottom, or click the '+' icon and give your list a name." +
-                                  $" You can also right click an item from the game's recipe menu to either add it to a new list if one is not selected, or to create a new list with it as the first item if a list is not selected.");
+                ImGui.TextWrapped(L10n.Tr("Crafting lists are a fantastic way to queue up different crafts and have them craft one-by-one. Create a list by importing from Teamcraft using the button at the bottom, or click the '+' icon and give your list a name. You can also right click an item from the game's recipe menu to either add it to a new list if one is not selected, or to create a new list with it as the first item if a list is not selected."));
 
                 ImGui.Dummy(new Vector2(0, 14f));
-                ImGui.TextWrapped("Left click a list to open the editor. Right click a list to select it without opening the editor.");
+                ImGui.TextWrapped(L10n.Tr("Left click a list to open the editor. Right click a list to select it without opening the editor."));
 
                 ImGui.Separator();
 
@@ -82,7 +81,7 @@ namespace Artisan.CraftingLists
                 if (Endurance.Enable || Processing)
                     ImGui.BeginDisabled();
 
-                if (ImGui.Button("Start Crafting List", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+                if (ImGui.Button(L10n.Tr("Start Crafting List"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
                 {
                     StartList();
                 }
@@ -91,7 +90,7 @@ namespace Artisan.CraftingLists
                 {
                     if (RetainerInfo.TM.IsBusy)
                     {
-                        if (ImGui.Button("Abort Collecting From Retainer", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+                        if (ImGui.Button(L10n.Tr("Abort Collecting From Retainer"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
                         {
                             RetainerInfo.TM.Abort();
                         }
@@ -101,7 +100,7 @@ namespace Artisan.CraftingLists
                         bool disable = !Player.Available ? false : RetainerInfo.GetReachableRetainerBell() == null;
                         using (ImRaii.Disabled(disable))
                         {
-                            if (ImGui.Button("Restock Inventory From Retainers", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+                            if (ImGui.Button(L10n.Tr("Restock Inventory From Retainers"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
                             {
                                 Task.Run(() => RetainerInfo.RestockFromRetainers(selectedList));
                             }
@@ -111,10 +110,10 @@ namespace Artisan.CraftingLists
                 else
                 {
                     if (!RetainerInfo.AToolsInstalled)
-                        ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, $"Please install Allagan Tools for retainer features.");
+                        ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, L10n.Tr("Please install Allagan Tools for retainer features."));
 
                     if (RetainerInfo.AToolsInstalled && !RetainerInfo.AToolsEnabled)
-                        ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, $"Please enable Allagan Tools for retainer features.");
+                        ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, L10n.Tr("Please enable Allagan Tools for retainer features."));
                 }
 
 
@@ -122,7 +121,7 @@ namespace Artisan.CraftingLists
                     ImGui.EndDisabled();
             }
 
-            if (ImGui.Button("Import List From Clipboard (Artisan Export)", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+            if (ImGui.Button(L10n.Tr("Import List From Clipboard (Artisan Export)"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
             {
                 try
                 {
@@ -136,12 +135,12 @@ namespace Artisan.CraftingLists
                         }
                         else
                         {
-                            Notify.Error("Invalid import string.");
+                            Notify.Error(L10n.Tr("Invalid import string."));
                         }
                     }
                     else
                     {
-                        Notify.Error("Clipboard is empty.");
+                        Notify.Error(L10n.Tr("Clipboard is empty."));
                     }
                 }
                 catch (Exception ex)
@@ -260,7 +259,7 @@ namespace Artisan.CraftingLists
                     keyboardFocus = false;
                 }
 
-                if (ImGui.InputText("List Name###listName", ref newListName, 100, ImGuiInputTextFlags.EnterReturnsTrue) && newListName.Any())
+                if (ImGui.InputText($"{L10n.Tr("List Name")}###listName", ref newListName, 100, ImGuiInputTextFlags.EnterReturnsTrue) && newListName.Any())
                 {
                     NewCraftingList newList = new();
                     newList.Name = newListName;

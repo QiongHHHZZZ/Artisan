@@ -104,8 +104,9 @@ namespace Artisan.RawInformation
             ImGui.Begin($"###SliderQuality", ImGuiWindowFlags.NoScrollbar
                 | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoNavFocus
                 | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoTitleBar);
-            var textSize = ImGui.CalcTextSize("Simulated Starting Quality");
-            ImGui.TextUnformatted($"Simulated Starting Quality");
+            var sliderLabel = UI.L10n.Tr("Simulated Starting Quality");
+            var textSize = ImGui.CalcTextSize(sliderLabel);
+            ImGui.TextUnformatted(sliderLabel);
             ImGui.PushItemWidth(textSize.Length());
             if (ImGui.SliderInt("", ref currentSimulated, 0, (int)maxFactor))
             {

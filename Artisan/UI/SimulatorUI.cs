@@ -473,7 +473,7 @@ namespace Artisan.UI
                 if (!P.Config.DisableSimulatorActionTooltips)
                 {
                     ImGui.BeginTooltip();
-                    ImGuiEx.Text($"{action.NameOfAction()} - {action.StandardCPCost()} CP");
+                    ImGuiEx.Text($"{action.NameOfAction()} - {action.StandardCPCost()} 制作力");
                     ImGuiEx.Text($"{action.GetSkillDescription()}");
                     ImGui.EndTooltip();
                 }
@@ -642,7 +642,7 @@ namespace Artisan.UI
                                 ImGuiEx.Text($"{T("D")}: {step.Durability} / {_selectedCraft.CraftDurability} ({Math.Round((float)step.Durability / _selectedCraft.CraftDurability * 100, 0)}%)");
                                 ImGuiEx.Text(T("CP: {0} / {1} ({2}%)", step.RemainingCP, _selectedCraft.StatCP, Math.Round((float)step.RemainingCP / _selectedCraft.StatCP * 100, 0)));
                                 ImGuiEx.Text($"{T("Condition")}: {_simCurSteps[i].step.Condition} -> {step.Condition}");
-                                ImGuiEx.Text($"{comment}");
+                                ImGuiEx.Text(L10n.Tr(comment));
                                 ImGui.EndTooltip();
                             }
 
@@ -765,7 +765,7 @@ namespace Artisan.UI
             ImGui.Text(T("Select Solver"));
             ImGui.SameLine(120f);
             ImGuiEx.SetNextItemFullWidth();
-            using var solverCombo = ImRaii.Combo("###SolverCombo", _selectedSolver == null ? "" : $"{_selectedSolver?.Name}");
+            using var solverCombo = ImRaii.Combo("###SolverCombo", _selectedSolver == null ? "" : T(_selectedSolver?.Name ?? string.Empty));
             if (!solverCombo)
                 return;
 
@@ -773,7 +773,7 @@ namespace Artisan.UI
             foreach (var opt in CraftingProcessor.GetAvailableSolversForRecipe(_selectedCraft, false))
             {
                 if (opt == default) continue;
-                bool selected = ImGui.Selectable(opt.Name);
+                bool selected = ImGui.Selectable(T(opt.Name));
                 if (selected)
                 {
                     _selectedSolver = new(opt.Name, opt.CreateSolver(_selectedCraft));

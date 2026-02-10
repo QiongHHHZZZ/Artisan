@@ -37,6 +37,9 @@ using System.Threading.Tasks;
 
 internal class ListEditor : Window, IDisposable
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     public bool Minimized = false;
 
     private Task? RegenerateTask = null;
@@ -192,12 +195,12 @@ internal class ListEditor : Window, IDisposable
     {
         try
         {
-            var btn = ImGuiHelpers.GetButtonSize("Begin Crafting List");
+            var btn = ImGuiHelpers.GetButtonSize(T("Begin Crafting List"));
 
             if (Endurance.Enable || CraftingListUI.Processing)
                 ImGui.BeginDisabled();
 
-            if (ImGui.Button("Begin Crafting List"))
+            if (ImGui.Button(T("Begin Crafting List")))
             {
                 CraftingListUI.selectedList = this.SelectedList;
                 CraftingListUI.StartList();
@@ -208,15 +211,15 @@ internal class ListEditor : Window, IDisposable
                 ImGui.EndDisabled();
 
             ImGui.SameLine();
-            var export = ImGuiHelpers.GetButtonSize("Export List");
+            var export = ImGuiHelpers.GetButtonSize(T("Export List"));
 
-            if (ImGui.Button("Export List"))
+            if (ImGui.Button(T("Export List")))
             {
                 ImGui.SetClipboardText(JsonConvert.SerializeObject(P.Config.NewCraftingLists.Where(x => x.ID == SelectedList.ID).First()));
-                Notify.Success("List exported to clipboard.");
+                Notify.Success(T("List exported to clipboard."));
             }
 
-            var restock = ImGuiHelpers.GetButtonSize("Restock From Retainers");
+            var restock = ImGuiHelpers.GetButtonSize(T("Restock From Retainers"));
             if (RetainerInfo.ATools)
             {
                 ImGui.SameLine();
@@ -224,13 +227,13 @@ internal class ListEditor : Window, IDisposable
                 if (Endurance.Enable || CraftingListUI.Processing)
                     ImGui.BeginDisabled();
 
-                if (ImGui.Button($"Restock From Retainers"))
+                if (ImGui.Button(T("Restock From Retainers")))
                 {
                     Task.Run(() => RetainerInfo.RestockFromRetainers(SelectedList));
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Checkbox("Only Restock Non-Crafted Items", ref SelectedList.OnlyRestockNonCrafted))
+                if (ImGui.Checkbox(T("Only Restock Non-Crafted Items"), ref SelectedList.OnlyRestockNonCrafted))
                     P.Config.Save();
 
                 if (Endurance.Enable || CraftingListUI.Processing)
@@ -241,24 +244,24 @@ internal class ListEditor : Window, IDisposable
                 ImGui.SameLine();
 
                 if (!RetainerInfo.AToolsInstalled)
-                    ImGuiEx.Text(ImGuiColors.DalamudYellow, $"Please install Allagan Tools for retainer features.");
+                    ImGuiEx.Text(ImGuiColors.DalamudYellow, T("Please install Allagan Tools for retainer features."));
 
                 if (RetainerInfo.AToolsInstalled && !RetainerInfo.AToolsEnabled)
-                    ImGuiEx.Text(ImGuiColors.DalamudYellow, $"Please enable Allagan Tools for retainer features.");
+                    ImGuiEx.Text(ImGuiColors.DalamudYellow, T("Please enable Allagan Tools for retainer features."));
 
                 if (RetainerInfo.AToolsEnabled)
-                    ImGuiEx.Text(ImGuiColors.DalamudYellow, $"You have turned off Allagan Tools integration.");
+                    ImGuiEx.Text(ImGuiColors.DalamudYellow, T("You have turned off Allagan Tools integration."));
             }
 
             if (ImGui.BeginTabBar("CraftingListEditor", ImGuiTabBarFlags.None))
             {
-                if (ImGui.BeginTabItem("Recipes"))
+                if (ImGui.BeginTabItem(T("Recipes")))
                 {
                     DrawRecipes();
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Ingredients"))
+                if (ImGui.BeginTabItem(T("Ingredients")))
                 {
                     if (NeedsToRefreshTable)
                     {
@@ -270,13 +273,13 @@ internal class ListEditor : Window, IDisposable
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("List Settings"))
+                if (ImGui.BeginTabItem(T("List Settings")))
                 {
                     DrawListSettings();
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Copy From Other List"))
+                if (ImGui.BeginTabItem(T("Copy From Other List")))
                 {
                     DrawCopyFromList();
                     ImGui.EndTabItem();
@@ -293,7 +296,7 @@ internal class ListEditor : Window, IDisposable
     {
         if (P.Config.NewCraftingLists.Count > 1)
         {
-            ImGuiEx.TextWrapped($"Select List");
+            ImGuiEx.TextWrapped(T("Select List"));
             ImGuiEx.SetNextItemFullWidth();
             if (ImGui.BeginCombo("###ListCopyCombo", copyList is null ? "" : copyList.Name))
             {
@@ -314,12 +317,12 @@ internal class ListEditor : Window, IDisposable
         }
         else
         {
-            ImGui.Text($"Please add other lists to copy from");
+            ImGui.Text(T("Please add other lists to copy from"));
         }
 
         if (copyList != null)
         {
-            ImGui.Text($"This will copy:");
+            ImGui.Text(T("This will copy:"));
             ImGui.Indent();
             if (ImGui.BeginListBox("###ItemList", new(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - 30f)))
             {
@@ -331,7 +334,7 @@ internal class ListEditor : Window, IDisposable
                 ImGui.EndListBox();
             }
             ImGui.Unindent();
-            if (ImGui.Button($"Copy Items"))
+            if (ImGui.Button(T("Copy Items")))
             {
                 foreach (var recipe in copyList.Recipes)
                 {
@@ -342,7 +345,7 @@ internal class ListEditor : Window, IDisposable
                     else
                         SelectedList.Recipes.Add(new ListItem() { Quantity = recipe.Quantity, ID = recipe.ID });
                 }
-                Notify.Success($"All items copied from {copyList.Name} to {SelectedList.Name}.");
+                Notify.Success(T("All items copied from {0} to {1}.", copyList.Name ?? string.Empty, SelectedList.Name ?? string.Empty));
                 RecipeSelector.Items = SelectedList.Recipes.Distinct().ToList();
                 RefreshTable(null, true);
                 P.Config.Save();
@@ -355,11 +358,11 @@ internal class ListEditor : Window, IDisposable
         int colCount = RetainerInfo.ATools ? 4 : 3;
         if (ImGui.BeginTable("###SubTableRecipeData", colCount, ImGuiTableFlags.Borders))
         {
-            ImGui.TableSetupColumn("Ingredient", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("Inventory", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Ingredient"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Required"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Inventory"), ImGuiTableColumnFlags.WidthFixed);
             if (RetainerInfo.ATools)
-                ImGui.TableSetupColumn("Retainers", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn(T("Retainers"), ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableHeadersRow();
 
             if (subtableList.Count == 0)
@@ -440,7 +443,7 @@ internal class ListEditor : Window, IDisposable
         }
 
         ImGui.SameLine();
-        ImGui.TextWrapped("Show only recipes you have materials for (toggle to refresh)");
+        ImGui.TextWrapped(T("Show only recipes you have materials for (toggle to refresh)"));
 
         if (P.Config.ShowOnlyCraftable && RetainerInfo.ATools)
         {
@@ -456,14 +459,14 @@ internal class ListEditor : Window, IDisposable
             }
 
             ImGui.SameLine();
-            ImGui.TextWrapped("Include Retainers");
+            ImGui.TextWrapped(T("Include Retainers"));
         }
 
         var preview = SelectedRecipe is null
                           ? string.Empty
                           : $"{SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()} ({LuminaSheets.ClassJobSheet[SelectedRecipe.Value.CraftType.RowId + 8].Abbreviation.ToString()})";
 
-        if (ImGui.BeginCombo("Select Recipe", preview))
+        if (ImGui.BeginCombo(T("Select Recipe"), preview))
         {
             DrawRecipeList();
 
@@ -472,19 +475,19 @@ internal class ListEditor : Window, IDisposable
 
         if (SelectedRecipe != null)
         {
-            if (ImGui.CollapsingHeader("Recipe Information")) DrawRecipeOptions();
+            if (ImGui.CollapsingHeader(T("Recipe Information"))) DrawRecipeOptions();
             if (SelectedRecipeRawIngredients.Count == 0)
                 CraftingListHelpers.AddRecipeIngredientsToList(SelectedRecipe, ref SelectedRecipeRawIngredients);
 
-            if (ImGui.CollapsingHeader("Raw Ingredients"))
+            if (ImGui.CollapsingHeader(T("Raw Ingredients")))
             {
-                ImGui.Text("Raw Ingredients Required");
+                ImGui.Text(T("Raw Ingredients Required"));
                 DrawRecipeSubTable();
             }
 
             ImGui.Spacing();
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().Length() / 2f);
-            ImGui.TextWrapped("Number of times to add");
+            ImGui.TextWrapped(T("Number of times to add"));
             ImGui.SameLine();
             ImGui.InputInt("###TimesToAdd", ref timesToAdd, 1, 5);
             ImGui.PushItemWidth(-1f);
@@ -492,13 +495,13 @@ internal class ListEditor : Window, IDisposable
             if (timesToAdd < 1)
                 ImGui.BeginDisabled();
 
-            if (ImGui.Button("Add to List", new Vector2(ImGui.GetContentRegionAvail().X / 2, 30)))
+            if (ImGui.Button(T("Add to List"), new Vector2(ImGui.GetContentRegionAvail().X / 2, 30)))
             {
                 AddToList(SelectedRecipe.Value, false, true);
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("Add to List (with all sub-crafts)", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+            if (ImGui.Button(T("Add to List (with all sub-crafts)"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
             {
                 AddToList(SelectedRecipe.Value, true, true);
             }
@@ -508,38 +511,38 @@ internal class ListEditor : Window, IDisposable
 
 
         }
-        if (ImGui.Checkbox("Adjust all sub-crafts after changing quantities", ref SelectedList.TidyAfter))
+        if (ImGui.Checkbox(T("Adjust all sub-crafts after changing quantities"), ref SelectedList.TidyAfter))
             P.Config.Save();
 
-        ImGuiComponents.HelpMarker("This has been reworked! Having this enabled will adjust all quantities in your list rather than just removing unrequired crafts. It will now also add more crafts where required. It will also sort the list afterwards to make sure it's crafting in the right order in case you have removed items.\n\n" +
-            "Quick disclaimer: This will treat whatever item you have selected as a \"Final Craft\" and only adjust sub-crafts required for that item, and not anything this item may be used for e.g changing lumber won't update crafts that use that lumber.");
+        ImGuiComponents.HelpMarker(T("This has been reworked! Having this enabled will adjust all quantities in your list rather than just removing unrequired crafts. It will now also add more crafts where required. It will also sort the list afterwards to make sure it's crafting in the right order in case you have removed items.\n\n") +
+            T("Quick disclaimer: This will treat whatever item you have selected as a \"Final Craft\" and only adjust sub-crafts required for that item, and not anything this item may be used for e.g changing lumber won't update crafts that use that lumber."));
         ImGui.Separator();
 
-        if (ImGui.Button($"Sort Recipes"))
+        if (ImGui.Button(T("Sort Recipes")))
         {
             SortList();
         }
 
         if (ImGui.IsItemHovered())
         {
-            ImGuiEx.Tooltip($"This will sort your list by recipe depth, then difficulty. Recipe depth is defined by how many of the ingredients depend on other recipes on the list.\n\n" +
-                $"For example: {LuminaSheets.RecipeSheet[35508].ItemResult.Value.Name.ToDalamudString()} requires {LuminaSheets.ItemSheet[36186].Name}, which in turn requires {LuminaSheets.ItemSheet[36189].Name}, giving this recipe a depth of 3 if all these items are on the list.\n" +
-                $"Items that do not have other recipe dependencies have a depth of 1, so go to the top of the list, e.g {LuminaSheets.RecipeSheet[5299].ItemResult.Value.Name.ToDalamudString()}\n\n" +
-                $"Finally, this is sorted by the in-game difficulty of the crafts, hopefully grouping together similar crafts.");
+            ImGuiEx.Tooltip(T("This will sort your list by recipe depth, then difficulty. Recipe depth is defined by how many of the ingredients depend on other recipes on the list.\n\n") +
+                T("For example: {0} requires {1}, which in turn requires {2}, giving this recipe a depth of 3 if all these items are on the list.\n", LuminaSheets.RecipeSheet[35508].ItemResult.Value.Name.ToDalamudString(), LuminaSheets.ItemSheet[36186].Name, LuminaSheets.ItemSheet[36189].Name) +
+                T("Items that do not have other recipe dependencies have a depth of 1, so go to the top of the list, e.g {0}\n\n", LuminaSheets.RecipeSheet[5299].ItemResult.Value.Name.ToDalamudString()) +
+                T("Finally, this is sorted by the in-game difficulty of the crafts, hopefully grouping together similar crafts."));
         }
 
         Task.Run(() =>
         {
             listTime = CraftingListUI.GetListTimer(SelectedList);
         });
-        string duration = listTime == TimeSpan.Zero ? "Unknown" : string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", listTime.Days, listTime.Hours, listTime.Minutes, listTime.Seconds);
+        string duration = listTime == TimeSpan.Zero ? T("Unknown") : string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", listTime.Days, listTime.Hours, listTime.Minutes, listTime.Seconds);
         ImGui.SameLine();
-        ImGui.Text($"Approximate List Time: {duration}");
+        ImGui.Text(T("Approximate List Time: {0}", duration));
 
         if (loading)
         {
             ImGui.SameLine();
-            ImGuiEx.LineCentered(() => ImGuiEx.TextUnderlined(GradientColor.Get(ImGuiColors.DalamudWhite, ImGuiColors.DalamudYellow, 200), "REFRESHING LIST QUANTITIES"));
+            ImGuiEx.LineCentered(() => ImGuiEx.TextUnderlined(GradientColor.Get(ImGuiColors.DalamudWhite, ImGuiColors.DalamudYellow, 200), T("REFRESHING LIST QUANTITIES")));
         }
 
     }
@@ -645,12 +648,12 @@ internal class ListEditor : Window, IDisposable
         if (P.Config.ShowOnlyCraftable && !RetainerInfo.CacheBuilt)
         {
             if (RetainerInfo.ATools)
-                ImGui.TextWrapped($"Building Retainer Cache: {(RetainerInfo.RetainerData.Values.Any() ? RetainerInfo.RetainerData.FirstOrDefault().Value.Count : "0")}/{LuminaSheets.RecipeSheet!.Select(x => x.Value).SelectMany(x => x.Ingredients()).Where(x => x.Item.RowId != 0 && x.Amount > 0).DistinctBy(x => x.Item.RowId).Count()}");
-            ImGui.TextWrapped($"Building Craftable Items List: {CraftingListUI.CraftableItems.Count}/{LuminaSheets.RecipeSheet.Count}");
+                ImGui.TextWrapped(T("Building Retainer Cache: {0}/{1}", (RetainerInfo.RetainerData.Values.Any() ? RetainerInfo.RetainerData.FirstOrDefault().Value.Count : "0"), LuminaSheets.RecipeSheet!.Select(x => x.Value).SelectMany(x => x.Ingredients()).Where(x => x.Item.RowId != 0 && x.Amount > 0).DistinctBy(x => x.Item.RowId).Count()));
+            ImGui.TextWrapped(T("Building Craftable Items List: {0}/{1}", CraftingListUI.CraftableItems.Count, LuminaSheets.RecipeSheet.Count));
             ImGui.Spacing();
         }
 
-        ImGui.Text("Search");
+        ImGui.Text(T("Search"));
         ImGui.SameLine();
         ImGui.InputText("###RecipeSearch", ref Search, 150);
         if (ImGui.Selectable(string.Empty, SelectedRecipe == null))
@@ -666,7 +669,7 @@ internal class ListEditor : Window, IDisposable
 
         recipes = recipes.Where(x => IsValidRecipe(x));
 
-        if (Search.Length > 0 && ImGui.Selectable("Add all visible"))
+        if (Search.Length > 0 && ImGui.Selectable(T("Add all visible")))
         {
             Task.Run(() =>
             {
@@ -677,7 +680,7 @@ internal class ListEditor : Window, IDisposable
             }).ContinueWith(_ => { RefreshTable(null, true); P.Config.Save(); });
         }
 
-        if (Search.Length > 0 && ImGui.Selectable("Add all visible (with sub-crafts)"))
+        if (Search.Length > 0 && ImGui.Selectable(T("Add all visible (with sub-crafts)")))
         {
             Task.Run(() =>
             {
@@ -750,7 +753,7 @@ internal class ListEditor : Window, IDisposable
         {
             List<uint> craftingJobs = LuminaSheets.RecipeSheet.Values.Where(x => x.ItemResult.Value.Name.ToDalamudString().ToString() == SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()).Select(x => x.CraftType.Value.RowId + 8).ToList();
             string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => craftingJobs.Any(y => y == x.RowId)).Select(x => x.Abbreviation.ToString()).ToArray();
-            ImGui.Text($"Crafted by: {string.Join(", ", jobstrings)}");
+            ImGui.Text(T("Crafted by: {0}", string.Join(", ", jobstrings)));
         }
 
         var ItemsRequired = SelectedRecipe.Value.Ingredients();
@@ -758,13 +761,13 @@ internal class ListEditor : Window, IDisposable
         int numRows = RetainerInfo.ATools ? 6 : 5;
         if (ImGui.BeginTable("###RecipeTable", numRows, ImGuiTableFlags.Borders))
         {
-            ImGui.TableSetupColumn("Ingredient", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("Inventory", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Ingredient"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Required"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Inventory"), ImGuiTableColumnFlags.WidthFixed);
             if (RetainerInfo.ATools)
-                ImGui.TableSetupColumn("Retainers", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("Method", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn(T("Retainers"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Method"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Source"), ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableHeadersRow();
             try
             {
@@ -809,14 +812,14 @@ internal class ListEditor : Window, IDisposable
 
                     if (ingredientRecipe is not null)
                     {
-                        if (ImGui.Button($"Crafted###search{ingredientRecipe.Value.RowId}"))
+                        if (ImGui.Button($"{T("Crafted")}###search{ingredientRecipe.Value.RowId}"))
                         {
                             SelectedRecipe = ingredientRecipe;
                         }
                     }
                     else
                     {
-                        ImGui.Text("Gathered");
+                        ImGui.Text(T("Gathered"));
                     }
 
                     ImGui.TableNextColumn();
@@ -899,7 +902,7 @@ internal class ListEditor : Window, IDisposable
             }
             else
             {
-                ImGui.Text($"Please add items to your list to populate the ingredients tab.");
+                ImGui.Text(T("Please add items to your list to populate the ingredients tab."));
             }
         }
     }
@@ -907,7 +910,7 @@ internal class ListEditor : Window, IDisposable
     {
         if (Table == null && RegenerateTask.IsCompleted)
         {
-            if (ImGui.Button($"Something went wrong creating the table. Try again?"))
+            if (ImGui.Button(T("Something went wrong creating the table. Try again?")))
             {
                 RefreshTable(null, true);
             }
@@ -915,7 +918,7 @@ internal class ListEditor : Window, IDisposable
         }
         if (Table == null)
         {
-            ImGui.TextUnformatted($"Ingredient table is still populating. Please wait.");
+            ImGui.TextUnformatted(T("Ingredient table is still populating. Please wait."));
             var a = IngredientHelper.CurrentIngredient;
             var b = IngredientHelper.MaxIngredient;
             ImGui.ProgressBar((float)a / b, new(ImGui.GetContentRegionAvail().X, default), $"{a * 100.0f / b:f2}% ({a}/{b})");
@@ -929,18 +932,18 @@ internal class ListEditor : Window, IDisposable
         Table.Draw(ImGui.GetTextLineHeightWithSpacing());
         ImGui.EndChild();
 
-        ImGui.Checkbox($"Only show HQ crafts", ref HQSubcraftsOnly);
+        ImGui.Checkbox(T("Only show HQ crafts"), ref HQSubcraftsOnly);
 
-        ImGuiComponents.HelpMarker($"For ingredients that can be crafted, this will only show inventory{(RetainerInfo.ATools ? " and retainer" : "")} counts that are HQ.");
+        ImGuiComponents.HelpMarker(T("For ingredients that can be crafted, this will only show inventory{0} counts that are HQ.", RetainerInfo.ATools ? T(" and retainer") : string.Empty));
 
         ImGui.SameLine();
-        ImGui.Checkbox("Enable Colour Validation", ref ColourValidation);
+        ImGui.Checkbox(T("Enable Colour Validation"), ref ColourValidation);
 
         ImGui.SameLine();
 
         if (ImGui.GetIO().KeyShift)
         {
-            if (ImGui.Button($"Export Required Ingredients as Plain Text"))
+            if (ImGui.Button(T("Export Required Ingredients as Plain Text")))
             {
                 StringBuilder sb = new();
                 foreach (var item in Table.ListItems.Where(x => x.Required > 0))
@@ -951,17 +954,17 @@ internal class ListEditor : Window, IDisposable
                 if (!string.IsNullOrEmpty(sb.ToString()))
                 {
                     ImGui.SetClipboardText(sb.ToString());
-                    Notify.Success($"Required items copied to clipboard.");
+                    Notify.Success(T("Required items copied to clipboard."));
                 }
                 else
                 {
-                    Notify.Error($"No items required to be copied.");
+                    Notify.Error(T("No items required to be copied."));
                 }
             }
         }
         else
         {
-            if (ImGui.Button($"Export Remaining Ingredients as Plain Text"))
+            if (ImGui.Button(T("Export Remaining Ingredients as Plain Text")))
             {
                 StringBuilder sb = new();
                 foreach (var item in Table.ListItems.Where(x => x.Remaining > 0))
@@ -972,24 +975,24 @@ internal class ListEditor : Window, IDisposable
                 if (!string.IsNullOrEmpty(sb.ToString()))
                 {
                     ImGui.SetClipboardText(sb.ToString());
-                    Notify.Success($"Remaining items copied to clipboard.");
+                    Notify.Success(T("Remaining items copied to clipboard."));
                 }
                 else
                 {
-                    Notify.Error($"No items remaining to be copied.");
+                    Notify.Error(T("No items remaining to be copied."));
                 }
             }
 
             if (ImGui.IsItemHovered())
             {
-                ImGuiEx.Tooltip($"Hold shift to change from remaining to required.");
+                ImGuiEx.Tooltip(T("Hold shift to change from remaining to required."));
             }
 
         }
 
 
         ImGui.SameLine();
-        if (ImGui.Button("Need Help?"))
+        if (ImGui.Button(T("Need Help?")))
             ImGui.OpenPopup("HelpPopup");
 
         if (ColourValidation)
@@ -1001,7 +1004,9 @@ internal class ListEditor : Window, IDisposable
             ImGui.PopStyleColor();
             ImGui.SameLine();
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 7);
-            ImGui.Text($" - Inventory has all required items {(SelectedList.SkipIfEnough && SelectedList.SkipLiteral ? "" : "or is not required due to owning crafted materials using this ingredient")}");
+            ImGui.Text(SelectedList.SkipIfEnough && SelectedList.SkipLiteral
+                ? T(" - Inventory has all required items")
+                : T(" - Inventory has all required items or is not required due to owning crafted materials using this ingredient"));
 
             if (RetainerInfo.ATools)
             {
@@ -1012,7 +1017,7 @@ internal class ListEditor : Window, IDisposable
                 ImGui.PopStyleColor();
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 7);
-                ImGui.Text($" - Combination of Retainer & Inventory has all required items");
+                ImGui.Text(T(" - Combination of Retainer & Inventory has all required items"));
             }
 
             ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.ParsedBlue);
@@ -1022,7 +1027,7 @@ internal class ListEditor : Window, IDisposable
             ImGui.PopStyleColor();
             ImGui.SameLine();
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 7);
-            ImGui.Text($" - Combination of Inventory & Craftable has all required items.");
+            ImGui.Text(T(" - Combination of Inventory & Craftable has all required items."));
         }
 
 
@@ -1036,18 +1041,18 @@ internal class ListEditor : Window, IDisposable
         if (!popup)
             return;
 
-        ImGui.TextWrapped($"This ingredients table shows you everything needed to craft the items on your list. The basic functionality of the table shows you information such as how many of an ingredient is in your inventory, sources of an ingredient, if it has a zone it can be gathered in etc.");
+        ImGui.TextWrapped(T("This ingredients table shows you everything needed to craft the items on your list. The basic functionality of the table shows you information such as how many of an ingredient is in your inventory, sources of an ingredient, if it has a zone it can be gathered in etc."));
         ImGui.Dummy(new Vector2(0));
-        ImGui.BulletText($"You can click on the column headers to filter the results, either through typing or on a pre-determined filter.");
-        ImGui.BulletText($"Right clicking on a header will allow you to show/hide different columns or resize columns.");
-        ImGui.BulletText($"Right clicking on an ingredient name opens a context menu with further options.");
-        ImGui.BulletText($"Clicking and dragging on the space on the headers between columns (as shown by it lighting up) allows you to re-order the columns.");
-        ImGui.BulletText($"Don't see any items? Check the table headers for a red heading. This indicates this column is being filtered on. Right clicking the header will clear the filter.");
-        ImGui.BulletText($"You can extend the functionality of the table by installing the following plugins:\n- Allagan Tools (Enables all retainer features)\n- Item Vendor Lookup\n- Gatherbuddy\n- Monster Loot Hunter");
-        ImGui.BulletText($"Tip: Filter on \"Remaining Needed\" and \"Sources\" when gathering to help filter on items missing, along with sorting by gathered zone\nto help reduce travel times.");
+        ImGui.BulletText(T("You can click on the column headers to filter the results, either through typing or on a pre-determined filter."));
+        ImGui.BulletText(T("Right clicking on a header will allow you to show/hide different columns or resize columns."));
+        ImGui.BulletText(T("Right clicking on an ingredient name opens a context menu with further options."));
+        ImGui.BulletText(T("Clicking and dragging on the space on the headers between columns (as shown by it lighting up) allows you to re-order the columns."));
+        ImGui.BulletText(T("Don't see any items? Check the table headers for a red heading. This indicates this column is being filtered on. Right clicking the header will clear the filter."));
+        ImGui.BulletText(T("You can extend the functionality of the table by installing the following plugins:\n- Allagan Tools (Enables all retainer features)\n- Item Vendor Lookup\n- Gatherbuddy\n- Monster Loot Hunter"));
+        ImGui.BulletText(T("Tip: Filter on \"Remaining Needed\" and \"Sources\" when gathering to help filter on items missing, along with sorting by gathered zone\nto help reduce travel times."));
 
         ImGui.SetCursorPosY(windowSize.Y - ImGui.GetFrameHeight() - ImGui.GetStyle().WindowPadding.Y);
-        if (ImGui.Button("Close Help", -Vector2.UnitX))
+        if (ImGui.Button(T("Close Help"), -Vector2.UnitX))
             ImGui.CloseCurrentPopup();
     }
 
@@ -1055,25 +1060,25 @@ internal class ListEditor : Window, IDisposable
     {
         ImGui.BeginChild("ListSettings", ImGui.GetContentRegionAvail(), false);
         var skipIfEnough = SelectedList.SkipIfEnough;
-        if (ImGui.Checkbox("Skip Crafting Unnecessary Materials", ref skipIfEnough))
+        if (ImGui.Checkbox(T("Skip Crafting Unnecessary Materials"), ref skipIfEnough))
         {
             SelectedList.SkipIfEnough = skipIfEnough;
             P.Config.Save();
         }
-        ImGuiComponents.HelpMarker($"Will skip crafting any unnecessary materials required for your list.");
+        ImGuiComponents.HelpMarker(T("Will skip crafting any unnecessary materials required for your list."));
 
         if (skipIfEnough)
         {
             ImGui.Indent();
-            if (ImGui.Checkbox("Skip Up To List Amount", ref SelectedList.SkipLiteral))
+            if (ImGui.Checkbox(T("Skip Up To List Amount"), ref SelectedList.SkipLiteral))
             {
                 P.Config.Save();
             }
 
-            ImGuiComponents.HelpMarker("Will continue to craft materials whilst your inventory has less of a material up to the amount the list would craft if starting from zero.\n\n" +
-                "[Recipe Amount Result] x [Number of Crafts] is less than [Inventory Amount].\n\n" +
-                "Use this when crafting materials for items not on your list (eg FC workshop projects)\n\n" +
-                "This will also adjust the ingredient table's remaining column and colour validation to exclude checking for crafted items the ingredient may be used in.");
+            ImGuiComponents.HelpMarker(T("Will continue to craft materials whilst your inventory has less of a material up to the amount the list would craft if starting from zero.\n\n") +
+                T("[Recipe Amount Result] x [Number of Crafts] is less than [Inventory Amount].\n\n") +
+                T("Use this when crafting materials for items not on your list (eg FC workshop projects)\n\n") +
+                T("This will also adjust the ingredient table's remaining column and colour validation to exclude checking for crafted items the ingredient may be used in."));
             ImGui.Unindent();
         }
 
@@ -1081,7 +1086,7 @@ internal class ListEditor : Window, IDisposable
             ImGui.BeginDisabled();
 
         var materia = SelectedList.Materia;
-        if (ImGui.Checkbox("Automatically Extract Materia", ref materia))
+        if (ImGui.Checkbox(T("Automatically Extract Materia"), ref materia))
         {
             SelectedList.Materia = materia;
             P.Config.Save();
@@ -1091,19 +1096,19 @@ internal class ListEditor : Window, IDisposable
         {
             ImGui.EndDisabled();
 
-            ImGuiComponents.HelpMarker("This character has not unlocked materia extraction. This setting will be ignored.");
+            ImGuiComponents.HelpMarker(T("This character has not unlocked materia extraction. This setting will be ignored."));
         }
         else
-            ImGuiComponents.HelpMarker("Will automatically extract materia from any equipped gear once it's spiritbond is 100%");
+            ImGuiComponents.HelpMarker(T("Will automatically extract materia from any equipped gear once it's spiritbond is 100%"));
 
         var repair = SelectedList.Repair;
-        if (ImGui.Checkbox("Automatic Repairs", ref repair))
+        if (ImGui.Checkbox(T("Automatic Repairs"), ref repair))
         {
             SelectedList.Repair = repair;
             P.Config.Save();
         }
 
-        ImGuiComponents.HelpMarker($"If enabled, Artisan will automatically repair your gear when any piece reaches the configured repair threshold.\n\nCurrent min gear condition is {RepairManager.GetMinEquippedPercent()}% and cost to repair at a vendor is {RepairManager.GetNPCRepairPrice()} gil.\n\nIf unable to repair with Dark Matter, will try for a nearby repair NPC.");
+        ImGuiComponents.HelpMarker(T("If enabled, Artisan will automatically repair your gear when any piece reaches the configured repair threshold.\n\nCurrent min gear condition is {0}% and cost to repair at a vendor is {1} gil.\n\nIf unable to repair with Dark Matter, will try for a nearby repair NPC.", RepairManager.GetMinEquippedPercent(), RepairManager.GetNPCRepairPrice()));
 
         if (SelectedList.Repair)
         {
@@ -1112,7 +1117,7 @@ internal class ListEditor : Window, IDisposable
                 P.Config.Save();
         }
 
-        if (ImGui.Checkbox("Set new items added to list as quick synth", ref SelectedList.AddAsQuickSynth))
+        if (ImGui.Checkbox(T("Set new items added to list as quick synth"), ref SelectedList.AddAsQuickSynth))
             P.Config.Save();
 
         ImGui.EndChild();
@@ -1127,7 +1132,7 @@ internal class ListEditor : Window, IDisposable
         ImGui.SameLine();
 
         if (RecipeSelector.Current?.ID > 0)
-            ItemDetailsWindow.Draw("Recipe Options", DrawRecipeSettingsHeader, DrawRecipeSettings);
+            ItemDetailsWindow.Draw(T("Recipe Options"), DrawRecipeSettingsHeader, DrawRecipeSettings);
     }
 
     private void DrawRecipeSettings()
@@ -1138,7 +1143,7 @@ internal class ListEditor : Window, IDisposable
 
         ImGuiEx.LineCentered(() => ImGuiEx.TextUnderlined($"{recipe.ItemResult.Value.Name}"));
 
-        ImGui.TextWrapped("Adjust Quantity");
+        ImGui.TextWrapped(T("Adjust Quantity"));
         ImGuiEx.SetNextItemFullWidth(-30);
         ImGui.InputInt("###AdjustQuantity", ref count);
         if (ImGui.IsItemDeactivatedAfterEdit())
@@ -1179,14 +1184,14 @@ internal class ListEditor : Window, IDisposable
         if (recipe.CanQuickSynth)
         {
             var NQOnly = options.NQOnly;
-            if (ImGui.Checkbox("Quick Synthesis this item", ref NQOnly))
+            if (ImGui.Checkbox(T("Quick Synthesis this item"), ref NQOnly))
             {
                 options.NQOnly = NQOnly;
                 P.Config.Save();
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("Apply To all###QuickSynthAll"))
+            if (ImGui.Button($"{T("Apply To all")}###QuickSynthAll"))
             {
                 foreach (var r in SelectedList.Recipes.Where(n => LuminaSheets.RecipeSheet[n.ID].CanQuickSynth))
                 {
@@ -1194,19 +1199,19 @@ internal class ListEditor : Window, IDisposable
                     { r.ListItemOptions = new(); }
                     r.ListItemOptions.NQOnly = options.NQOnly;
                 }
-                Notify.Success($"Quick Synth applied to all list items.");
+                Notify.Success(T("Quick Synth applied to all list items."));
                 P.Config.Save();
             }
 
             if (NQOnly && !P.Config.UseConsumablesQuickSynth)
             {
-                if (ImGui.Checkbox("You do not have quick synth consumables enabled. Turn this on?", ref P.Config.UseConsumablesQuickSynth))
+                if (ImGui.Checkbox(T("You do not have quick synth consumables enabled. Turn this on?"), ref P.Config.UseConsumablesQuickSynth))
                     P.Config.Save();
             }
         }
         else
         {
-            ImGui.TextWrapped("This item cannot be quick synthed.");
+            ImGui.TextWrapped(T("This item cannot be quick synthed."));
         }
 
         // Retrieve the list of recipes matching the selected recipe name from the preprocessed lookup table.
@@ -1215,7 +1220,7 @@ internal class ListEditor : Window, IDisposable
         if (matchingRecipes.Count > 1)
         {
             var pre = $"{LuminaSheets.ClassJobSheet[recipe.CraftType.RowId + 8].Abbreviation.ToString()}";
-            ImGui.TextWrapped("Switch crafted job");
+            ImGui.TextWrapped(T("Switch crafted job"));
             ImGuiEx.SetNextItemFullWidth(-30);
             if (ImGui.BeginCombo("###SwitchJobCombo", pre))
             {
@@ -1265,7 +1270,7 @@ internal class ListEditor : Window, IDisposable
 
             ImGui.SameLine();
 
-            if (ImGui.Button($"Apply to all###FoodApplyAll"))
+            if (ImGui.Button($"{T("Apply To all")}###FoodApplyAll"))
             {
                 foreach (var r in SelectedList.Recipes.Distinct())
                 {
@@ -1287,7 +1292,7 @@ internal class ListEditor : Window, IDisposable
 
             ImGui.SameLine();
 
-            if (ImGui.Button($"Apply to all###PotionApplyAll"))
+            if (ImGui.Button($"{T("Apply To all")}###PotionApplyAll"))
             {
                 foreach (var r in SelectedList.Recipes.Distinct())
                 {
@@ -1309,7 +1314,7 @@ internal class ListEditor : Window, IDisposable
 
             ImGui.SameLine();
 
-            if (ImGui.Button($"Apply to all###ManualApplyAll"))
+            if (ImGui.Button($"{T("Apply To all")}###ManualApplyAll"))
             {
                 foreach (var r in SelectedList.Recipes.Distinct())
                 {
@@ -1330,7 +1335,7 @@ internal class ListEditor : Window, IDisposable
 
             ImGui.SameLine();
 
-            if (ImGui.Button($"Apply to all###SquadManualApplyAll"))
+            if (ImGui.Button($"{T("Apply To all")}###SquadManualApplyAll"))
             {
                 foreach (var r in SelectedList.Recipes.Distinct())
                 {
@@ -1354,7 +1359,7 @@ internal class ListEditor : Window, IDisposable
 
         ImGui.SameLine();
 
-        if (ImGui.Button($"Apply to all###SolverOnAll"))
+        if (ImGui.Button($"{T("Apply To all")}###SolverOnAll"))
         {
             foreach (var r in SelectedList.Recipes.Distinct())
             {
@@ -1368,20 +1373,20 @@ internal class ListEditor : Window, IDisposable
 
         RaphaelCache.DrawRaphaelDropdown(craft, false);
 
-        ImGuiEx.TextV("Requirements:");
+        ImGuiEx.TextV(T("Requirements:"));
         ImGui.SameLine();
         using var style = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(0, ImGui.GetStyle().ItemSpacing.Y));
         ImGui.SameLine(137.6f.Scale());
-        ImGui.TextWrapped($"Difficulty: {craft.CraftProgress} | Durability: {craft.CraftDurability} | Quality: {(craft.CraftCollectible ? craft.CraftQualityMin3 : craft.CraftQualityMax)}");
-        ImGuiComponents.HelpMarker($"Shows the crafting requirements: Progress needed to complete the craft, how much Durability the recipe has, and Quality target required to reach the highest Quality level (In case of a Collectible). Use this information to select an appropriate macro, if desired.");
+        ImGui.TextWrapped(T("Difficulty: {0} | Durability: {1} | Quality: {2}", craft.CraftProgress, craft.CraftDurability, (craft.CraftCollectible ? craft.CraftQualityMin3 : craft.CraftQualityMax)));
+        ImGuiComponents.HelpMarker(T("Shows the crafting requirements: Progress needed to complete the craft, how much Durability the recipe has, and Quality target required to reach the highest Quality level (In case of a Collectible). Use this information to select an appropriate macro, if desired."));
 
-        ImGui.Checkbox($"Assume Max Starting Quality (for simulator)", ref hqSim);
+        ImGui.Checkbox(T("Assume Max Starting Quality (for simulator)"), ref hqSim);
 
         var solverHint = Simulator.SimulatorResult(recipe, config, craft, out var hintColor, hqSim);
         if (!recipe.IsExpert)
             ImGuiEx.TextWrapped(hintColor, solverHint);
         else
-            ImGuiEx.TextWrapped($"Please run this recipe in the simulator for results.");
+            ImGuiEx.TextWrapped(T("Please run this recipe in the simulator for results."));
     }
 
     private void DrawRecipeSettingsHeader()
@@ -1497,8 +1502,9 @@ internal class RecipeSelector : ItemSelector<ListItem>
         var ItemId = Items[idx];
         var itemCount = ItemId.Quantity;
         var yield = LuminaSheets.RecipeSheet[ItemId.ID].AmountResult * itemCount;
+        var totalSuffix = yield != itemCount ? L10n.Tr(" ({0} total)", yield) : string.Empty;
         var label =
-            $"{idx + 1}. {ItemId.ID.NameOfRecipe()} x{itemCount}{(yield != itemCount ? $" ({yield} total)" : string.Empty)}";
+            $"{idx + 1}. {ItemId.ID.NameOfRecipe()} x{itemCount}{totalSuffix}";
         maxSize = ImGui.CalcTextSize(label).X > maxSize ? ImGui.CalcTextSize(label).X : maxSize;
 
         if (ItemId.ListItemOptions is null)
@@ -1510,7 +1516,9 @@ internal class RecipeSelector : ItemSelector<ListItem>
         using (var col = ImRaii.PushColor(ImGuiCol.Text, itemCount == 0 || ItemId.ListItemOptions.Skipping ? ImGuiColors.DalamudRed : ImGuiColors.DalamudWhite))
         {
             var res = ImGui.Selectable(label, idx == CurrentIdx);
-            ImGuiEx.Tooltip($"Right click to {(ItemId.ListItemOptions.Skipping ? "enable" : "skip")} this recipe.");
+            ImGuiEx.Tooltip(ItemId.ListItemOptions.Skipping
+                ? L10n.Tr("Right click to enable this recipe.")
+                : L10n.Tr("Right click to skip this recipe."));
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 ItemId.ListItemOptions.Skipping = !ItemId.ListItemOptions.Skipping;
@@ -1540,7 +1548,7 @@ internal class ListFolders : ItemSelector<NewCraftingList>
 
     protected override string DeleteButtonTooltip()
     {
-        return "Permanently delete this crafting list.\r\nHold Ctrl + Click.\r\nThis cannot be undone.";
+        return L10n.Tr("Permanently delete this crafting list.\r\nHold Ctrl + Click.\r\nThis cannot be undone.");
     }
 
     protected override bool Filtered(int idx)
@@ -1583,7 +1591,7 @@ internal class ListFolders : ItemSelector<NewCraftingList>
             ImGui.BeginDisabled();
 
         using var id = ImRaii.PushId(idx);
-        var selected = ImGui.Selectable($"{P.Config.NewCraftingLists[idx].Name} (ID: {P.Config.NewCraftingLists[idx].ID})", idx == CurrentIdx);
+        var selected = ImGui.Selectable($"{P.Config.NewCraftingLists[idx].Name} ({L10n.Tr("ID")}: {P.Config.NewCraftingLists[idx].ID})", idx == CurrentIdx);
         if (selected)
         {
             if (!P.ws.Windows.Any(x => x.WindowName.Contains(P.Config.NewCraftingLists[idx].ID.ToString())))
