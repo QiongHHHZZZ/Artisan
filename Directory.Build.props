@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup Condition="'$(DALAMUD_HOME)' == '' and $([MSBuild]::IsOSPlatform('Windows')) and Exists('$(AppData)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll')">
+    <DALAMUD_HOME>$(AppData)\XIVLauncherCN\addon\Hooks\dev\</DALAMUD_HOME>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DALAMUD_HOME)' != ''">
+    <DalamudLibPath>$(DALAMUD_HOME)</DalamudLibPath>
+  </PropertyGroup>
+</Project>

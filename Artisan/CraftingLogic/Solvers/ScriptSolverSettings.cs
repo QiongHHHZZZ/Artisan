@@ -3,11 +3,15 @@ using System;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using System.Linq;
+using Artisan.UI;
 
 namespace Artisan.CraftingLogic.Solvers;
 
 public class ScriptSolverSettings
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     public enum CompilationState { None, InProgress, SuccessClean, SuccessWarnings, Failed, Deleted }
 
     public class Script
@@ -64,7 +68,7 @@ public class ScriptSolverSettings
     {
         try
         {
-            ImGui.TextWrapped($"This is a very advanced feature, aimed at users wishing to create their own dynamic solvers using C#. Please visit the github source code and view the Demoscripts folder for an example. No support will be given as to learning C# to do this.");
+            ImGui.TextWrapped(T("This is a very advanced feature, aimed at users wishing to create their own dynamic solvers using C#. Please visit the github source code and view the Demoscripts folder for an example. No support will be given as to learning C# to do this."));
             ImGui.Separator();
             Script? toDel = null;
             foreach (var s in Scripts)
@@ -76,26 +80,26 @@ public class ScriptSolverSettings
                 using (ImRaii.Disabled(state == CompilationState.InProgress))
                 {
                     // TODO: show icon depending on state...
-                    if (ImGui.Button($"Recompile: {state}", new(100, 0)))
+                    if (ImGui.Button(T("Recompile: {0}", state), new(100, 0)))
                         _compiler.Recompile(s);
                     if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
                     {
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted($"Compilation output:\n{s.CompilationOutput()}");
+                        ImGui.TextUnformatted(T("Compilation output:\n{0}", s.CompilationOutput()));
                         ImGui.EndTooltip();
                     }
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button("Delete"))
+                if (ImGui.Button(T("Delete")))
                     toDel = s;
                 ImGui.SameLine();
                 ImGui.TextUnformatted($"[{s.ID}] {s.SourcePath}");
             }
 
-            ImGui.InputText("New script path", ref _newPath, 256);
+            ImGui.InputText(T("New script path"), ref _newPath, 256);
             ImGui.SameLine();
-            if (ImGui.Button("Add") && _newPath.Length > 0 && !Scripts.Any(s => s.SourcePath == _newPath))
+            if (ImGui.Button(T("Add")) && _newPath.Length > 0 && !Scripts.Any(s => s.SourcePath == _newPath))
             {
                 AddNewScript(new(_newPath));
                 _newPath = "";
@@ -104,7 +108,7 @@ public class ScriptSolverSettings
 
             if (toDel != null)
             {
-                toDel.UpdateCompilation(CompilationState.Deleted, "Deletion in progress", null);
+                toDel.UpdateCompilation(CompilationState.Deleted, T("Deletion in progress"), null);
                 Scripts.Remove(toDel);
                 return true;
             }
