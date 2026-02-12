@@ -7,6 +7,7 @@ using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
 using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -41,8 +42,6 @@ namespace Artisan.CraftingLists
         private static Dictionary<string, bool> Stars = LuminaSheets.RecipeLevelTableSheet.Values.DistinctBy(x => x.Stars).ToDictionary(x => "★".Repeat(x.Stars), x => false);
         private static Dictionary<int, bool> Stats = LuminaSheets.RecipeSheet.Values.SelectMany(x => x.ItemResult.Value.BaseParam).DistinctBy(x => x.Value.RowId).Where(x => x.RowId > 0).OrderBy(x => x.RowId).ToDictionary(x => (int)x.RowId, x => false);
 
-        private static float DurY = 0f;
-
         public static void Draw()
         {
             try
@@ -55,287 +54,39 @@ namespace Artisan.CraftingLists
                 ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X / 2);
                 ImGui.InputText("###NameInput", ref listName, 300);
 
-                ImGui.Columns(6, border: false);
+                var yesNoListHeight = ListBoxHeightForItems(2, columns: 2, minRows: 1, maxRows: 1);
+                var minCraftsmanshipValue = LuminaSheets.RecipeSheet.Values.Min(x => x.RequiredCraftsmanship);
+                var maxCraftsmanshipValue = LuminaSheets.RecipeSheet.Values.Max(x => x.RequiredCraftsmanship);
+                var minControlValue = LuminaSheets.RecipeSheet.Values.Min(x => x.RequiredControl);
+                var maxControlValue = LuminaSheets.RecipeSheet.Values.Max(x => x.RequiredControl);
 
-                ImGui.TextWrapped(L10n.Tr("Select Job(s)"));
-                if (ImGui.BeginListBox("###JobSelectListBox", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 110)))
+                var availableWidth = ImGui.GetContentRegionAvail().X;
+                if (availableWidth >= 900f)
                 {
-                    ImGui.Columns(2, border: false);
-                    foreach (var item in JobSelected)
+                    if (ImGui.BeginTable("###SpecialListCriteria", 2, ImGuiTableFlags.SizingStretchProp))
                     {
-                        string jobName = LuminaSheets.ClassJobSheet[item.Key].Abbreviation.ToString().ToUpper();
-                        bool val = item.Value;
-                        if (ImGui.Checkbox(jobName, ref val))
-                        {
-                            JobSelected[item.Key] = val;
-                        }
-                        ImGui.NextColumn();
-                    }
+                        ImGui.TableSetupColumn("###SpecialListCriteriaLeft", ImGuiTableColumnFlags.WidthStretch, 0.46f);
+                        ImGui.TableSetupColumn("###SpecialListCriteriaRight", ImGuiTableColumnFlags.WidthStretch, 0.54f);
+                        ImGui.TableNextRow();
 
-                    ImGui.EndListBox();
+                        ImGui.TableNextColumn();
+                        DrawLeftCriteriaPane();
+
+                        ImGui.TableNextColumn();
+                        DrawRightCriteriaPane(yesNoListHeight, minCraftsmanshipValue, maxCraftsmanshipValue, minControlValue, maxControlValue);
+
+                        ImGui.EndTable();
+                    }
+                }
+                else
+                {
+                    DrawLeftCriteriaPane();
+                    ImGui.Separator();
+                    DrawRightCriteriaPane(yesNoListHeight, minCraftsmanshipValue, maxCraftsmanshipValue, minControlValue, maxControlValue);
                 }
 
-
-                ImGui.TextWrapped(L10n.Tr("Already Crafted Recipe"));
-                if (ImGui.BeginListBox("###AlreadyCraftedRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = alreadyCrafted[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        alreadyCrafted[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = alreadyCrafted[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        alreadyCrafted[2] = no;
-                    }
-                    ImGui.EndListBox();
-                }
-
-                ImGui.TextWrapped(L10n.Tr("Collectable Recipe"));
-                if (ImGui.BeginListBox("###CollectableRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = isCollectable[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        isCollectable[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = isCollectable[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        isCollectable[2] = no;
-                    }
-
-                    ImGui.EndListBox();
-                }
-                ImGui.NextColumn();
-
-                ImGui.TextWrapped(L10n.Tr("Max Durability"));
-                if (ImGui.BeginListBox("###SpecialListDurability", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 110)))
-                {
-                    ImGui.Columns(2, border: false);
-                    foreach (var dur in Durabilities)
-                    {
-                        var val = dur.Value;
-                        if (ImGui.Checkbox($"{dur.Key}", ref val))
-                        {
-                            Durabilities[dur.Key] = val;
-                        }
-                        ImGui.NextColumn();
-                    }
-                    ImGui.EndListBox();
-
-                    DurY = ImGui.GetCursorPosY();
-                }
-
-                ImGui.TextWrapped(L10n.Tr("Level-based Recipes"));
-                if (ImGui.BeginListBox("###IsLevelBasedRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, "DefaultID", false);
-                    bool yes = isLevelBased[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        isLevelBased[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = isLevelBased[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        isLevelBased[2] = no;
-                    }
-
-                    ImGui.EndListBox();
-                }
-
-
-                ImGui.TextWrapped(L10n.Tr("HQable Recipe"));
-                if (ImGui.BeginListBox("###HQRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = isHQAble[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        isHQAble[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = isHQAble[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        isHQAble[2] = no;
-                    }
-
-                    ImGui.EndListBox();
-                }
-
-                ImGui.NextColumn();
-                ImGui.TextWrapped(L10n.Tr("Minimum Level"));
-                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
-                ImGui.SliderInt("###SpecialListMinLevel", ref minLevel, 1, 100);
-                ImGui.PopStyleVar();
-
-                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped(L10n.Tr("Recipe from a Book"));
-                if (ImGui.BeginListBox("###UnlockableRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = hasToBeUnlocked[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        hasToBeUnlocked[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = hasToBeUnlocked[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        hasToBeUnlocked[2] = no;
-                    }
-                    ImGui.EndListBox();
-                }
-
-                ImGui.TextWrapped(L10n.Tr("Quest Only Recipe"));
-                if (ImGui.BeginListBox("###QuestRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = questRecipe[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        questRecipe[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = questRecipe[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        questRecipe[2] = no;
-                    }
-                    ImGui.EndListBox();
-                }
-
-
-                ImGui.TextWrapped(L10n.Tr("Name Contains"));
-                ImGuiComponents.HelpMarker(L10n.Tr("Supports RegEx."));
-                ImGuiEx.SetNextItemFullWidth();
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
-                ImGui.InputText($"###NameContains", ref Contains, 100);
-
-                ImGui.PopStyleVar();
-                ImGui.NextColumn();
-
-                ImGui.TextWrapped(L10n.Tr("Max Level"));
-                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
-                ImGui.SliderInt("###SpecialListMaxLevel", ref maxLevel, 1, 100);
-                ImGui.PopStyleVar();
-                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped(L10n.Tr("Expert Recipe"));
-                if (ImGui.BeginListBox("###ExpertRecipe", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = isExpert[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        isExpert[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = isExpert[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        isExpert[2] = no;
-                    }
-                    ImGui.EndListBox();
-                }
-
-                ImGui.TextWrapped(L10n.Tr("Secondary Recipe"));
-                if (ImGui.BeginListBox("###SecondaryRecipes", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 32f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    bool yes = isSecondary[1];
-                    if (ImGui.Checkbox(L10n.Tr("Yes"), ref yes))
-                    {
-                        isSecondary[1] = yes;
-                    }
-                    ImGui.NextColumn();
-                    bool no = isSecondary[2];
-                    if (ImGui.Checkbox(L10n.Tr("No"), ref no))
-                    {
-                        isSecondary[2] = no;
-                    }
-                    ImGui.EndListBox();
-                }
-
-                ImGui.NextColumn();
-
-                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped(L10n.Tr("Min. Craftsmanship"));
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
-                ImGui.SliderInt($"###MinCraftsmanship", ref minCraftsmanship, LuminaSheets.RecipeSheet.Values.Min(x => x.RequiredCraftsmanship), LuminaSheets.RecipeSheet.Values.Max(x => x.RequiredCraftsmanship));
-                ImGui.PopStyleVar();
-                ImGui.TextWrapped(L10n.Tr("Amount Result"));
-                if (ImGui.BeginListBox("###Yields", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 120f.Scale())))
-                {
-                    ImGui.Columns(2, border: false);
-                    foreach (var yield in Yields)
-                    {
-                        var val = yield.Value;
-                        if (ImGui.Checkbox($"{yield.Key}", ref val))
-                        {
-                            Yields[yield.Key] = val;
-                        }
-                        ImGui.NextColumn();
-                    }
-                    ImGui.EndListBox();
-                }
-
-                ImGui.NextColumn();
-                ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-                ImGui.TextWrapped(L10n.Tr("Min. Control"));
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
-                ImGui.SliderInt($"###MinControl", ref minControl, LuminaSheets.RecipeSheet.Values.Min(x => x.RequiredControl), LuminaSheets.RecipeSheet.Values.Max(x => x.RequiredControl));
-                ImGui.PopStyleVar();
-                ImGui.TextWrapped(L10n.Tr("Stars"));
-                if (ImGui.BeginListBox("###Stars", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 120f.Scale())))
-                {
-                    foreach (var star in Stars)
-                    {
-                        var val = star.Value;
-                        if (ImGui.Checkbox($"{star.Key}", ref val))
-                        {
-                            Stars[star.Key] = val;
-                        }
-                    }
-                    ImGui.EndListBox();
-                }
-
-                ImGui.NextColumn();
-
-
-                ImGui.Columns(1);
-                //ImGui.SetCursorPosY(DurY + 10);
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4);
-                ImGui.TextWrapped(L10n.Tr("Base Stats"));
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4);
-                if (ImGui.BeginListBox("###Stats", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 120)))
-                {
-                    ImGui.Columns(6, border: false);
-                    foreach (var stat in Stats)
-                    {
-                        var val = stat.Value;
-                        if (ImGui.Checkbox($"###{Svc.Data.GetExcelSheet<BaseParam>()?.First(x => x.RowId == stat.Key).Name.GetText()}", ref val))
-                        {
-                            Stats[stat.Key] = val;
-                        }
-                        ImGui.SameLine();
-                        ImGui.TextWrapped($"{Svc.Data.GetExcelSheet<BaseParam>()?.First(x => x.RowId == stat.Key).Name.GetText()}");
-                        ImGui.NextColumn();
-                    }
-
-                    ImGui.EndListBox();
-                }
-                ImGui.Columns(1);
+                ImGui.Spacing();
+                DrawBaseStatsPane();
 
                 ImGui.Spacing();
                 if (ImGui.Button(L10n.Tr("Build List"), new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 0)))
@@ -362,6 +113,228 @@ namespace Artisan.CraftingLists
                 }
             }
             catch { }
+        }
+
+        private static void DrawLeftCriteriaPane()
+        {
+            var jobListHeight = ListBoxHeightForItems(JobSelected.Count, columns: 2, maxRows: 5);
+            var durabilityListHeight = ListBoxHeightForItems(Durabilities.Count, columns: 2, maxRows: 5);
+            var topRowListHeight = Math.Max(jobListHeight, durabilityListHeight);
+
+            var yieldsListHeight = ListBoxHeightForItems(Yields.Count, columns: 2, maxRows: 6);
+            var starsListHeight = ListBoxHeightForItems(Stars.Count, columns: 2, maxRows: 6);
+            var bottomRowListHeight = Math.Max(yieldsListHeight, starsListHeight);
+
+            if (ImGui.BeginTable("###LeftCriteriaGrid", 2, ImGuiTableFlags.SizingStretchSame))
+            {
+                ImGui.TableNextRow();
+
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(L10n.Tr("Select Job(s)"));
+                if (ImGui.BeginListBox("###JobSelectListBox", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, topRowListHeight)))
+                {
+                    ImGui.Columns(2, "###JobSelectColumns", false);
+                    foreach (var item in JobSelected)
+                    {
+                        string jobName = LuminaSheets.ClassJobSheet[item.Key].Name.ToString();
+                        bool val = item.Value;
+                        if (BorderedCheckbox(jobName, ref val))
+                        {
+                            JobSelected[item.Key] = val;
+                        }
+                        ImGui.NextColumn();
+                    }
+                    ImGui.Columns(1);
+                    ImGui.EndListBox();
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(L10n.Tr("Max Durability"));
+                if (ImGui.BeginListBox("###SpecialListDurability", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, topRowListHeight)))
+                {
+                    ImGui.Columns(2, "###DurabilityColumns", false);
+                    foreach (var dur in Durabilities)
+                    {
+                        var val = dur.Value;
+                        if (BorderedCheckbox($"{dur.Key}", ref val))
+                        {
+                            Durabilities[dur.Key] = val;
+                        }
+                        ImGui.NextColumn();
+                    }
+                    ImGui.Columns(1);
+                    ImGui.EndListBox();
+                }
+
+                ImGui.TableNextRow();
+
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(L10n.Tr("Amount Result"));
+                if (ImGui.BeginListBox("###Yields", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, bottomRowListHeight)))
+                {
+                    ImGui.Columns(2, "###YieldColumns", false);
+                    foreach (var item in Yields)
+                    {
+                        var val = item.Value;
+                        if (BorderedCheckbox($"{item.Key}", ref val))
+                        {
+                            Yields[item.Key] = val;
+                        }
+                        ImGui.NextColumn();
+                    }
+                    ImGui.Columns(1);
+                    ImGui.EndListBox();
+                }
+
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(L10n.Tr("Stars"));
+                if (ImGui.BeginListBox("###Stars", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, bottomRowListHeight)))
+                {
+                    ImGui.Columns(2, "###StarsColumns", false);
+                    foreach (var item in Stars)
+                    {
+                        var val = item.Value;
+                        if (BorderedCheckbox($"{item.Key}", ref val))
+                        {
+                            Stars[item.Key] = val;
+                        }
+                        ImGui.NextColumn();
+                    }
+                    ImGui.Columns(1);
+                    ImGui.EndListBox();
+                }
+
+                ImGui.EndTable();
+            }
+
+        }
+
+        private static void DrawRightCriteriaPane(float yesNoListHeight, int minCraftsmanshipValue, int maxCraftsmanshipValue, int minControlValue, int maxControlValue)
+        {
+            ImGui.TextWrapped(L10n.Tr("Name Contains"));
+            ImGuiComponents.HelpMarker(L10n.Tr("Supports RegEx."));
+            ImGuiEx.SetNextItemFullWidth();
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
+            ImGui.InputText("###NameContains", ref Contains, 100);
+            ImGui.PopStyleVar();
+
+            if (ImGui.BeginTable("###RightCriteriaPairs", 2, ImGuiTableFlags.SizingStretchSame))
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                DrawSliderFilter("Minimum Level", "###SpecialListMinLevel", ref minLevel, 1, 100);
+                ImGui.TableNextColumn();
+                DrawSliderFilter("Max Level", "###SpecialListMaxLevel", ref maxLevel, 1, 100);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                DrawSliderFilter("Min. Craftsmanship", "###MinCraftsmanship", ref minCraftsmanship, minCraftsmanshipValue, maxCraftsmanshipValue);
+                ImGui.TableNextColumn();
+                DrawSliderFilter("Min. Control", "###MinControl", ref minControl, minControlValue, maxControlValue);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Recipe from a Book", "###UnlockableRecipe", hasToBeUnlocked, yesNoListHeight);
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Quest Only Recipe", "###QuestRecipe", questRecipe, yesNoListHeight);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Expert Recipe", "###ExpertRecipe", isExpert, yesNoListHeight);
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Secondary Recipe", "###SecondaryRecipes", isSecondary, yesNoListHeight);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Collectable Recipe", "###CollectableRecipes", isCollectable, yesNoListHeight);
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("HQable Recipe", "###HQRecipes", isHQAble, yesNoListHeight);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Already Crafted Recipe", "###AlreadyCraftedRecipes", alreadyCrafted, yesNoListHeight);
+                ImGui.TableNextColumn();
+                DrawYesNoFilter("Level-based Recipes", "###IsLevelBasedRecipe", isLevelBased, yesNoListHeight);
+
+                ImGui.EndTable();
+            }
+        }
+
+        private static void DrawBaseStatsPane()
+        {
+            ImGui.TextWrapped(L10n.Tr("Base Stats"));
+            var statsListHeight = ListBoxHeightForItems(Stats.Count, columns: 4, maxRows: 5);
+            if (ImGui.BeginListBox("###Stats", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, statsListHeight)))
+            {
+                ImGui.Columns(4, "###StatsColumns", false);
+                var paramSheet = Svc.Data.GetExcelSheet<BaseParam>();
+                foreach (var stat in Stats)
+                {
+                    var val = stat.Value;
+                    var statName = paramSheet?.First(x => x.RowId == stat.Key).Name.GetText() ?? stat.Key.ToString();
+                    if (BorderedCheckbox($"###{stat.Key}", ref val))
+                    {
+                        Stats[stat.Key] = val;
+                    }
+                    ImGui.SameLine();
+                    ImGui.TextWrapped(statName);
+                    ImGui.NextColumn();
+                }
+                ImGui.Columns(1);
+                ImGui.EndListBox();
+            }
+        }
+
+        private static float ListBoxHeightForItems(int itemCount, int columns = 1, int minRows = 1, int maxRows = int.MaxValue)
+        {
+            var safeColumns = Math.Max(1, columns);
+            var rows = (int)Math.Ceiling(itemCount / (float)safeColumns);
+            rows = Math.Clamp(rows, minRows, maxRows);
+            var style = ImGui.GetStyle();
+            return ImGui.GetFrameHeightWithSpacing() * rows + (style.FramePadding.Y * 2f) + style.ItemSpacing.Y;
+        }
+
+        private static bool BorderedCheckbox(string label, ref bool value)
+        {
+            var borderColor = ImGui.GetStyle().Colors[(int)ImGuiCol.Border];
+            if (borderColor.W < 0.85f) borderColor.W = 0.85f;
+            ImGui.PushStyleColor(ImGuiCol.Border, borderColor);
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 1f);
+            var changed = ImGui.Checkbox(label, ref value);
+            ImGui.PopStyleVar();
+            ImGui.PopStyleColor();
+            return changed;
+        }
+
+        private static void DrawYesNoFilter(string title, string listBoxId, Dictionary<int, bool> filterState, float listHeight)
+        {
+            ImGui.TextWrapped(L10n.Tr(title));
+            if (ImGui.BeginListBox(listBoxId, new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, listHeight)))
+            {
+                ImGui.Columns(2, $"{listBoxId}_Columns", false);
+                bool yes = filterState[1];
+                if (BorderedCheckbox(L10n.Tr("Yes"), ref yes))
+                {
+                    filterState[1] = yes;
+                }
+                ImGui.NextColumn();
+                bool no = filterState[2];
+                if (BorderedCheckbox(L10n.Tr("No"), ref no))
+                {
+                    filterState[2] = no;
+                }
+                ImGui.Columns(1);
+                ImGui.EndListBox();
+            }
+        }
+
+        private static void DrawSliderFilter(string title, string sliderId, ref int value, int min, int max)
+        {
+            ImGui.TextWrapped(L10n.Tr(title));
+            ImGui.SetNextItemWidth(-1f);
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding with { Y = 5 });
+            ImGui.SliderInt(sliderId, ref value, min, max);
+            ImGui.PopStyleVar();
         }
 
         private static bool NotifySuccess(Task<bool> result)

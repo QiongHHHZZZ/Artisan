@@ -23,6 +23,21 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+          $paths = @(
+            "$env:AppData\XIVLauncher\addon\Hooks\dev",
+            "$env:AppData\XIVLauncherCN\addon\Hooks\dev"
+          )
+          foreach ($path in $paths) {
+            New-Item -ItemType Directory -Force -Path $path | Out-Null
+            Expand-Archive -Force latest.zip $path
+            Write-Host "Dalamud extracted to: $path"
+          }
+          Remove-Item latest.zip -Force
+
       - name: Build Release
         shell: pwsh
         run: dotnet build Artisan/Artisan.csproj -c Release -v minimal

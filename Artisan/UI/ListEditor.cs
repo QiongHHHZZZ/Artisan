@@ -464,7 +464,7 @@ internal class ListEditor : Window, IDisposable
 
         var preview = SelectedRecipe is null
                           ? string.Empty
-                          : $"{SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()} ({LuminaSheets.ClassJobSheet[SelectedRecipe.Value.CraftType.RowId + 8].Abbreviation.ToString()})";
+                          : $"{SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()} ({LuminaSheets.ClassJobSheet[SelectedRecipe.Value.CraftType.RowId + 8].Name.ToString()})";
 
         if (ImGui.BeginCombo(T("Select Recipe"), preview))
         {
@@ -729,7 +729,7 @@ internal class ListEditor : Window, IDisposable
             {
                 label =
                     $"{recipe.ItemResult.Value.Name.ToDalamudString()} " +
-                    $"({LuminaSheets.ClassJobSheet[recipe.CraftType.RowId + 8].Abbreviation} " +
+                    $"({LuminaSheets.ClassJobSheet[recipe.CraftType.RowId + 8].Name} " +
                     $"{recipe.RecipeLevelTable.Value.ClassJobLevel})";
 
                 RecipeLabels[recipe.RowId] = label;
@@ -752,7 +752,7 @@ internal class ListEditor : Window, IDisposable
     {
         {
             List<uint> craftingJobs = LuminaSheets.RecipeSheet.Values.Where(x => x.ItemResult.Value.Name.ToDalamudString().ToString() == SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()).Select(x => x.CraftType.Value.RowId + 8).ToList();
-            string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => craftingJobs.Any(y => y == x.RowId)).Select(x => x.Abbreviation.ToString()).ToArray();
+            string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => craftingJobs.Any(y => y == x.RowId)).Select(x => x.Name.ToString()).ToArray();
             ImGui.Text(T("Crafted by: {0}", string.Join(", ", jobstrings)));
         }
 
@@ -828,7 +828,7 @@ internal class ListEditor : Window, IDisposable
                         try
                         {
                             jobs.AddRange(LuminaSheets.RecipeSheet.Values.Where(x => x.ItemResult.RowId == ingredientRecipe.Value.ItemResult.RowId).Select(x => x.CraftType.RowId + 8));
-                            string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => jobs.Any(y => y == x.RowId)).Select(x => x.Abbreviation.ToString()).ToArray();
+                            string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => jobs.Any(y => y == x.RowId)).Select(x => x.Name.ToString()).ToArray();
                             ImGui.Text(string.Join(", ", jobstrings));
                         }
                         catch (Exception ex)
@@ -846,9 +846,9 @@ internal class ListEditor : Window, IDisposable
                             {
                                 var jobs = LuminaSheets.GatheringPointBaseSheet?.Values.Where(x => x.Item.Any(y => y.RowId == gatheringItem.Value.RowId)).Select(x => x.GatheringType).ToList();
                                 List<string> tempArray = new();
-                                if (jobs!.Any(x => x.Value.RowId is 0 or 1)) tempArray.Add(LuminaSheets.ClassJobSheet[16].Abbreviation.ToString());
-                                if (jobs!.Any(x => x.Value.RowId is 2 or 3)) tempArray.Add(LuminaSheets.ClassJobSheet[17].Abbreviation.ToString());
-                                if (jobs!.Any(x => x.Value.RowId is 4 or 5)) tempArray.Add(LuminaSheets.ClassJobSheet[18].Abbreviation.ToString());
+                                if (jobs!.Any(x => x.Value.RowId is 0 or 1)) tempArray.Add(LuminaSheets.ClassJobSheet[16].Name.ToString());
+                                if (jobs!.Any(x => x.Value.RowId is 2 or 3)) tempArray.Add(LuminaSheets.ClassJobSheet[17].Name.ToString());
+                                if (jobs!.Any(x => x.Value.RowId is 4 or 5)) tempArray.Add(LuminaSheets.ClassJobSheet[18].Name.ToString());
                                 ImGui.Text($"{string.Join(", ", tempArray)}");
                                 continue;
                             }
@@ -856,14 +856,14 @@ internal class ListEditor : Window, IDisposable
                             var spearfish = LuminaSheets.SpearfishingItemSheet?.Where(x => x.Value.Item.Value.RowId == value.Item.RowId).FirstOrDefault().Value;
                             if (spearfish != null && spearfish.Value.Item.Value.Name.ToString() == ingredient)
                             {
-                                ImGui.Text($"{LuminaSheets.ClassJobSheet[18].Abbreviation.ToString()}");
+                                ImGui.Text($"{LuminaSheets.ClassJobSheet[18].Name.ToString()}");
                                 continue;
                             }
 
                             var fishSpot = LuminaSheets.FishParameterSheet?.Where(x => x.Value.Item.RowId == value.Item.RowId).FirstOrDefault().Value;
                             if (fishSpot != null)
                             {
-                                ImGui.Text($"{LuminaSheets.ClassJobSheet[18].Abbreviation.ToString()}");
+                                ImGui.Text($"{LuminaSheets.ClassJobSheet[18].Name.ToString()}");
                             }
 
 
@@ -1219,14 +1219,14 @@ internal class ListEditor : Window, IDisposable
 
         if (matchingRecipes.Count > 1)
         {
-            var pre = $"{LuminaSheets.ClassJobSheet[recipe.CraftType.RowId + 8].Abbreviation.ToString()}";
+            var pre = $"{LuminaSheets.ClassJobSheet[recipe.CraftType.RowId + 8].Name.ToString()}";
             ImGui.TextWrapped(T("Switch crafted job"));
             ImGuiEx.SetNextItemFullWidth(-30);
             if (ImGui.BeginCombo("###SwitchJobCombo", pre))
             {
                 foreach (var altJob in matchingRecipes)
                 {
-                    var altJ = $"{LuminaSheets.ClassJobSheet[altJob.CraftType.RowId + 8].Abbreviation.ToString()}";
+                    var altJ = $"{LuminaSheets.ClassJobSheet[altJob.CraftType.RowId + 8].Name.ToString()}";
                     if (ImGui.Selectable($"{altJ}"))
                     {
                         try
