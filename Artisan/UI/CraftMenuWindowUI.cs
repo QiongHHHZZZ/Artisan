@@ -3,6 +3,7 @@ using Artisan.CraftingLists;
 using Artisan.GameInterop;
 using Artisan.IPC;
 using Artisan.RawInformation;
+using Artisan.RawInformation.Character;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -120,6 +121,16 @@ namespace Artisan.UI
                     {
                         if (ImGui.Checkbox("Use multiple material miracles", ref multiMatMiracle))
                             P.Config.MaterialMiracleMulti = multiMatMiracle;
+                    }
+                }
+
+                // todo: this should also reference the raphael steady setting for non-experts
+                if (Crafting.SteadyHandCharges() > 0 && LuminaSheets.RecipeSheet[Endurance.RecipeID].IsExpert)
+                {
+                    int maxSteadyUses = P.Config.ExpertSolverConfig.MaxSteadyUses;
+                    if (ImGui.SliderInt($"Max {Skills.SteadyHand.NameOfAction()} uses", ref maxSteadyUses, 0, 2))
+                    {
+                        P.Config.ExpertSolverConfig.MaxSteadyUses = maxSteadyUses;
                     }
                 }
 

@@ -90,6 +90,7 @@ public class ExpertSolverSettings
 	public bool RapidSynthYoloAllowed = true; // if false, expert crafting may lock up midway, so not good for AFK crafting. This yolo however is likely to fail the craft, so disabling gives opportunity for intervention
     public bool UseMaterialMiracle = false;
 	public int MinimumStepsBeforeMiracle = 10;
+    public int MaxSteadyUses = 1; // how many charges of Stellar Steady Hand to use per craft, if available
 
     [NonSerialized]
     public IDalamudTextureWrap? expertIcon;
@@ -293,11 +294,22 @@ public class ExpertSolverSettings
 
             // Misc. settings
             ImGui.Dummy(new Vector2(0, 5f));
+            ImGui.TextWrapped($"Ishgardian Restoration");
+            ImGui.Indent();
             changed |= ImGui.Checkbox("Max out Ishgard Restoration recipes instead of just hitting max breakpoint", ref MaxIshgardRecipes);
             ImGuiComponents.HelpMarker("This will try to maximise quality to earn more Skyward points.");
-            changed |= ImGui.Checkbox($"Use {Skills.MaterialMiracle.NameOfAction()} in Cosmic Exploration", ref UseMaterialMiracle);
+            ImGui.Unindent();
+            ImGui.TextWrapped($"Cosmic Exploration");
+            ImGui.Indent();
+            changed |= ImGui.Checkbox($"Use {Skills.MaterialMiracle.NameOfAction()}", ref UseMaterialMiracle);
             ImGui.PushItemWidth(250);
-            changed |= ImGui.SliderInt($"Minimum steps to execute before trying {Skills.MaterialMiracle.NameOfAction()}###MinimumStepsBeforeMiracle", ref MinimumStepsBeforeMiracle, 0, 20);
+            if (UseMaterialMiracle)
+                changed |= ImGui.SliderInt($"Minimum steps to execute before trying {Skills.MaterialMiracle.NameOfAction()}###MinimumStepsBeforeMiracle", ref MinimumStepsBeforeMiracle, 0, 20);
+            changed |= ImGui.SliderInt($"Max {Skills.SteadyHand.NameOfAction()} uses per craft###MaxSteadyUses", ref MaxSteadyUses, 0, 2);
+            ImGuiComponents.HelpMarker($"{Skills.SteadyHand.NameOfAction()} will be used ASAP to guarantee {Skills.RapidSynthesis.NameOfAction()}. Set to 0 to disable.");
+            ImGui.Unindent();
+
+            ImGui.Dummy(new Vector2(0, 5f));
             if (ImGuiEx.ButtonCtrl("Reset Expert Solver Settings To Default"))
             {
                 P.Config.ExpertSolverConfig = new();

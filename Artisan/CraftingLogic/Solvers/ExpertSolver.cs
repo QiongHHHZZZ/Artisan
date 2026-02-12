@@ -94,6 +94,7 @@ public class ExpertSolver : Solver
         if (step.MuscleMemoryLeft > 0) // mume still active - means we have very little progress and want more progress asap
             return new(SafeCraftAction(craft, step, SolveOpenerMuMe(cfg, craft, step)), "mume");
 
+        // todo: don't override useful conditions with material miracle?
         if (cfg.UseMaterialMiracle && step.Index >= cfg.MinimumStepsBeforeMiracle && Simulator.CanUseAction(craft, step, Skills.MaterialMiracle))
             return new(Skills.MaterialMiracle);
 
@@ -123,8 +124,14 @@ public class ExpertSolver : Solver
     private static Skills SolveOpenerMuMe(ExpertSolverSettings cfg, CraftState craft, StepState step)
     {
         bool lastChance = step.MuscleMemoryLeft == 1;
+        int rapidDura = Simulator.GetDurabilityCost(step, Skills.RapidSynthesis);
 
-        if (step.Condition == Condition.Pliant)
+        if (step.SteadyHandLeft > 0 && step.Durability > rapidDura && CU(craft, step, Skills.RapidSynthesis))
+        {
+            // use steady hand while we have it
+            return Skills.RapidSynthesis;
+        }
+        if (step.Condition == Condition.Pliant && !lastChance)
         {
             // pliant is manip > vene > ignore
             if (step.MuscleMemoryLeft > cfg.MuMeMinStepsForManip && step.ManipulationLeft == 0 && CU(craft, step, Skills.Manipulation))
@@ -132,7 +139,7 @@ public class ExpertSolver : Solver
             if (step.MuscleMemoryLeft > cfg.MuMeMinStepsForVene && step.VenerationLeft == 0 && CU(craft, step, Skills.Veneration))
                 return Skills.Veneration;
         }
-        else if (step.Condition == Condition.Primed)
+        if (step.Condition == Condition.Primed && !lastChance)
         {
             // primed is vene > manip > ignore
             if (step.MuscleMemoryLeft > cfg.MuMeMinStepsForVene && step.VenerationLeft == 0 && CU(craft, step, Skills.Veneration))
@@ -140,39 +147,58 @@ public class ExpertSolver : Solver
             if (cfg.MuMePrimedManip && step.MuscleMemoryLeft > cfg.MuMeMinStepsForManip && step.ManipulationLeft == 0 && CU(craft, step, Skills.Manipulation))
                 return Skills.Manipulation;
         }
-        else if (step.Durability <= 25)
+        // high-prio manip regardless of condition (will usually only happen on very low dura recipes)
+        if (step.ManipulationLeft == 0 && CU(craft, step, Skills.Manipulation) && !lastChance)
         {
-            if (step.MuscleMemoryLeft > cfg.MuMeMinStepsForManip && step.ManipulationLeft == 0 && CU(craft, step, Skills.Manipulation))
+            // respect the manip setting on low but usable dura
+            if (step.MuscleMemoryLeft > cfg.MuMeMinStepsForManip && step.Durability <= rapidDura + 5)
+                return Skills.Manipulation;
+            // force manip regardless of setting if we would fail otherwise
+            if (step.Durability <= rapidDura)
                 return Skills.Manipulation;
         }
-        else if (step.Condition == Condition.Centered && Simulator.GetDurabilityCost(step, Skills.RapidSynthesis) < step.Durability)
+        // set up stellar steady hand to guarantee a rapid
+        if (CU(craft, step, Skills.SteadyHand) && step.SteadyHandsUsed < cfg.MaxSteadyUses && !lastChance)
+        { 
+            // make sure veneration is up first, if we have time
+            if (step.VenerationLeft == 0 && step.MuscleMemoryLeft > 2 && CU(craft, step, Skills.Veneration))
+                return Skills.Veneration;
+
+            return Skills.SteadyHand;
+        }
+        if (step.Condition == Condition.Centered && step.Durability > rapidDura)
         {
             // centered rapid is very good value, even disregarding last-chance or veneration concerns
             if (CU(craft, step, Skills.RapidSynthesis))
                 return Skills.RapidSynthesis;
         }
-        else if (step.Condition is Condition.Sturdy or Condition.Robust)
+        if (step.Condition is Condition.Sturdy or Condition.Robust && step.Durability > rapidDura && lastChance)
         {
-            // last-chance intensive or rapid, regardless of veneration
-            return SolveOpenerMuMeTouch(craft, step, cfg.MuMeIntensiveLastResort && lastChance);
+            // last-chance half-dura intensive/rapid, regardless of veneration
+            return SolveOpenerMuMeTouch(craft, step, cfg.MuMeIntensiveLastResort);
         }
-        else if (step.Condition == Condition.Malleable)
+        if (step.Condition == Condition.Malleable)
         {
-            // last-chance/preferred intensive or rapid, regardless of veneration
+            // last-chance OR preferred intensive/rapid, regardless of veneration
             return SolveOpenerMuMeTouch(craft, step, cfg.MuMeIntensiveMalleable || cfg.MuMeIntensiveLastResort && lastChance);
         }
-        else if (step.Condition == Condition.Good && cfg.MuMeIntensiveGood && Simulator.GetDurabilityCost(step, Skills.IntensiveSynthesis) < step.Durability)
+        if (step.Condition == Condition.Good && cfg.MuMeIntensiveGood && Simulator.GetDurabilityCost(step, Skills.IntensiveSynthesis) < step.Durability)
         {
             // good and we want to spend on intensive
             if (CU(craft, step, Skills.IntensiveSynthesis))
                 return Skills.IntensiveSynthesis;
         }
 
-        // ok we have a normal/ignored condition
-        if (Simulator.GetDurabilityCost(step, Skills.RapidSynthesis) >= step.Durability && step.ManipulationLeft == 0 && CU(craft, step, Skills.Manipulation))
+        // ok we have a condition that isn't as important as manip or veneration
+        // force manip, regardless of settings or condition, if we can't do anything else
+        if (step.Durability < rapidDura && step.ManipulationLeft == 0 && CU(craft, step, Skills.Manipulation))
             return Skills.Manipulation;
         if (step.MuscleMemoryLeft > cfg.MuMeMinStepsForVene && step.VenerationLeft == 0 && CU(craft, step, Skills.Veneration))
             return Skills.Veneration;
+
+        // half-dura conditions are a worthy usage of durability at this point (don't observe)
+        if (step.Condition is Condition.Sturdy or Condition.Robust && CU(craft, step, Skills.RapidSynthesis))
+            return SolveOpenerMuMeTouch(craft, step, cfg.MuMeIntensiveLastResort && lastChance);
         if (cfg.MuMeAllowObserve && step.MuscleMemoryLeft > 1 && step.Durability < craft.CraftDurability && CU(craft, step, Skills.Observe))
             return Skills.Observe; // conserve durability rather than gamble away
 
@@ -211,14 +237,26 @@ public class ExpertSolver : Solver
         var allowIntensive = venerationActive ? cfg.MidAllowIntensive == ExpertSolverSettings.MidAllowIntensiveSetting.MidAllowIntensiveVeneration : cfg.MidAllowIntensive == ExpertSolverSettings.MidAllowIntensiveSetting.MidAllowIntensiveUnbuffed;
         var allowPrecise = cfg.MidAllowPrecise && (!allowObserveOnLowDura || step.ManipulationLeft > 0 || step.Durability > 25) /*&& !venerationActive*/;
 
-        // check durability first to make sure we don't waste pliant/etc.
+        // active steady+rapid is highest prio if we're not super low on dura (rapid + 5)
+        if (step.SteadyHandLeft > 0 && progressDeficit > 0 && step.Durability > Simulator.GetDurabilityCost(step, Skills.RapidSynthesis) + 5 && CU(craft, step, Skills.RapidSynthesis))
+            return new(SafeCraftAction(craft, step, Skills.RapidSynthesis), "mid pre quality: steady hand");
+
+        // check durability to make sure we don't waste pliant/etc.
         var duraAction = SolveMidDurabilityPreQuality(cfg, craft, step, availableCP, allowObserveOnLowDura, progressDeficit > 0);
         if (duraAction != Skills.None)
             return new(duraAction, "mid pre quality: durability");
 
+        // continue prioritizing steady+rapid; we want to use our very few steps' worth of steady
+        if (step.SteadyHandLeft > 0 && progressDeficit > 0 && step.Durability > Simulator.GetDurabilityCost(step, Skills.RapidSynthesis) && CU(craft, step, Skills.RapidSynthesis))
+            return new(SafeCraftAction(craft, step, Skills.RapidSynthesis), "mid pre quality: steady hand");
+
+        bool shouldUseSteadyHand = CU(craft, step, Skills.SteadyHand) && step.SteadyHandsUsed < cfg.MaxSteadyUses;
         // keep veneration running if we're forcing progress; otherwise don't because we're mixing quality and progress
-        if (cfg.MidFinishProgressBeforeQuality && progressDeficit > 0 && step.VenerationLeft == 0)
+        if ((cfg.MidFinishProgressBeforeQuality || shouldUseSteadyHand) && progressDeficit > 0 && step.VenerationLeft == 0 && CU(craft, step, Skills.Veneration))
             return new(Skills.Veneration, "mid pre quality: progress finish vene");
+        // similarly, re-up steady hand if we have any allowed uses left
+        if (shouldUseSteadyHand && progressDeficit > 0 && step.SteadyHandLeft == 0)
+            return new(Skills.SteadyHand, "mid pre quality: progress finish steady");
 
         // check for progress-friendly conditions, or force progress if specified
         if (progressDeficit > 0 && SolveMidHighPriorityProgress(craft, step, allowIntensive, progressDeficit, cfg) is var highPrioProgress && highPrioProgress != Skills.None)
@@ -563,7 +601,7 @@ public class ExpertSolver : Solver
     {
         // during the mid phase, durability is a serious concern
         if (step.ManipulationLeft > 0 && step.Durability + 5 > craft.CraftDurability)
-            return Skills.None; // we're high on dura, doing anything here will waste manip durability
+            return Skills.None; // we're maxed out on dura, doing anything here will waste manip durability
 
         // primed manipulation is a reasonable action (check this before pliant in case the craft can't proc pliant)
         if (cfg.MidPrimedManipPreQuality && step.Condition == Condition.Primed && step.ManipulationLeft == 0 && availableCP >= Simulator.GetCPCost(step, Skills.Manipulation) && CU(craft, step, Skills.Manipulation))
@@ -988,8 +1026,8 @@ public class ExpertSolver : Solver
 
     private static bool CanUseActionSafelyInFinisher(StepState step, Skills action, int availableCP)
     {
-        var duraCost = Simulator.GetDurabilityCost(step, action);
-        return step.Durability > duraCost && step.Durability + 5 * step.ManipulationLeft - duraCost > 10 && availableCP >= Simulator.GetCPCost(step, action);
+        var duraCost = Simulator.GetDurabilityCost(step, action)
+        return duraCost == 0 || (step.Durability > duraCost && step.Durability + 5 * step.ManipulationLeft - duraCost > 10 && availableCP >= Simulator.GetCPCost(step, action));
     }
 
     public static Skills SafeCraftAction(CraftState craft, StepState step, Skills action) => Simulator.WillFinishCraft(craft, step, action) ? Skills.FinalAppraisal : action;
