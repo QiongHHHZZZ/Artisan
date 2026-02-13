@@ -98,7 +98,7 @@ internal class ListEditor : Window, IDisposable
     public bool loading;
 
     public ListEditor(int listId)
-        : base($"List Editor###{listId}")
+        : base($"{L10n.Tr("List Editor")}###{listId}")
     {
         SelectedList = P.Config.NewCraftingLists.First(x => x.ID == listId);
         RecipeSelector = new RecipeSelector(SelectedList.ID);
@@ -288,7 +288,10 @@ internal class ListEditor : Window, IDisposable
                 ImGui.EndTabBar();
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Svc.Log.Error(ex, "ListEditor.Draw");
+        }
     }
 
 
@@ -1128,17 +1131,72 @@ internal class ListEditor : Window, IDisposable
         DrawRecipeData();
 
         ImGui.Spacing();
+        var detailsTopY = ImGui.GetCursorPosY();
         RecipeSelector.DrawLocalized(RecipeSelector.maxSize + 16f + ImGui.GetStyle().ScrollbarSize, () => RefreshTable(null, true));
+        var detailsBottomY = ImGui.GetCursorPosY();
         ImGui.SameLine();
+        ImGui.SetCursorPosY(detailsTopY);
+
+        EnsureValidRecipeSelectorState();
+        if (RecipeSelector.Current?.ID > 0 && RecipeSelector.CurrentIdx >= 0 && RecipeSelector.CurrentIdx < RecipeSelector.Items.Count)
+            ItemDetailsWindow.Draw(T("Recipe Options"), DrawRecipeSettingsHeader, DrawRecipeSettings);
+        else
+            ImGui.TextWrapped(T("No recipe selected"));
+
+        ImGui.SetCursorPosY(Math.Max(detailsBottomY, ImGui.GetCursorPosY()));
+    }
+
+    private void EnsureValidRecipeSelectorState()
+    {
+        if (RecipeSelector.Items.Count == 0)
+        {
+            RecipeSelector.SetCurrent(0);
+            return;
+        }
+
+        if (RecipeSelector.CurrentIdx >= 0 && RecipeSelector.CurrentIdx < RecipeSelector.Items.Count)
+        {
+            RecipeSelector.Current = RecipeSelector.Items[RecipeSelector.CurrentIdx];
+            return;
+        }
 
         if (RecipeSelector.Current?.ID > 0)
-            ItemDetailsWindow.Draw(T("Recipe Options"), DrawRecipeSettingsHeader, DrawRecipeSettings);
+        {
+            var currentId = RecipeSelector.Current.ID;
+            var restoredIdx = RecipeSelector.Items.IndexOf(x => x.ID == currentId);
+            if (restoredIdx >= 0)
+            {
+                RecipeSelector.SetCurrent(restoredIdx);
+                return;
+            }
+        }
+
+        RecipeSelector.SetCurrent(0);
     }
 
     private void DrawRecipeSettings()
     {
+        EnsureValidRecipeSelectorState();
+        if (RecipeSelector.CurrentIdx < 0 || RecipeSelector.CurrentIdx >= RecipeSelector.Items.Count || RecipeSelector.Current == null)
+        {
+            ImGui.TextWrapped(T("No recipe selected"));
+            return;
+        }
+
         var selectedListItem = RecipeSelector.Items[RecipeSelector.CurrentIdx].ID;
-        var recipe = LuminaSheets.RecipeSheet[RecipeSelector.Current.ID];
+        if (!LuminaSheets.RecipeSheet.TryGetValue(selectedListItem, out var recipe))
+        {
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, T("Selected recipe is invalid. Please remove and re-add it to the list."));
+            return;
+        }
+
+        var selectedListRecipe = SelectedList.Recipes.FirstOrDefault(x => x.ID == selectedListItem);
+        if (selectedListRecipe == null)
+        {
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, T("Selected recipe is invalid. Please remove and re-add it to the list."));
+            return;
+        }
+
         var count = RecipeSelector.Items[RecipeSelector.CurrentIdx].Quantity;
 
         ImGuiEx.LineCentered(() => ImGuiEx.TextUnderlined($"{recipe.ItemResult.Value.Name}"));
@@ -1153,7 +1211,7 @@ internal class ListEditor : Window, IDisposable
                 Task.Run(() =>
                 {
                     loading = true;
-                    SelectedList.Recipes.First(x => x.ID == selectedListItem).Quantity = count;
+                    selectedListRecipe.Quantity = count;
 
                     if (SelectedList.TidyAfter)
                     {
@@ -1174,12 +1232,12 @@ internal class ListEditor : Window, IDisposable
             NeedsToRefreshTable = true;
         }
 
-        if (SelectedList.Recipes.First(x => x.ID == selectedListItem).ListItemOptions is null)
+        if (selectedListRecipe.ListItemOptions is null)
         {
-            SelectedList.Recipes.First(x => x.ID == selectedListItem).ListItemOptions = new();
+            selectedListRecipe.ListItemOptions = new();
         }
 
-        var options = SelectedList.Recipes.First(x => x.ID == selectedListItem).ListItemOptions;
+        var options = selectedListRecipe.ListItemOptions;
 
         if (recipe.CanQuickSynth)
         {
@@ -1215,7 +1273,7 @@ internal class ListEditor : Window, IDisposable
         }
 
         // Retrieve the list of recipes matching the selected recipe name from the preprocessed lookup table.
-        var matchingRecipes = LuminaSheets.recipeLookup[selectedListItem.NameOfRecipe()].ToList();
+        var matchingRecipes = LuminaSheets.recipeLookup?[selectedListItem.NameOfRecipe()].ToList() ?? new List<Recipe>();
 
         if (matchingRecipes.Count > 1)
         {

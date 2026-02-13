@@ -407,6 +407,7 @@ internal static class L10n
         ["Craft {0}"] = "制作 {0}",
         ["Craft All ({0})"] = "全部制作（{0}）",
         ["Begin Crafting List"] = "开始制作清单",
+        ["List Editor"] = "清单编辑器",
         ["Export List"] = "导出清单",
         ["List exported to clipboard."] = "清单已导出到剪贴板。",
         ["Restock From Retainers"] = "从雇员补货",
