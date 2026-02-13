@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- Raphael now limited to crafters above level 7 due to a bug it has.\n- Quick Innovation now no longer increases step count for macro/simulator purposes."
+  "ChangeLog": "- Update Raphael build method and executable.\n- Fix List Editor details panel rendering and zh-CN title localization."
 }
