@@ -15,8 +15,8 @@ public class ScriptSolverDefinition : ISolverDefinition
             var failReason = s.CompilationState() switch
             {
                 ScriptSolverSettings.CompilationState.SuccessClean or ScriptSolverSettings.CompilationState.SuccessWarnings => "",
-                ScriptSolverSettings.CompilationState.Failed => "Compilation error",
-                _ => "Compilation in progress..."
+                ScriptSolverSettings.CompilationState.Failed => global::Artisan.UI.L10n.Tr("Compilation error"),
+                _ => global::Artisan.UI.L10n.Tr("Compilation in progress...")
             };
             yield return new(this, s.ID, 0, $"Script: {Path.GetFileNameWithoutExtension(s.SourcePath)}", failReason);
         }

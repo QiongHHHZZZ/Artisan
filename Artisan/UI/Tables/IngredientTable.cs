@@ -14,6 +14,7 @@ using Lumina.Excel.Sheets;
 using OtterGui;
 using OtterGui.Raii;
 using OtterGui.Table;
+using OtterGui.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -539,6 +540,51 @@ namespace Artisan.UI.Tables
             private ItemFilter[] FlagValues = Array.Empty<ItemFilter>();
             private string[] FlagNames = Array.Empty<string>();
 
+            public override bool DrawFilter()
+            {
+                using var id = ImUtf8.PushId(FilterLabel);
+                using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
+                ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
+                var all = FilterValue.HasFlag(AllFlags);
+                using var color = ImRaii.PushColor(ImGuiCol.FrameBg, 0x803030A0, !all);
+                using var combo = ImUtf8.Combo(""u8, Label, ComboFlags);
+
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                {
+                    SetValue(AllFlags, true);
+                    return true;
+                }
+
+                if (!all && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(IngredientTable.T("Right-click to clear filters."));
+                }
+
+                if (!combo)
+                    return false;
+
+                color.Pop();
+
+                var changed = false;
+                if (ImGui.Checkbox(IngredientTable.T("Enable All"), ref all))
+                {
+                    SetValue(AllFlags, all);
+                    changed = true;
+                }
+
+                using var indent = ImRaii.PushIndent(10f);
+                for (var i = 0; i < Names.Length; ++i)
+                {
+                    if (!DrawCheckbox(i, out var tmp))
+                        continue;
+
+                    SetValue(Values[i], tmp);
+                    changed = true;
+                }
+
+                return changed;
+            }
+
             protected void SetFlags(params ItemFilter[] flags)
             {
                 FlagValues = flags;
@@ -605,7 +651,7 @@ namespace Artisan.UI.Tables
                             var owned = RetainerInfo.GetRetainerItemCount(LuminaSheets.RecipeSheet[i.Key].ItemResult.RowId) + CraftingListUI.NumberOfIngredient(LuminaSheets.RecipeSheet[i.Key].ItemResult.RowId);
                             if (SourceList.TryGetFirst(x => x.CraftedRecipe.RowId == i.Key, out var ingredient))
                             {
-                                sb.AppendLine($"{i.Value} less is required due to having {(owned > ingredient.Required ? "at least " : "")}{Math.Min(ingredient.Required, owned)}x {i.Key.NameOfRecipe()}");
+                                sb.AppendLine(IngredientTable.T("因已拥有{0}{1}x {2}，需求减少 {3}", owned > ingredient.Required ? "至少" : string.Empty, Math.Min(ingredient.Required, owned), i.Key.NameOfRecipe(), i.Value));
                             }
                         }
                     }
@@ -617,13 +663,19 @@ namespace Artisan.UI.Tables
                             if (item.UsedInMaterialsListCount.ContainsKey(i.Key))
                                 continue;
 
-                            sb.AppendLine($"{i.Value.Sum(x => x.Item2)} less is required for {i.Key.NameOfRecipe()}");
+                            sb.AppendLine(IngredientTable.T("为制作 {0}，需求减少 {1}", i.Key.NameOfRecipe(), i.Value.Sum(x => x.Item2)));
                             foreach (var m in i.Value)
                             {
                                 var owned = RetainerInfo.GetRetainerItemCount(LuminaSheets.RecipeSheet[m.Item1].ItemResult.RowId) + CraftingListUI.NumberOfIngredient(LuminaSheets.RecipeSheet[m.Item1].ItemResult.RowId);
                                 if (SourceList.TryGetFirst(x => x.CraftedRecipe.RowId == m.Item1, out var ingredient))
                                 {
-                                    sb.AppendLine($"└ {m.Item1.NameOfRecipe()} uses {i.Key.NameOfRecipe()}, you have {(owned > ingredient.Required ? "at least " : "")}{Math.Min(ingredient.Required, owned)} {m.Item1.NameOfRecipe()} so {m.Item2}x {item.Data.Name} less is required as a result.");
+                                    sb.AppendLine(IngredientTable.T("└ {0} 会用到 {1}，你已有{2}{3}个 {0}，因此 {4} 需求再减少 {5}。",
+                                        m.Item1.NameOfRecipe(),
+                                        i.Key.NameOfRecipe(),
+                                        owned > ingredient.Required ? "至少" : string.Empty,
+                                        Math.Min(ingredient.Required, owned),
+                                        item.Data.Name,
+                                        m.Item2));
                                 }
                             }
                         }

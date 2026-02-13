@@ -1,6 +1,7 @@
 ﻿using Artisan.CraftingLogic.CraftData;
 using Artisan.GameInterop;
 using Artisan.GameInterop.CSExt;
+using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
 using Dalamud.Interface.Colors;
 using ECommons.DalamudServices;
@@ -316,20 +317,20 @@ public static class Simulator
         {
             reason = action switch
             {
-                Skills.IntensiveSynthesis or Skills.PreciseTouch or Skills.TricksOfTrade => "Condition is not Good/Excellent or Heart and Soul is not active",
-                Skills.PrudentSynthesis or Skills.PrudentTouch => "You have a Waste Not buff",
-                Skills.MuscleMemory or Skills.Reflect => "You are not on the first step of the craft",
-                Skills.TrainedFinesse => "You have less than 10 Inner Quiet stacks",
-                Skills.ByregotsBlessing => "You have 0 Inner Quiet stacks",
-                Skills.TrainedEye => craft.CraftExpert ? "Craft is expert" : step.Index != 1 ? "You are not on the first step of the craft" : "Craft is not 10 or more levels lower than your current level",
-                Skills.Manipulation => "You haven't unlocked Manipulation",
-                Skills.CarefulObservation => craft.Specialist ? Crafting.DelineationCount() == 0 ? "You have run out of Delineations." : $"You already used Careful Observation 3 times" : "You are not a specialist",
-                Skills.HeartAndSoul => craft.Specialist ? Crafting.DelineationCount() == 0 ? "You have run out of Delineations." : "You don't have Heart & Soul available anymore for this craft" : "You are not a specialist",
-                Skills.TrainedPerfection => "You have already used Trained Perfection",
-                Skills.DaringTouch => "Hasty Touch did not succeed",
-                Skills.QuickInnovation => !craft.Specialist ? "You are not a specialist" : Crafting.DelineationCount() == 0 ? "You have run out of Delineations." : step.QuickInnoLeft == 0 ? "You don't have Quick Innovation available anymore for this craft" : step.InnovationLeft > 0 ? "You have an Innovation buff" : "",
-                Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? "This craft cannot use Material Miracle" : step.MaterialMiracleActive ? "You already have Material Miracle active" : step.MaterialMiracleCharges == 0 ? "You have no more Material Miracle charges" : "",
-                Skills.SteadyHand => !craft.MissionHasSteadyHand ? "This craft cannot use Steady Hand" : step.SteadyHandCharges == 0 ? "You have no more Steady Hand charges" : "",
+                Skills.IntensiveSynthesis or Skills.PreciseTouch or Skills.TricksOfTrade => UI.L10n.Tr("Current condition is not Good/Excellent, and {0} is not active.", Skills.HeartAndSoul.NameOfAction()),
+                Skills.PrudentSynthesis or Skills.PrudentTouch => UI.L10n.Tr("You currently have {0} active.", Skills.WasteNot.NameOfAction()),
+                Skills.MuscleMemory or Skills.Reflect => UI.L10n.Tr("You are not on the first step of the craft."),
+                Skills.TrainedFinesse => UI.L10n.Tr("You have less than {0} stacks of {1}.", 10, Buffs.InnerQuiet.NameOfBuff()),
+                Skills.ByregotsBlessing => UI.L10n.Tr("You have 0 stacks of {0}.", Buffs.InnerQuiet.NameOfBuff()),
+                Skills.TrainedEye => craft.CraftExpert ? UI.L10n.Tr("This is an expert craft.") : step.Index != 1 ? UI.L10n.Tr("You are not on the first step of the craft.") : UI.L10n.Tr("Craft level is not at least 10 levels below your current level."),
+                Skills.Manipulation => UI.L10n.Tr("You haven't unlocked {0}.", Skills.Manipulation.NameOfAction()),
+                Skills.CarefulObservation => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : UI.L10n.Tr("You already used {0} {1} times.", Skills.CarefulObservation.NameOfAction(), 3) : UI.L10n.Tr("You are not a specialist."),
+                Skills.HeartAndSoul => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : UI.L10n.Tr("{0} is no longer available for this craft.", Skills.HeartAndSoul.NameOfAction()) : UI.L10n.Tr("You are not a specialist."),
+                Skills.TrainedPerfection => UI.L10n.Tr("You have already used {0}.", Skills.TrainedPerfection.NameOfAction()),
+                Skills.DaringTouch => UI.L10n.Tr("{0} did not succeed.", Skills.HastyTouch.NameOfAction()),
+                Skills.QuickInnovation => !craft.Specialist ? UI.L10n.Tr("You are not a specialist.") : Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : step.QuickInnoLeft == 0 ? UI.L10n.Tr("{0} is no longer available for this craft.", Skills.QuickInnovation.NameOfAction()) : step.InnovationLeft > 0 ? UI.L10n.Tr("You have an active {0} buff.", Buffs.Innovation.NameOfBuff()) : "",
+                Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? UI.L10n.Tr("This craft cannot use {0}.", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleActive ? UI.L10n.Tr("{0} is already active.", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleCharges == 0 ? UI.L10n.Tr("You have no more {0} charges.", Skills.MaterialMiracle.NameOfAction()) : "",
+                Skills.SteadyHand => !craft.MissionHasSteadyHand ? UI.L10n.Tr("This craft cannot use {0}.", Skills.SteadyHand.NameOfAction()) : step.SteadyHandCharges == 0 ? UI.L10n.Tr("You have no more {0} charges.", Skills.SteadyHand.NameOfAction()) : "",
             };
 
             return true;

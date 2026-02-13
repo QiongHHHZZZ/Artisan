@@ -289,9 +289,9 @@ namespace Artisan.UI
                     action = action.Replace("\"", "");
                     if (string.IsNullOrEmpty(action)) continue;
 
-                    if (action.Equals("Artisan Recommendation", StringComparison.CurrentCultureIgnoreCase) || action.Equals("*"))
+                    if (TryParseMacroAlias(action, out var aliasAction))
                     {
-                        res.Add(new() { Action = Skills.None });
+                        res.Add(new() { Action = aliasAction });
                         continue;
                     }
 
@@ -301,7 +301,7 @@ namespace Artisan.UI
                         act = Enum.GetValues(typeof(Skills)).Cast<Skills>().FirstOrDefault(s => s.NameOfAction(raphParseEN).Replace(" ", "").Replace("'", "").Equals(action, StringComparison.CurrentCultureIgnoreCase));
                         if (act == default)
                         {
-                            DuoLog.Error($"Unable to parse action: {action}");
+                            DuoLog.Error(T("Unable to parse action: {0}", action));
                             continue;
                         }
                     }
@@ -310,6 +310,39 @@ namespace Artisan.UI
             }
             return res;
         }
+
+        private static bool TryParseMacroAlias(string action, out Skills skill)
+        {
+            if (action.Equals("*", StringComparison.Ordinal))
+            {
+                skill = Skills.None;
+                return true;
+            }
+
+            if (IsAlias(action, "Artisan Recommendation", "Artisan 推荐", "自动推荐动作", L10n.Tr("Artisan Recommendation")))
+            {
+                skill = Skills.None;
+                return true;
+            }
+
+            if (IsAlias(action, "Touch Combo", "Touch 连段", "加工连段", L10n.Tr("Touch Combo")))
+            {
+                skill = Skills.TouchCombo;
+                return true;
+            }
+
+            if (IsAlias(action, "Touch Combo (Refined Touch Route)", "Touch 连段（Refined Touch 路线）", "加工连段（精修路线）", L10n.Tr("Touch Combo (Refined Touch Route)")))
+            {
+                skill = Skills.TouchComboRefined;
+                return true;
+            }
+
+            skill = default;
+            return false;
+        }
+
+        private static bool IsAlias(string action, params string[] aliases)
+            => aliases.Any(alias => action.Equals(alias, StringComparison.CurrentCultureIgnoreCase));
 
         private static void OpenMacroNamePopup(MacroNameUse use)
         {

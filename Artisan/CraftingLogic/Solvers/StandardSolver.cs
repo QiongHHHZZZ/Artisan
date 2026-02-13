@@ -1,4 +1,5 @@
-﻿using ECommons.DalamudServices;
+﻿using Artisan.RawInformation;
+using ECommons.DalamudServices;
 using System;
 using System.Collections.Generic;
 using Condition = Artisan.CraftingLogic.CraftData.Condition;
@@ -224,7 +225,7 @@ namespace Artisan.CraftingLogic.Solvers
                         if (Simulator.CanUseAction(craft, step, Skills.Veneration) && step.VenerationLeft == 0 && shouldUseVeneration) return new(Skills.Veneration);
                         if (Simulator.CanUseAction(craft, step, Skills.WasteNot2) && step.WasteNotLeft == 0 && !_wasteNotUsed) return new(Skills.WasteNot2);
                         if (Simulator.CanUseAction(craft, step, Skills.WasteNot) && step.WasteNotLeft == 0 && !_wasteNotUsed) return new(Skills.WasteNot);
-                        if (Simulator.CanUseAction(craft, step, Skills.FinalAppraisal) && step.FinalAppraisalLeft == 0 && CanFinishCraft(craft, step, act)) return new(Skills.FinalAppraisal, $"Synth is {act}");
+                        if (Simulator.CanUseAction(craft, step, Skills.FinalAppraisal) && step.FinalAppraisalLeft == 0 && CanFinishCraft(craft, step, act)) return new(Skills.FinalAppraisal, $"Synth is {act.NameOfAction()}");
                         if (!CanFinishCraft(craft, step, act))
                         return new(act);
                     }

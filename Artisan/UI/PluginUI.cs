@@ -691,7 +691,11 @@ namespace Artisan.UI
                     P.Config.UseSpecialist = useSpecialist;
                     P.Config.Save();
                 }
-                ImGuiComponents.HelpMarker(T("If the current job is a specialist, spends any Crafter's Delineation you may have.\nCareful Observation replaces Observe.\nHeart and Soul will be used for an early Precise Touch."));
+                ImGuiComponents.HelpMarker(T("If the current job is a specialist, spends any Crafter's Delineation you may have.\n{0} replaces {1}.\n{2} will be used for an early {3}.",
+                    Skills.CarefulObservation.NameOfAction(),
+                    Skills.Observe.NameOfAction(),
+                    Skills.HeartAndSoul.NameOfAction(),
+                    Skills.PreciseTouch.NameOfAction()));
                 ImGui.TextWrapped(T("Max Quality%%"));
                 ImGuiComponents.HelpMarker(T("Once quality has reached the below percentage, Artisan will focus on progress only."));
                 if (ImGui.SliderInt("###SliderMaxQuality", ref maxQuality, 0, 100, $"%d%%"))

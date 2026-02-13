@@ -3,6 +3,7 @@ using Artisan.GameInterop;
 using Artisan.GameInterop.CSExt;
 using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
+using Artisan.UI;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -259,13 +260,13 @@ namespace Artisan.CraftingLists
                 if (!PlayerState.Instance()->IsSecretRecipeBookUnlocked(recipe.SecretRecipeBook.RowId))
                 {
                     SeString error = new SeString(
-                        new TextPayload("You haven't unlocked the recipe book "),
+                        new TextPayload(L10n.Tr("You haven't unlocked the recipe book ")),
                         new ItemPayload(recipe.SecretRecipeBook.Value.Item.RowId),
                         new UIForegroundPayload(1),
                         new TextPayload(recipe.SecretRecipeBook.Value.Name.ToString()),
                         RawPayload.LinkTerminator,
                         UIForegroundPayload.UIForegroundOff,
-                        new TextPayload(" for this recipe. Moving on."));
+                        new TextPayload(L10n.Tr(" for this recipe. Moving on.")));
 
                     Svc.Chat.Print(new Dalamud.Game.Text.XivChatEntry()
                     {
@@ -290,7 +291,7 @@ namespace Artisan.CraftingLists
                 int numMats = Materials.Any(x => x.Key == recipe.ItemResult.RowId) && !selectedList.SkipLiteral ? Materials.First(x => x.Key == recipe.ItemResult.RowId).Value : selectedList.ExpandedList.Count(x => LuminaSheets.RecipeSheet[x].ItemResult.RowId == ItemId) * recipe.AmountResult;
                 if (numMats <= CraftingListUI.NumberOfIngredient(recipe.ItemResult.RowId))
                 {
-                    DuoLog.Information($"Skipping {recipe.ItemResult.Value.Name.ToDalamudString()} due to having enough in inventory [Skip Items you already have enough of]");
+                    DuoLog.Information(L10n.Tr("Skipping {0} due to having enough in inventory [Skip Items you already have enough of]", recipe.ItemResult.Value.Name.ToDalamudString()));
 
                     var currentRecipe = selectedList.ExpandedList[CurrentIndex];
                     while (currentRecipe == selectedList.ExpandedList[CurrentIndex])
@@ -307,7 +308,7 @@ namespace Artisan.CraftingLists
 
             if (!HasItemsForRecipe(CraftingListUI.CurrentProcessedItem) && (preparing || !isCrafting))
             {
-                DuoLog.Error($"Insufficient materials for {recipe.ItemResult.Value.Name}. Moving on.");
+                DuoLog.Error(L10n.Tr("Insufficient materials for {0}. Moving on.", recipe.ItemResult.Value.Name));
                 var currentRecipe = selectedList.ExpandedList[CurrentIndex];
 
                 while (currentRecipe == selectedList.ExpandedList[CurrentIndex])
@@ -340,7 +341,7 @@ namespace Artisan.CraftingLists
 
             if (Svc.Objects.LocalPlayer.Level < recipe.RecipeLevelTable.Value.ClassJobLevel - 5 && Svc.Objects.LocalPlayer.ClassJob.RowId == recipe.CraftType.Value.RowId + 8 && !isCrafting && !preparing)
             {
-                DuoLog.Error("Insufficient level to craft this item. Moving on.");
+                DuoLog.Error(L10n.Tr("Insufficient level to craft this item. Moving on."));
                 var currentRecipe = selectedList.ExpandedList[CurrentIndex];
 
                 while (currentRecipe == selectedList.ExpandedList[CurrentIndex])
@@ -428,7 +429,7 @@ namespace Artisan.CraftingLists
                         }
                         else
                         {
-                            DuoLog.Error($"For some reason tried to quick synth 0 of {recipe.ItemResult.Value.Name}. Skipping.");
+                            DuoLog.Error(L10n.Tr("For some reason tried to quick synth 0 of {0}. Skipping.", recipe.ItemResult.Value.Name));
                             var currentRecipe = selectedList.ExpandedList[CurrentIndex];
                             while (currentRecipe == selectedList.ExpandedList[CurrentIndex])
                             {

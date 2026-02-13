@@ -72,7 +72,7 @@ namespace Artisan.CraftingLists
         private static void DrawListOptions()
         {
             ImGui.BeginChild("ListsSelector", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - 200f));
-            ListsUI.Draw(ImGui.GetContentRegionAvail().X);
+            ListsUI.DrawLocalized(ImGui.GetContentRegionAvail().X);
             ImGui.EndChild();
 
             ImGui.BeginChild("ListButtons", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - 95f));

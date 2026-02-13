@@ -311,6 +311,9 @@ namespace Artisan.UI
 
                                         foreach (var opt in Enum.GetValues(typeof(Skills)).Cast<Skills>().OrderBy(y => y.NameOfAction()))
                                         {
+                                            if (IsSpecialMacroAliasAction(opt))
+                                                continue;
+
                                             if (ImGui.Selectable(opt.NameOfAction()))
                                             {
                                                 step.ReplacementAction = opt;
@@ -362,6 +365,9 @@ namespace Artisan.UI
 
                                 foreach (var opt in Enum.GetValues(typeof(Skills)).Cast<Skills>().OrderBy(y => y.NameOfAction()))
                                 {
+                                    if (IsSpecialMacroAliasAction(opt))
+                                        continue;
+
                                     if (ImGui.Selectable(opt.NameOfAction()))
                                     {
                                         step.Action = opt;
@@ -462,6 +468,9 @@ namespace Artisan.UI
             }
             catch { }
         }
+
+        private static bool IsSpecialMacroAliasAction(Skills skill)
+            => skill is Skills.None or Skills.TouchCombo or Skills.TouchComboRefined;
 
         private void OnCraftStarted(Lumina.Excel.Sheets.Recipe recipe, CraftState craft, StepState initialStep, bool trial) => IsOpen = false;
     }

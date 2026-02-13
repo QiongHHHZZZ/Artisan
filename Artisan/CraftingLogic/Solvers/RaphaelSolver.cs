@@ -141,7 +141,7 @@ namespace Artisan.CraftingLogic.Solvers
                         if (process.ExitCode != 0)
                         {
                             if (!string.IsNullOrWhiteSpace(error))
-                                DuoLog.Error(error.Split('\r', '\n')[0]);
+                                DuoLog.Error(L10n.Tr("Raphael error: {0}", error.Split('\r', '\n')[0]));
 
                             info.Succeeded = false;
                             cts.Cancel();
@@ -328,9 +328,9 @@ namespace Artisan.CraftingLogic.Solvers
                 if (P.Config.RaphaelSolverConfig.AllowBackloadProgress)
                     ImGui.Checkbox($"{L10n.Tr("Backload progress")}##{key}Progress", ref TempConfigs[key].BackloadProgress);
                 if (P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist)
-                    ImGui.Checkbox($"{L10n.Tr("Allow heart and soul usage")}##{key}HS", ref TempConfigs[key].HeartAndSoul);
+                    ImGui.Checkbox($"{L10n.Tr("Allow using {0}", Skills.HeartAndSoul.NameOfAction())}##{key}HS", ref TempConfigs[key].HeartAndSoul);
                 if (P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist)
-                    ImGui.Checkbox($"{L10n.Tr("Allow quick innovation usage")}##{key}QI", ref TempConfigs[key].QuickInno);
+                    ImGui.Checkbox($"{L10n.Tr("Allow using {0}", Skills.QuickInnovation.NameOfAction())}##{key}QI", ref TempConfigs[key].QuickInno);
 
                 if (inProgress)
                     ImGui.EndDisabled();
@@ -428,9 +428,9 @@ namespace Artisan.CraftingLogic.Solvers
                     ImGui.Unindent();
                 }
 
-                changed |= ImGui.SliderInt(L10n.Tr("Max Stellar Steady Hand usage"), ref MaxStellarHand, 0, 2);
+                changed |= ImGui.SliderInt(L10n.Tr("Maximum usage of {0}", Skills.SteadyHand.NameOfAction()), ref MaxStellarHand, 0, 2);
 
-                ImGuiComponents.HelpMarker(L10n.Tr("This is only for missions that have Stellar Steady Hand, will limit how many are allowed per macro (Raphael may still use less in its solutions)."));
+                ImGuiComponents.HelpMarker(L10n.Tr("Only affects missions with {0}; this limits how many times it is allowed per macro (Raphael may still use less in its solutions).", Skills.SteadyHand.NameOfAction()));
 
                 changed |= ImGui.SliderInt(L10n.Tr("Timeout solution generation"), ref TimeOutMins, 1, 15);
 

@@ -50,7 +50,7 @@ public unsafe struct RecipeNoteIngredientEntry
     {
         if (NumAvailableNQ + NumAvailableHQ < NumTotal)
         {
-            DuoLog.Error("Unable to set specified ingredients properly due to insufficient materials.");
+            DuoLog.Error(global::Artisan.UI.L10n.Tr("Unable to set specified ingredients properly due to insufficient materials."));
             return;
         }
 
@@ -212,3 +212,4 @@ public unsafe struct CraftingEventHandler
         [FieldOffset(0x08)] public byte MaxCount;
     }
 }
+

@@ -1,5 +1,6 @@
 ﻿using Artisan.CraftingLogic;
 using Artisan.GameInterop;
+using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
@@ -69,7 +70,7 @@ internal static class SimulatorUIVeynVersion
 
     private static void DrawRecipeInfo(Recipe r, CraftState craft)
     {
-        var recipeNode = T("Recipe: #{0} {1} '{2}', solver: {3}", r.RowId, Job.CRP.Add(r.CraftType.RowId), r.ItemResult.Value.Name.ToDalamudString(), _selectedSolver.Name);
+        var recipeNode = T("Recipe: #{0} {1} '{2}', solver: {3}", r.RowId, Job.CRP.Add(r.CraftType.RowId), r.ItemResult.Value.Name.ToDalamudString(), T(_selectedSolver.Name));
         using var n = ImRaii.TreeNode($"{recipeNode}###recipe");
         if (!n)
             return;
@@ -78,7 +79,7 @@ internal static class SimulatorUIVeynVersion
             SetSelectedRecipe(r);
         ImGui.InputFloat(T("Starting quality percent"), ref _startingQualityPct);
         for (int i = 1; i < craft.CraftConditionProbabilities.Length; ++i)
-            ImGui.InputFloat(T("Transition probability to {0}", (Condition)i), ref craft.CraftConditionProbabilities[i]);
+            ImGui.InputFloat(T("Transition probability to {0}", ((Condition)i).ToLocalizedString()), ref craft.CraftConditionProbabilities[i]);
     }
 
     private static void DrawStatistics(CraftState craft)
@@ -180,6 +181,7 @@ internal static class SimulatorUIVeynVersion
                 RestartSimulator(craft, _simCurSeed);
             }
             ImGui.SameLine();
+            ImGui.SetNextItemWidth(96f);
             ImGui.InputInt("###Seed", ref _simCurSeed);
 
             using var popup = ImRaii.Popup("SolveUntil");
@@ -244,7 +246,7 @@ internal static class SimulatorUIVeynVersion
 
         if (_simCurSteps.Count == 0) return;
 
-        ImGui.TextUnformatted(T("Status: {0}, Suggestion: {1} ({2})", Simulator.Status(craft, _simCurSteps.Last().step), _simNextRec.Action, T(_simNextRec.Comment)));
+        ImGui.TextUnformatted(T("Status: {0}, Suggestion: {1} ({2})", Simulator.Status(craft, _simCurSteps.Last().step), GetActionDisplayName(_simNextRec.Action), T(_simNextRec.Comment)));
 
         using var popup = ImRaii.Popup("Manual");
         if (popup)
@@ -255,7 +257,7 @@ internal static class SimulatorUIVeynVersion
                 if (opt == Skills.None)
                     continue;
 
-                if (ImGui.MenuItem(T("{0} ({1}cp, {2}dur)", opt, Simulator.GetCPCost(step, opt), Simulator.GetDurabilityCost(step, opt)), Simulator.CanUseAction(craft, step, opt)))
+                if (ImGui.MenuItem(T("{0} ({1}cp, {2}dur)", GetActionDisplayName(opt), Simulator.GetCPCost(step, opt), Simulator.GetDurabilityCost(step, opt)), Simulator.CanUseAction(craft, step, opt)))
                 {
                     var (res, next) = Simulator.Execute(craft, step, opt, _simRngForSim.NextSingle(), _simRngForSim.NextSingle());
                     if (res != Simulator.ExecuteResult.CantUse)
@@ -288,9 +290,13 @@ internal static class SimulatorUIVeynVersion
             DrawProgress(step.RemainingCP, craft.StatCP);
             ImGui.SameLine();
 
-            var sb = new StringBuilder($"{step.Condition}; {step.BuffsString()}");
+            var sb = new StringBuilder(T("State: {0}; IQ: {1}; Careful Observation left: {2}; Heart and Soul: {3}",
+                step.Condition.ToLocalizedString(),
+                step.IQStacks,
+                step.CarefulObservationLeft,
+                GetHeartAndSoulState(step)));
             if (i + 1 < _simCurSteps.Count)
-                sb.Append(T("; used {0}{1} ({2})", _simCurSteps[i + 1].step.PrevComboAction, _simCurSteps[i + 1].step.PrevActionFailed ? T(" (fail)") : "", T(_simCurSteps[i].comment)));
+                sb.Append(T("; used {0}{1} ({2})", GetActionDisplayName(_simCurSteps[i + 1].step.PrevComboAction), _simCurSteps[i + 1].step.PrevActionFailed ? T(" (fail)") : "", T(_simCurSteps[i].comment)));
             ImGui.TextUnformatted(sb.ToString());
         }
 
@@ -302,6 +308,12 @@ internal static class SimulatorUIVeynVersion
         }
 
     }
+
+    private static string GetActionDisplayName(Skills action)
+        => action == Skills.None ? T("Artisan Recommendation") : action.NameOfAction();
+
+    private static string GetHeartAndSoulState(StepState step)
+        => step.HeartAndSoulActive ? T("Active") : step.HeartAndSoulAvailable ? T("Available") : T("Unavailable");
 
     private static void DrawProgress(int a, int b) => ImGui.ProgressBar((float)a / b, new(150, 0), $"{a * 100.0f / b:f2}% ({a}/{b})");
 
@@ -469,3 +481,4 @@ internal static class SimulatorUIVeynVersion
             ;
     }
 }
+

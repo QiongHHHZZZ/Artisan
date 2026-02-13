@@ -396,7 +396,7 @@ public static unsafe class Crafting
                     else
                     {
                         if (EzThrottler.Throttle("CLIWarning", TimeSpan.FromSeconds(10)))
-                            DuoLog.Warning("Raphael CLI not found. Please check your anti-virus and ensure 'raphael-cli.bin' is whitelisted and re-install Artisan. Crafting will not start.");
+                            DuoLog.Warning(global::Artisan.UI.L10n.Tr("Raphael CLI not found. Please check your anti-virus and ensure 'raphael-cli.bin' is whitelisted and re-install Artisan. Crafting will not start."));
 
                         return State.InvalidState;
                     }
@@ -835,3 +835,4 @@ public static unsafe class Crafting
         Svc.Log.Verbose("CEH hook exit");
     }
 }
+

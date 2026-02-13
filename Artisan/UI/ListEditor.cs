@@ -1128,7 +1128,7 @@ internal class ListEditor : Window, IDisposable
         DrawRecipeData();
 
         ImGui.Spacing();
-        RecipeSelector.Draw(RecipeSelector.maxSize + 16f + ImGui.GetStyle().ScrollbarSize);
+        RecipeSelector.DrawLocalized(RecipeSelector.maxSize + 16f + ImGui.GetStyle().ScrollbarSize, () => RefreshTable(null, true));
         ImGui.SameLine();
 
         if (RecipeSelector.Current?.ID > 0)
@@ -1427,13 +1427,81 @@ internal class RecipeSelector : ItemSelector<ListItem>
     public float maxSize = 100;
 
     private readonly NewCraftingList List;
+    private string _newRecipeInput = string.Empty;
+    private bool _focusAddPopup;
+    private const string AddRecipePopupId = "##RecipeSelectorAddLocalized";
 
     public RecipeSelector(int list)
         : base(
             P.Config.NewCraftingLists.First(x => x.ID == list).Recipes.Distinct().ToList(),
-            Flags.Add | Flags.Delete | Flags.Move)
+            Flags.Move)
     {
         List = P.Config.NewCraftingLists.First(x => x.ID == list);
+    }
+
+    public void DrawLocalized(float width, System.Action? onChanged = null)
+    {
+        Draw(width);
+        DrawLocalizedButtons(width, onChanged);
+        DrawAddPopup(onChanged);
+    }
+
+    private void DrawLocalizedButtons(float width, System.Action? onChanged)
+    {
+        var buttonWidth = width / 2f;
+
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            if (ImGui.Button(FontAwesomeIcon.Plus.ToIconString(), Vector2.UnitX * buttonWidth))
+            {
+                _newRecipeInput = string.Empty;
+                _focusAddPopup = true;
+                ImGui.OpenPopup(AddRecipePopupId);
+            }
+        }
+        ImGuiUtil.HoverTooltip("添加配方（输入配方名或物品ID）");
+
+        ImGui.SameLine();
+
+        var canDelete = CurrentIdx >= 0 && ImGui.GetIO().KeyCtrl;
+        using (ImRaii.Disabled(!canDelete))
+        {
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString(), Vector2.UnitX * buttonWidth) && OnDelete(CurrentIdx))
+                {
+                    SetFilterDirty();
+                    SetCurrent(CurrentIdx > 0 ? CurrentIdx - 1 : CurrentIdx);
+                    onChanged?.Invoke();
+                }
+            }
+        }
+        ImGuiUtil.HoverTooltip("删除当前配方（按住 Ctrl 点击）");
+    }
+
+    private void DrawAddPopup(System.Action? onChanged)
+    {
+        if (!ImGui.BeginPopup(AddRecipePopupId))
+            return;
+
+        if (_focusAddPopup)
+        {
+            ImGui.SetKeyboardFocusHere();
+            _focusAddPopup = false;
+        }
+
+        ImGui.SetNextItemWidth(Math.Max(280f.Scale(), ImGui.GetContentRegionAvail().X));
+        var submitted = ImGui.InputTextWithHint("##RecipeSelectorAddInput", "输入配方名或物品ID...", ref _newRecipeInput, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+        if (submitted && OnAdd(_newRecipeInput))
+        {
+            TryRestoreCurrent();
+            SetFilterDirty();
+            onChanged?.Invoke();
+            _newRecipeInput = string.Empty;
+            ImGui.CloseCurrentPopup();
+        }
+
+        ImGui.EndPopup();
     }
 
     protected override bool Filtered(int idx)
@@ -1540,10 +1608,154 @@ internal class RecipeSelector : ItemSelector<ListItem>
 
 internal class ListFolders : ItemSelector<NewCraftingList>
 {
+    private string _filterInput = string.Empty;
+    private string _newListInput = string.Empty;
+    private bool _focusNamePopup;
+    private bool _selectTopOnFilterEnter;
+    private int _duplicateSourceIdx = -1;
+    private const string AddListPopupId = "##ListFoldersAddLocalized";
+    private const string DuplicateListPopupId = "##ListFoldersDuplicateLocalized";
+
     public ListFolders()
-        : base(P.Config.NewCraftingLists, Flags.Add | Flags.Delete | Flags.Move | Flags.Filter | Flags.Duplicate)
+        : base(P.Config.NewCraftingLists, Flags.Move)
     {
         CurrentIdx = -1;
+    }
+
+    public void DrawLocalized(float width)
+    {
+        DrawLocalizedFilter(width);
+        Draw(width);
+
+        if (_selectTopOnFilterEnter)
+        {
+            _selectTopOnFilterEnter = false;
+            if (FilteredItems.Count > 0)
+                SetCurrent(FilteredItems.First());
+        }
+
+        DrawLocalizedButtons(width);
+        DrawAddPopup();
+        DrawDuplicatePopup();
+    }
+
+    private void DrawLocalizedFilter(float width)
+    {
+        var newFilter = _filterInput;
+        ImGui.SetNextItemWidth(width);
+        var enterPressed = ImGui.InputTextWithHint("##ListFoldersFilter", "筛选...", ref newFilter, 128, ImGuiInputTextFlags.EnterReturnsTrue);
+        if (newFilter != _filterInput)
+        {
+            _filterInput = newFilter;
+            Filter = _filterInput;
+            SetFilterDirty();
+        }
+
+        if (enterPressed)
+            _selectTopOnFilterEnter = true;
+    }
+
+    private void DrawLocalizedButtons(float width)
+    {
+        var buttonWidth = width / 3f;
+
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            if (ImGui.Button(FontAwesomeIcon.Plus.ToIconString(), Vector2.UnitX * buttonWidth))
+            {
+                _newListInput = string.Empty;
+                _focusNamePopup = true;
+                ImGui.OpenPopup(AddListPopupId);
+            }
+        }
+        ImGuiUtil.HoverTooltip("新建清单");
+
+        ImGui.SameLine();
+
+        using (ImRaii.Disabled(CurrentIdx < 0))
+        {
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                if (ImGui.Button(FontAwesomeIcon.Clone.ToIconString(), Vector2.UnitX * buttonWidth))
+                {
+                    _duplicateSourceIdx = CurrentIdx;
+                    _newListInput = string.Empty;
+                    _focusNamePopup = true;
+                    ImGui.OpenPopup(DuplicateListPopupId);
+                }
+            }
+        }
+        ImGuiUtil.HoverTooltip("复制当前清单");
+
+        ImGui.SameLine();
+
+        var canDelete = CurrentIdx >= 0 && ImGui.GetIO().KeyCtrl;
+        using (ImRaii.Disabled(!canDelete))
+        {
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                if (ImGui.Button(FontAwesomeIcon.Trash.ToIconString(), Vector2.UnitX * buttonWidth) && OnDelete(CurrentIdx))
+                {
+                    SetFilterDirty();
+                    SetCurrent(CurrentIdx > 0 ? CurrentIdx - 1 : CurrentIdx);
+                }
+            }
+        }
+        ImGuiUtil.HoverTooltip("删除当前清单（按住 Ctrl 点击）");
+    }
+
+    private void DrawAddPopup()
+    {
+        if (!ImGui.BeginPopup(AddListPopupId))
+            return;
+
+        if (_focusNamePopup)
+        {
+            ImGui.SetKeyboardFocusHere();
+            _focusNamePopup = false;
+        }
+
+        ImGui.SetNextItemWidth(Math.Max(280f.Scale(), ImGui.GetContentRegionAvail().X));
+        var submitted = ImGui.InputTextWithHint("##ListFoldersAddInput", "输入新清单名称...", ref _newListInput, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+        var trimmedName = _newListInput.Trim();
+        if (submitted && trimmedName.Length > 0 && OnAdd(trimmedName))
+        {
+            SetFilterDirty();
+            SetCurrent(Items.Count - 1);
+            _newListInput = string.Empty;
+            ImGui.CloseCurrentPopup();
+        }
+
+        ImGui.EndPopup();
+    }
+
+    private void DrawDuplicatePopup()
+    {
+        if (!ImGui.BeginPopup(DuplicateListPopupId))
+            return;
+
+        if (_focusNamePopup)
+        {
+            ImGui.SetKeyboardFocusHere();
+            _focusNamePopup = false;
+        }
+
+        ImGui.SetNextItemWidth(Math.Max(280f.Scale(), ImGui.GetContentRegionAvail().X));
+        var submitted = ImGui.InputTextWithHint("##ListFoldersDuplicateInput", "输入新清单名称...", ref _newListInput, 100, ImGuiInputTextFlags.EnterReturnsTrue);
+        var trimmedName = _newListInput.Trim();
+        if (submitted
+            && trimmedName.Length > 0
+            && _duplicateSourceIdx >= 0
+            && _duplicateSourceIdx < Items.Count
+            && OnDuplicate(trimmedName, _duplicateSourceIdx))
+        {
+            SetFilterDirty();
+            SetCurrent(Items.Count - 1);
+            _newListInput = string.Empty;
+            ImGui.CloseCurrentPopup();
+        }
+
+        ImGui.EndPopup();
     }
 
     protected override string DeleteButtonTooltip()

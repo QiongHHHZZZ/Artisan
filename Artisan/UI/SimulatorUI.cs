@@ -98,7 +98,7 @@ namespace Artisan.UI
             public uint Id;
             public ConsumableStats Stats;
             public bool ConsumableHQ;
-            public string ConsumableString => string.Join(", ", Stats.Stats.Where(x => x.Param != 0).Select(x => $"{Svc.Data.Excel.GetSheet<BaseParam>().GetRow((uint)x.Param).Name} +{x.Percent}% - max {x.Max}"));
+            public string ConsumableString => string.Join(", ", Stats.Stats.Where(x => x.Param != 0).Select(x => $"{Svc.Data.Excel.GetSheet<BaseParam>().GetRow((uint)x.Param).Name} +{x.Percent}% - {L10n.Tr("Upper limit")} {x.Max}"));
         }
 
         public static void Draw()
@@ -1035,24 +1035,23 @@ namespace Artisan.UI
 
         private static void DrawIngredientLayout()
         {
-            bool hasHQ = false;
-            foreach (var i in SelectedRecipe.Value.Ingredients().Where(x => x.Amount > 0))
-            {
-                if (LuminaSheets.ItemSheet[i.Item.RowId].CanBeHq)
-                    hasHQ = true;
-            }
             using var group = ImRaii.Group();
             if (!group)
                 return;
 
             ImGuiEx.LineCentered("###LayoutIngredients", () => ImGuiEx.TextUnderlined(T("Ingredient Layouts")));
-            using var table = ImRaii.Table("###SimulatorRecipeIngredients", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.NoHostExtendX);
+            ImGui.Spacing();
+
+            var quantityColumnWidth = 90f.Scale();
+            var materialColumnWidth = Math.Max(120f.Scale(), ImGui.GetContentRegionAvail().X - quantityColumnWidth * 2f);
+
+            using var table = ImRaii.Table("###SimulatorRecipeIngredients", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.SizingFixedFit);
             if (!table)
                 return;
 
-            ImGui.TableSetupColumn(T("Material"), ImGuiTableColumnFlags.WidthFixed, ImGui.GetContentRegionAvail().X - (hasHQ ? 200f.Scale() : 80f.Scale()));
-            ImGui.TableSetupColumn(T("NQ"), ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn(T("HQ"), ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn(T("Material"), ImGuiTableColumnFlags.WidthFixed, materialColumnWidth);
+            ImGui.TableSetupColumn(T("NQ"), ImGuiTableColumnFlags.WidthFixed, quantityColumnWidth);
+            ImGui.TableSetupColumn(T("HQ"), ImGuiTableColumnFlags.WidthFixed, quantityColumnWidth);
 
             ImGui.TableHeadersRow();
 
