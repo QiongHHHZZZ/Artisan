@@ -468,6 +468,10 @@ public class ExpertSolver : Solver
             // TODO: consider good tricks and saving gs - some quick simulation shows it to be a slight loss...
             if (step.Condition == Condition.Good)
             {
+                // pop quick inno to take advantage of gs+good if settings allow
+                if (step.QuickInnoAvailable && CU(craft, step, Skills.QuickInnovation) && (cfg.MidAllowQuickInnoGood == MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodAny || (cfg.MidAllowQuickInnoGood == MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodPrepTP && step.TrainedPerfectionActive && CU(craft, step, Skills.PreparatoryTouch))))
+                    return new(Skills.QuickInnovation, "mid quality gs-only: quick inno -> good");
+
                 // precise is more efficient than prep here, even if TP is active (~25 p/CP vs ~15 p/CP)
                 if (CanUseActionSafelyInFinisher(step, Skills.PreciseTouch, freeCP) && CU(craft, step, Skills.PreciseTouch))
                     return new(Skills.PreciseTouch, "mid quality gs-only: utilize good");

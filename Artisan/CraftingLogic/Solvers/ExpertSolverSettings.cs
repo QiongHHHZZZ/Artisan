@@ -83,6 +83,20 @@ public class ExpertSolverSettings
     public bool MidAllowGoodPrep = false; // if true, we consider prep touch a good move for finisher under good+inno+gs
     public bool MidAllowSturdyPrep = true; // if true, we consider prep touch a good move for finisher under sturdy+inno
     public bool MidGSBeforeInno = true; // if true, we start quality combos with gs+inno rather than just inno
+    public enum MidAllowQuickInnoGoodSetting  // how to use quick innovation on Good+GS procs
+    {
+        MidAllowQuickInnoGoodAny,             // use on precise (or whatever)
+        MidAllowQuickInnoGoodPrepTP,          // only use if TP+prep is set up
+        MidAllowQuickInnoGoodDisable          // save it for finisher
+    }
+    public string GetMidAllowQuickInnoGoodSettingName(MidAllowQuickInnoGoodSetting value)
+        => value switch
+        {
+            MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodAny => $"Use {Skills.QuickInnovation.NameOfAction()} on any quality action",
+            MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodPrepTP => $"Only use {Skills.QuickInnovation.NameOfAction()} on free {Skills.PreparatoryTouch.NameOfAction()}",
+            MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodDisable or _ => $"Don't use {Skills.QuickInnovation.NameOfAction()} (save for finisher)"
+        };
+    public MidAllowQuickInnoGoodSetting MidAllowQuickInnoGood = MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodAny;
     public bool MidFinishProgressBeforeQuality = false; // if true, at 10 iq we first finish progress before starting on quality
     public bool MidObserveGoodOmenForTricks = false; // if true, we'll observe on good omen where otherwise we'd use tricks on good
     public bool FinisherBaitGoodByregot = true; // if true, use careful observations to try baiting good byregot
@@ -271,6 +285,20 @@ public class ExpertSolverSettings
                 ImGui.Unindent();
                 changed |= ImGui.Checkbox($"Use {Skills.GreatStrides.NameOfAction()} before non-finisher {QualityString.ToLower()} combos", ref MidGSBeforeInno);
                 ImGuiComponents.HelpMarker($"ex. {Buffs.Innovation.NameOfBuff()} → {Skills.Observe.NameOfAction()} → {Skills.AdvancedTouch.NameOfAction()}. Enabling this uses more CP but less {DurabilityString.ToLower()}, and may help avoid a usage of an expensive {DurabilityString.ToLower()}-related action.");
+                ImGui.TextWrapped($"When ● {Condition.Good.ToLocalizedString()} and only {Skills.GreatStrides.NameOfAction()} is up:");
+                ImGuiComponents.HelpMarker($"\"Free\" {Skills.PreparatoryTouch.NameOfAction()} refers to {Skills.TrainedPerfection.NameOfAction()}, which can be enabled in the Pre-{QualityString} settings. Saving {Skills.QuickInnovation.NameOfAction()} for an emergency {Skills.ByregotsBlessing.NameOfAction()} in the finisher is the most efficient, but might not be necessary.");
+                if (ImGui.BeginCombo("##midAllowQuickInnoGoodSetting", GetMidAllowQuickInnoGoodSettingName(MidAllowQuickInnoGood)))
+                {
+                    foreach (MidAllowQuickInnoGoodSetting x in Enum.GetValues<MidAllowQuickInnoGoodSetting>())
+                    {
+                        if (ImGui.Selectable(GetMidAllowQuickInnoGoodSettingName(x)))
+                        {
+                            MidAllowQuickInnoGood = x;
+                            changed = true;
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
                 ImGui.Unindent();
                 ImGui.Dummy(new Vector2(0, 5f));
             }
