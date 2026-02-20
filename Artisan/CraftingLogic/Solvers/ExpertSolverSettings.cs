@@ -34,7 +34,7 @@ public class ExpertSolverSettings
         MidUseTPGroundwork,        // use TP on groundwork for high-prio progress
         MidUseTPPrepIQ,            // use TP on preparatory touch to build IQ stacks
         MidUseTPEitherPreQuality,  // use TP on either of the options above, depending on which status comes up first (default groundwork)
-        MidUseTPPrepQuality        // use TP on prep touch after 10 IQ, with GS+Inno
+        MidUseTPDuringQuality      // use TP on prep or precise after 10 IQ, with GS+Inno
     }
     public string GetMidUseTPSettingName(MidUseTPSetting value)
         => value switch
@@ -42,7 +42,7 @@ public class ExpertSolverSettings
             MidUseTPSetting.MidUseTPGroundwork => $"(Early) {Skills.Groundwork.NameOfAction()}",
             MidUseTPSetting.MidUseTPPrepIQ => $"(Early) {Skills.PreparatoryTouch.NameOfAction()} (build {Buffs.InnerQuiet.NameOfBuff()})",
             MidUseTPSetting.MidUseTPEitherPreQuality => $"(Early) Either action based on {ConditionString.ToLower()}",
-            MidUseTPSetting.MidUseTPPrepQuality or _ => $"(Late) {Skills.PreparatoryTouch.NameOfAction()} at max {Buffs.InnerQuiet.NameOfBuff()} (focus {QualityString.ToLower()})",
+            MidUseTPSetting.MidUseTPDuringQuality or _ => $"(Late) Optimal {QualityString.ToLower()} action at max {Buffs.InnerQuiet.NameOfBuff()} (focus {QualityString.ToLower()})",
         };
     public MidUseTPSetting MidUseTP = MidUseTPSetting.MidUseTPGroundwork;
     public int MidMaxBaitStepsForTP = 0; // how many observes should be used to bait favorable conditions for trained perfection; 0 to disable
@@ -80,7 +80,7 @@ public class ExpertSolverSettings
     public bool MidAllowSturdyPreсise = false; // if true,we consider sturdy+h&s+precise touch a good move for building iq
     public bool MidAllowCenteredHasty = true; // if true, we consider centered hasty touch a good move for building iq (85% reliability)
     public bool MidAllowSturdyHasty = true; // if true, we consider sturdy hasty touch a good move for building iq (50% reliability), otherwise we use combo
-    public bool MidAllowGoodPrep = true; // if true, we consider prep touch a good move for finisher under good+inno+gs
+    public bool MidAllowGoodPrep = false; // if true, we consider prep touch a good move for finisher under good+inno+gs
     public bool MidAllowSturdyPrep = true; // if true, we consider prep touch a good move for finisher under sturdy+inno
     public bool MidGSBeforeInno = true; // if true, we start quality combos with gs+inno rather than just inno
     public bool MidFinishProgressBeforeQuality = false; // if true, at 10 iq we first finish progress before starting on quality
@@ -266,6 +266,7 @@ public class ExpertSolverSettings
                 ImGui.TextWrapped($"Use {Skills.PreparatoryTouch.NameOfAction()}:");
                 ImGui.Indent();
                 changed |= ImGui.Checkbox($"Under ● {Condition.Good.ToLocalizedString()} + {Buffs.Innovation.NameOfBuff()} + {Buffs.GreatStrides.NameOfBuff()}", ref MidAllowGoodPrep);
+                ImGuiComponents.HelpMarker($"Less efficient than {Skills.PreciseTouch.NameOfAction()}, despite the big quality bump.");
                 changed |= ImGui.Checkbox($"Under ● {Condition.Sturdy.ToLocalizedString()}/{Condition.Robust.ToLocalizedString()} + {Buffs.Innovation.NameOfBuff()}", ref MidAllowSturdyPrep);
                 ImGui.Unindent();
                 changed |= ImGui.Checkbox($"Use {Skills.GreatStrides.NameOfAction()} before non-finisher {QualityString.ToLower()} combos", ref MidGSBeforeInno);

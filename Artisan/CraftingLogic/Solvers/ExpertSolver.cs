@@ -353,20 +353,21 @@ public class ExpertSolver : Solver
         var cpToSpendOnQuality = availableCP - reservedCP;
 
         // now that most conditions are checked, handle active TP if applicable and we have enough CP
-        if (step.TrainedPerfectionActive && cfg.MidUseTP == MidUseTPSetting.MidUseTPPrepQuality)
+        if (step.TrainedPerfectionActive && cfg.MidUseTP == MidUseTPSetting.MidUseTPDuringQuality)
         {
             // set up gs+inno if we can
             if (cpToSpendOnQuality >= (Simulator.GetCPCost(step, Skills.GreatStrides) + Skills.Innovation.StandardCPCost() + Skills.PreparatoryTouch.StandardCPCost()) && CU(craft, step, Skills.GreatStrides))
-                return new(Skills.GreatStrides, "mid start quality: gs -> prep w/tp");
+                return new(Skills.GreatStrides, "mid start quality: gs -> tp touch");
 
             // or just use it right now if we're really low on cp
-            if (cpToSpendOnQuality >= Simulator.GetCPCost(step, Skills.PreparatoryTouch) && CU(craft, step, Skills.PreparatoryTouch))
-                return new(Skills.PreparatoryTouch, "mid start quality: emergency prep w/tp");
+            var emergencyTPSkill = step.Condition is Condition.Good ? Skills.PreciseTouch : Skills.PreparatoryTouch;
+            if (cpToSpendOnQuality >= Simulator.GetCPCost(step, emergencyTPSkill) && CU(craft, step, emergencyTPSkill))
+                return new(emergencyTPSkill, "mid start quality: emergency tp");
         }
 
-        // turn on TP if applicable, even if we don't have the CP for prep touch; might as well use it
-        if (step.TrainedPerfectionAvailable && cfg.MidUseTP == MidUseTPSetting.MidUseTPPrepQuality && CU(craft, step, Skills.TrainedPerfection))
-            return new(Skills.TrainedPerfection, "mid start quality: tp -> prep");
+        // turn on TP if applicable
+        if (step.TrainedPerfectionAvailable && cfg.MidUseTP == MidUseTPSetting.MidUseTPDuringQuality && CU(craft, step, Skills.TrainedPerfection))
+            return new(Skills.TrainedPerfection, "mid start quality: start tp");
 
         // we need around >20 effective durability to start a new combo
         var effectiveDura = step.Durability + step.ManipulationLeft * 5;
@@ -464,13 +465,10 @@ public class ExpertSolver : Solver
                     return new(duraAction, "mid quality gs-only: durability");
             }
 
-            // TODO: consider good/sturdy prep (without TP) or good tricks - do we want that without inno? some quick simulation shows it to be a slight loss...
+            // TODO: consider good tricks and saving gs - some quick simulation shows it to be a slight loss...
             if (step.Condition == Condition.Good)
             {
-                // spend TP right now if we have it, don't worry about inno
-                if (step.TrainedPerfectionActive && CanUseActionSafelyInFinisher(step, Skills.PreparatoryTouch, freeCP) && CU(craft, step, Skills.PreparatoryTouch))
-                    return new(Skills.PreparatoryTouch, "mid quality gs-only: utilize good+tp");
-
+                // precise is more efficient than prep here, even if TP is active (~25 p/CP vs ~15 p/CP)
                 if (CanUseActionSafelyInFinisher(step, Skills.PreciseTouch, freeCP) && CU(craft, step, Skills.PreciseTouch))
                     return new(Skills.PreciseTouch, "mid quality gs-only: utilize good");
             } 
@@ -479,10 +477,17 @@ public class ExpertSolver : Solver
 
             if (step.GreatStridesLeft == 1)
             {
-                // we really want to use gs now on other touches (prudent/finesse), doing inno now would waste it
-                // TODO: hasty? basic combo? non-tp prep?
+                // we really want to use gs now on some kind of quality action, doing inno now would waste it
+                // TP+prep is the best use in any non-good condition
                 if (step.TrainedPerfectionActive && CanUseActionSafelyInFinisher(step, Skills.PreparatoryTouch, freeCP) && CU(craft, step, Skills.PreparatoryTouch))
                     return new(Skills.PreparatoryTouch, "mid quality gs-only last chance");
+                // GS + centered hasty is better than full cost prep or prudent
+                if (cfg.MidAllowCenteredHasty && step.Condition == Condition.Centered && CanUseActionSafelyInFinisher(step, Skills.HastyTouch, freeCP) && CU(craft, step, Skills.HastyTouch))
+                    return new(Skills.HastyTouch, "mid quality gs-only last chance");
+                // TF is the most efficient use of pliant, even more than prep or prudent
+                if (step.Condition == Condition.Pliant && CanUseActionSafelyInFinisher(step, Skills.TrainedFinesse, freeCP) && CU(craft, step, Skills.TrainedFinesse))
+                    return new(Skills.TrainedFinesse, "mid quality gs-only last chance");
+                // otherwise, prudent and TF are still better than prep, even on sturdy
                 if (CanUseActionSafelyInFinisher(step, Skills.PrudentTouch, freeCP) && CU(craft, step, Skills.PrudentTouch))
                     return new(Skills.PrudentTouch, "mid quality gs-only last chance");
                 if (freeCP >= Simulator.GetCPCost(step, Skills.TrainedFinesse) && CU(craft, step, Skills.TrainedFinesse))
@@ -507,26 +512,23 @@ public class ExpertSolver : Solver
         if (step.Condition == Condition.Good)
         {
             // good options are prep and precise (advanced after observe is the same as precise, so don't bother)
-            // prep is ~2x the cost, quality is 525 vs 393.75 (no gs) or 875 vs 656.25 (with gs), meaning it's worth an extra 131.25/218.75p
-            // we can compare good prep with good precise + advanced combo, which is an extra 225p
-            // all in all, it feels like prep is only worth it under gs?..
-            if ((cfg.MidAllowGoodPrep || step.TrainedPerfectionActive) && step.GreatStridesLeft > 0 && CanUseActionSafelyInFinisher(step, Skills.PreparatoryTouch, freeCP) && CU(craft, step, Skills.PreparatoryTouch))
+            // prep is significantly less quality than precise per CP, even with TP, but may be useful in some situations
+            if (cfg.MidAllowGoodPrep && step.GreatStridesLeft > 0 && CanUseActionSafelyInFinisher(step, Skills.PreparatoryTouch, freeCP) && CU(craft, step, Skills.PreparatoryTouch))
                 return new(Skills.PreparatoryTouch, "mid quality: gs+inno+good");
-            // otherwise use precise if possible
             if (CanUseActionSafelyInFinisher(step, Skills.PreciseTouch, freeCP) && CU(craft, step, Skills.PreciseTouch))
                 return new(Skills.PreciseTouch, "mid quality: good");
             // otherwise ignore good condition and see what else can we do
             // note: using tricks here seems to be a slight loss according to craft, which is expected
         }
 
-        if (step.Condition is Condition.Sturdy or Condition.Robust)
+        if (step.Condition == Condition.Sturdy || (step.Condition == Condition.Robust && step.InnovationLeft == 1))
         {
-            // during sturdy, prep becomes 300/500p for 40cp+10dura = 5.17/8.62 p/cp (depending on gs)
-            // in comparison, advanced (assuming we did observe before) is 225/375p for 18cp+5dura = 8.33/13.89p/cp - it is more efficient
-            // prudent (if we didn't observe) is 150/250p for 25cp+3dura = 4.93/8.22 p/cp
-            // so it doesn't really seem to be worth it?..
-            // still counts as a worthwhile condition for TP, which should be used under buffs
-            if ((cfg.MidAllowSturdyPrep || step.TrainedPerfectionActive) && step.PrevComboAction != Skills.Observe && CanUseActionSafelyInFinisher(step, Skills.PreparatoryTouch, freeCP) && CU(craft, step, Skills.PreparatoryTouch))
+            // what's the best thing to do on a single sturdy before the end of inno?
+            // on robust we'd prefer to set up observe for the next step's sturdy
+            // todo: sturdy hasty is technically the most CP-efficient option...
+
+            // prep is less efficient than advanced touch, if ready, but better than prudent
+            if (cfg.MidAllowSturdyPrep && step.PrevComboAction != Skills.Observe && CanUseActionSafelyInFinisher(step, Skills.PreparatoryTouch, freeCP) && CU(craft, step, Skills.PreparatoryTouch))
                 return new(Skills.PreparatoryTouch, "mid quality: sturdy");
         }
 
@@ -542,9 +544,9 @@ public class ExpertSolver : Solver
 
         if (step.Condition == Condition.GoodOmen)
         {
-            // it's worth wasting one turn of inno if we'll get a huge 0-dura prep touch next turn thanks to TP
-            if (step.TrainedPerfectionActive && step.GreatStridesLeft > 1 && step.InnovationLeft > 1 && freeCP >= Simulator.GetCPCost(step, Skills.Observe) + Skills.PreparatoryTouch.StandardCPCost() && CU(craft, step, Skills.Observe))
-                return new(Skills.Observe, "mid quality: good omen tp+prep");
+            // if we have TP up and inno/gs will both last, just wait
+            if (step.TrainedPerfectionActive && step.GreatStridesLeft > 1 && step.InnovationLeft > 1 && freeCP >= Simulator.GetCPCost(step, Skills.Observe) + Skills.PreciseTouch.StandardCPCost() && CU(craft, step, Skills.Observe))
+                return new(Skills.Observe, "mid quality: good omen tp");
 
             if (step.GreatStridesLeft == 0 && step.InnovationLeft > 1)
             {
@@ -656,7 +658,7 @@ public class ExpertSolver : Solver
             if (step.ManipulationLeft > 0) 
             {
                 // just regen a bit...
-                if (step.TrainedPerfectionAvailable && cfg.MidUseTP != MidUseTPSetting.MidUseTPPrepQuality && CU(craft, step, Skills.TrainedPerfection))
+                if (step.TrainedPerfectionAvailable && cfg.MidUseTP != MidUseTPSetting.MidUseTPDuringQuality && CU(craft, step, Skills.TrainedPerfection))
                     return Skills.TrainedPerfection;
                 if (CU(craft, step, Skills.Observe))
                     return Skills.Observe; 
@@ -665,7 +667,7 @@ public class ExpertSolver : Solver
             {
                 // try baiting pliant - this will save us 48cp at the cost of ~7+24cp
                 // TODO: consider careful observation to bait pliant - this sounds much worse than using them to try baiting good byregot
-                if (step.TrainedPerfectionAvailable && cfg.MidUseTP != MidUseTPSetting.MidUseTPPrepQuality && CU(craft, step, Skills.TrainedPerfection) && step.RemainingCP > (Skills.Manipulation.StandardCPCost() / 2))
+                if (step.TrainedPerfectionAvailable && cfg.MidUseTP != MidUseTPSetting.MidUseTPDuringQuality && CU(craft, step, Skills.TrainedPerfection) && step.RemainingCP > (Skills.Manipulation.StandardCPCost() / 2))
                     return Skills.TrainedPerfection;
                 if (CU(craft, step, Skills.Observe) && step.RemainingCP > Skills.Observe.StandardCPCost() + (Skills.Manipulation.StandardCPCost() / 2))
                     return Skills.Observe;
@@ -758,8 +760,8 @@ public class ExpertSolver : Solver
 
         if (step.TrainedPerfectionActive)
         {
-            // skip the rest of the progress logic entirely if forcing TP to be spent on prep
-            if (cfg.MidUseTP is MidUseTPSetting.MidUseTPPrepIQ or MidUseTPSetting.MidUseTPPrepQuality)
+            // skip the rest of the progress logic entirely if saving TP for the quality phase
+            if (cfg.MidUseTP is MidUseTPSetting.MidUseTPPrepIQ or MidUseTPSetting.MidUseTPDuringQuality)
                 return Skills.None;
 
             // *don't* spend TP on Good outside of intensive, it should prioritize prep or tricks; even if forcing progress we'd rather get the free CP
@@ -894,7 +896,7 @@ public class ExpertSolver : Solver
             //  - prep: 40(+~20) @ 2 iq, 200p                        = 30.0 cp/iq, 3.3 p/cp (most flexible for 2 stacks)
             //  - precise: 18(+12) @ 2 iq, 150p                      = 15.0 cp/iq, 5.0 p/cp (requires Good or H+S)
             //  - hasty 60%: 0(+12)/0.6 @ 0.6 iq, ~60p               = 33.3 cp/iq, 3.0 p/cp (not worth)
-            //  - hasty 90%: 0(+12)/0.9 @ 0.9 iq, ~90p               = 14.8 cp/iq, 6.8 p/cp (very worth)
+            //  - hasty 85%: 0(+12)/0.85 @ 0.85 iq, ~85p             = 15.7 cp/iq, 6.4 p/cp (very worth)
             // tl;dr: under WN, centered/sturdy hasty > refined combo (w/2+ WNs left) > prep (w/1 WN left) 
             //        precise and hasty are already addressed, so we can just figure out the rest of it
 
