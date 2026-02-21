@@ -201,8 +201,14 @@ public class ExpertSolver : Solver
         // half-dura conditions are a worthy usage of durability at this point (don't observe)
         if (step.Condition is Condition.Sturdy or Condition.Robust && CU(craft, step, Skills.RapidSynthesis))
             return SolveOpenerMuMeTouch(craft, step, cfg.MuMeIntensiveLastResort && lastChance);
-        if (cfg.MuMeAllowObserve && step.MuscleMemoryLeft > 1 && step.Durability < craft.CraftDurability && CU(craft, step, Skills.Observe))
-            return Skills.Observe; // conserve durability rather than gamble away
+        if (cfg.MuMeAllowObserve && step.MuscleMemoryLeft > 1 && step.Durability < craft.CraftDurability)
+        {
+            // conserve durability rather than gamble away
+            if (step.Condition == Condition.Good && CU(craft, step, Skills.TricksOfTrade))
+                return Skills.TricksOfTrade; // a better observe than observe
+            if (CU(craft, step, Skills.Observe))
+                return Skills.Observe;
+        }
 
         return SolveOpenerMuMeTouch(craft, step, cfg.MuMeIntensiveLastResort && lastChance);
     }
