@@ -101,7 +101,7 @@ public class ExpertSolver : Solver
             return new(Skills.MaterialMiracle);
 
         // see if we can do byregot right now and top up quality
-        var finishQualityAction = SolveFinishQuality(craft, step, cpAvailableForQuality, qualityTarget);
+        var finishQualityAction = SolveFinishQuality(cfg, craft, step, cpAvailableForQuality, qualityTarget);
         if (finishQualityAction.Action != Skills.None)
             return finishQualityAction;
 
@@ -120,7 +120,7 @@ public class ExpertSolver : Solver
         }
 
         // try to finish the craft
-        return new(SolveFinishProgress(craft, step), isMid ? "finish emergency" : "finish");
+        return new(SolveFinishProgress(craft, step, qualityTarget), isMid ? "finish emergency" : "finish");
     }
 
     private static Skills SolveOpenerMuMe(ExpertSolverSettings cfg, CraftState craft, StepState step)
@@ -504,7 +504,7 @@ public class ExpertSolver : Solver
 
             // inno up if it won't cost us the finisher
             if (availableCP - Simulator.GetCPCost(step, Skills.Innovation) >= Skills.ByregotsBlessing.StandardCPCost() + Skills.GreatStrides.StandardCPCost())
-            return new(Skills.Innovation, "mid quality: gs->inno");
+                return new(Skills.Innovation, "mid quality: gs->inno");
         }
 
         // inno (or gs+inno) are up or we're right at the end with quick inno - do some half-combos or emergency steps
@@ -996,22 +996,27 @@ public class ExpertSolver : Solver
                 estByregotQuality = CalculateByregotQuality(craft, step, true, 1);
                 if (missingQuality <= estByregotQuality && CU(craft, step, Skills.GreatStrides))
                     return new(Skills.GreatStrides, "fq: gs->quick inno->byregot");
-        }
+            }
         }
 
         return new(Skills.None, "fq: not enough"); // byregot is not enough
     }
 
-    private static Skills SolveFinishProgress(CraftState craft, StepState step)
+    private static Skills SolveFinishProgress(CraftState craft, StepState step, int qualityTarget)
     {
-        // can we just finish it with a single action and not worry about all of this?
         var remainingProgress = craft.CraftProgress - step.Progress;
-        if (Simulator.CalculateProgress(craft, step, Skills.BasicSynthesis) >= remainingProgress)
-            return Skills.BasicSynthesis;
-        if (Simulator.CalculateProgress(craft, step, Skills.CarefulSynthesis) >= remainingProgress && CU(craft, step, Skills.CarefulSynthesis))
-            return Skills.CarefulSynthesis;
+        var remainingQuality = qualityTarget - step.Quality;
 
-        // intensive is always the best bet if it's safe to do so; otherwise, use the condition on CP because we'll need it
+        // can we just finish it with a single action and not worry about all of this?
+        if (remainingQuality <= 0)
+        {
+            if (Simulator.CalculateProgress(craft, step, Skills.BasicSynthesis) >= remainingProgress)
+                return Skills.BasicSynthesis;
+            if (Simulator.CalculateProgress(craft, step, Skills.CarefulSynthesis) >= remainingProgress && CU(craft, step, Skills.CarefulSynthesis))
+                return Skills.CarefulSynthesis;
+        }
+        
+        // intensive is always the best bet if it's safe to do so; otherwise, use the condition on CP because we might need it
         if (step.Condition is Condition.Good or Condition.Excellent)
         {
             if (CanUseSynthForFinisher(craft, step, Skills.IntensiveSynthesis) && CU(craft, step, Skills.IntensiveSynthesis))
@@ -1019,6 +1024,11 @@ public class ExpertSolver : Solver
             if (CU(craft, step, Skills.TricksOfTrade))
                 return Skills.TricksOfTrade;
         }
+
+        // sometimes we have a tiny sliver of quality left after byregot but still have enough CP for delicate, usually from tricks or pliant
+        // todo: is it worth adding logic for the situation where we need slightly more than one delicate's worth of quality? does existing logic handle that?
+        if (Simulator.CalculateProgress(craft, step, Skills.DelicateSynthesis) >= remainingProgress && CU(craft, step, Skills.DelicateSynthesis))
+            return Skills.DelicateSynthesis;
 
         // can't finish in one action, so we have some options:
         // - rapid spam is efficient, but can fail - we use it if we can't do a guaranteed finish
