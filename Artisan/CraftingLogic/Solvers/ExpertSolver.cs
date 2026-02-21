@@ -215,7 +215,7 @@ public class ExpertSolver : Solver
         // we'll need to get gs up for byregot and maybe reapply inno if we do not go for the quality finisher now
         var reservedCPForFinisher = Skills.ByregotsBlessing.StandardCPCost() + 
                                     Skills.GreatStrides.StandardCPCost() + 
-                                    (step.InnovationLeft > 2 ? 0 : Skills.Innovation.StandardCPCost()); 
+                                    (step.InnovationLeft > 2 || step.QuickInnoLeft > 0 ? 0 : Skills.Innovation.StandardCPCost()); 
         if (step.IQStacks < maxIQStacks || progressDeficit > 0 && cfg.MidFinishProgressBeforeQuality)
         {
             return SolveMidPreQuality(cfg, craft, step, progressDeficit, availableCP);
@@ -395,6 +395,10 @@ public class ExpertSolver : Solver
             return new(Skills.ByregotsBlessing, "mid start quality: critical dura & emergency cp"); // let the caller handle lack of cp
         }
 
+        // check for an emergency situation where we don't have enough CP for inno+gs but have quick inno
+        if (cfg.FinisherUseQuickInno && freeCP < Simulator.GetCPCost(step, Skills.Innovation) + Skills.GreatStrides.StandardCPCost() && CU(craft, step, Skills.GreatStrides))
+            return new(Skills.GreatStrides, "mid start emergency gs");
+
         // main choice here is whether to use gs before inno
         // - if we use gs+inno, we'll have 2 steps to use touch - enough for a full half-combo, and an opportunity to react to pliant
         // - gs is 32cp; using it on advanced/precise is extra 150p = 4.69p/cp, which is equal to extra finesse (but with opportunity to react to conditions)
@@ -498,11 +502,12 @@ public class ExpertSolver : Solver
                     return new(Skills.TrainedFinesse, "mid quality gs-only last chance");
             }
 
-            // inno up
+            // inno up if it won't cost us the finisher
+            if (availableCP - Simulator.GetCPCost(step, Skills.Innovation) >= Skills.ByregotsBlessing.StandardCPCost() + Skills.GreatStrides.StandardCPCost())
             return new(Skills.Innovation, "mid quality: gs->inno");
         }
 
-        // inno (or gs+inno) up - do some half-combos
+        // inno (or gs+inno) are up or we're right at the end with quick inno - do some half-combos or emergency steps
         // our options:
         // - gs + byregot - if we're low on cp or will finish the craft with current quality
         // - manip/mm on pliant if needed
@@ -552,7 +557,8 @@ public class ExpertSolver : Solver
             if (step.TrainedPerfectionActive && step.GreatStridesLeft > 1 && step.InnovationLeft > 1 && freeCP >= Simulator.GetCPCost(step, Skills.Observe) + Skills.PreciseTouch.StandardCPCost() && CU(craft, step, Skills.Observe))
                 return new(Skills.Observe, "mid quality: good omen tp");
 
-            if (step.GreatStridesLeft == 0 && step.InnovationLeft > 1)
+            var canQuickInno = cfg.MidAllowQuickInnoGood is MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodAny or MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodPrepTP && step.QuickInnoLeft > 0;
+            if (step.GreatStridesLeft == 0 && (step.InnovationLeft > 1 || canQuickInno))
             {
                 // get gs up for gs+inno+good (prep/precise)
                 // gs is 32p for at least 225/262.5p (depending on splendorous)
@@ -575,7 +581,7 @@ public class ExpertSolver : Solver
         // - pliant gs (+ prudent) is extra ~66p for 16cp, so it's an option i guess, especially considering we might get some better condition (TODO consider this)
         // - finesse is 100p for 32cp, which is even less efficient, but does not cost durability
         // - hasty is a fine way to spend excess durability if low on cp
-        if (step.InnovationLeft != 1 && step.GreatStridesLeft != 1)
+        if (step.InnovationLeft > 1 && step.GreatStridesLeft > 1)
         {
             // observe, if we can do advanced on next step, and if we're not going to waste it due to good omen
             // note that on good omen we still prefer using observe rather than waste gs on 100p touch (TODO: consider using something else if gs is not up on good omen)
@@ -605,11 +611,17 @@ public class ExpertSolver : Solver
         if (step.Condition is not Condition.Good and not Condition.Excellent && step.Durability > 10)
         {
             // try baiting good
-            if (step.GreatStridesLeft != 1 && step.InnovationLeft != 1 && availableCP >= Simulator.GetCPCost(step, Skills.Observe) + Skills.ByregotsBlessing.StandardCPCost() && CU(craft, step, Skills.Observe))
+            var canQuickInno = cfg.FinisherUseQuickInno && step.QuickInnoLeft > 0;
+            if (step.GreatStridesLeft != 1 && (step.InnovationLeft > 1 || canQuickInno) && availableCP >= Simulator.GetCPCost(step, Skills.Observe) + Skills.ByregotsBlessing.StandardCPCost() && CU(craft, step, Skills.Observe))
                 return new(Skills.Observe, "mid quality: emergency byregot bait good");
             if (cfg.FinisherBaitGoodByregot && step.CarefulObservationLeft > 0 && CU(craft, step, Skills.CarefulObservation))
                 return new(Skills.CarefulObservation, "mid quality: emergency byregot bait good");
         }
+
+        // well, gg. might as well use quick inno to get as much quality as we can (helps on stellar missions, for example)
+        if (cfg.FinisherUseQuickInno && step.QuickInnoAvailable)
+            return new(Skills.Observe, "mid quality: emergency quick inno->byregot");
+
         return new(Skills.ByregotsBlessing, "mid quality: emergency byregot");
     }
 
@@ -931,7 +943,7 @@ public class ExpertSolver : Solver
     }
 
     // see if we can do gs+inno+byregot right now to get to the quality goal
-    private static Recommendation SolveFinishQuality(CraftState craft, StepState step, int availableCP, int qualityTarget)
+    private static Recommendation SolveFinishQuality(ExpertSolverSettings cfg, CraftState craft, StepState step, int availableCP, int qualityTarget)
     {
         if (step.IQStacks == 0)
             return new(Skills.None, "fq: no iq"); // we can't even byregot now...
@@ -952,33 +964,39 @@ public class ExpertSolver : Solver
         if (step.GreatStridesLeft > 1 && step.InnovationLeft == 0 && availableCP >= Simulator.GetCPCost(step, Skills.Innovation) + Skills.ByregotsBlessing.StandardCPCost())
         {
             // try [gs]+inno+byregot
-            var adjBuffMod = (1 + 0.1f * step.IQStacks) * 2.5f;
-            float effPotency = (100 + 20 * step.IQStacks) * adjBuffMod;
-            float condMod = step.Condition != Condition.GoodOmen ? 1 : craft.SplendorCosmic ? 1.75f : 1.5f;
-            var adjQuality = (int)(Simulator.BaseQuality(craft) * condMod * effPotency / 100);
-            if (missingQuality <= adjQuality && CU(craft, step, Skills.Innovation))
+            var estByregotQuality = CalculateByregotQuality(craft, step, true, 1);
+            if (missingQuality <= estByregotQuality && CU(craft, step, Skills.Innovation))
                 return new(Skills.Innovation, "fq: inno->byregot");
+        }
+        else if (step.GreatStridesLeft >= 1 && step.InnovationLeft == 0 && cfg.FinisherUseQuickInno && step.QuickInnoLeft > 0 && availableCP >= Simulator.GetCPCost(step, Skills.ByregotsBlessing))
+        {
+            // [gs]+quick inno+byregot
+            var estByregotQuality = CalculateByregotQuality(craft, step, true, 0);
+            if (missingQuality <= estByregotQuality && CU(craft, step, Skills.QuickInnovation))
+                return new(Skills.QuickInnovation, "fq: quick inno->byregot");
         }
         else if (step.GreatStridesLeft == 0 && availableCP >= Simulator.GetCPCost(step, Skills.GreatStrides) + Skills.ByregotsBlessing.StandardCPCost())
         {
             // try gs+byregot
-            var adjBuffMod = (1 + 0.1f * step.IQStacks) * (step.InnovationLeft > 1 ? 2.5f : 2.0f);
-            float effPotency = (100 + 20 * step.IQStacks) * adjBuffMod;
-            float condMod = step.Condition != Condition.GoodOmen ? 1 : craft.SplendorCosmic ? 1.75f : 1.5f;
-            var adjQuality = (int)(Simulator.BaseQuality(craft) * condMod * effPotency / 100);
-            if (missingQuality <= adjQuality && CU(craft, step, Skills.GreatStrides))
+            var estByregotQuality = CalculateByregotQuality(craft, step, step.InnovationLeft > 1, 1);
+            if (missingQuality <= estByregotQuality && CU(craft, step, Skills.GreatStrides))
                 return new(Skills.GreatStrides, "fq: gs->byregot");
 
             if (step.InnovationLeft <= 1 && availableCP >= Simulator.GetCPCost(step, Skills.GreatStrides) + Skills.Innovation.StandardCPCost() + Skills.ByregotsBlessing.StandardCPCost())
             {
                 // try gs+inno+byregot
-                adjBuffMod = (1 + 0.1f * step.IQStacks) * 2.5f;
-                effPotency = (100 + 20 * step.IQStacks) * adjBuffMod;
-                // condmod is always 1
-                adjQuality = (int)(Simulator.BaseQuality(craft) * effPotency / 100);
-                if (missingQuality <= adjQuality && CU(craft, step, Skills.GreatStrides))
+                estByregotQuality = CalculateByregotQuality(craft, step, true, 2);
+                if (missingQuality <= estByregotQuality && CU(craft, step, Skills.GreatStrides))
                     return new(Skills.GreatStrides, "fq: gs->inno->byregot");
             }
+
+            if (step.InnovationLeft == 0 && cfg.FinisherUseQuickInno && step.QuickInnoLeft > 0 && availableCP >= Simulator.GetCPCost(step, Skills.GreatStrides) + Skills.ByregotsBlessing.StandardCPCost())
+            {
+                // try gs+quick inno+byregot
+                estByregotQuality = CalculateByregotQuality(craft, step, true, 1);
+                if (missingQuality <= estByregotQuality && CU(craft, step, Skills.GreatStrides))
+                    return new(Skills.GreatStrides, "fq: gs->quick inno->byregot");
+        }
         }
 
         return new(Skills.None, "fq: not enough"); // byregot is not enough
@@ -1107,6 +1125,16 @@ public class ExpertSolver : Solver
         if (cfg.EmergencyCPBaitGood && step.CarefulObservationLeft > 0 && CU(craft, step, Skills.CarefulObservation))
             return Skills.CarefulObservation; // try baiting good?..
         return Skills.None;
+    }
+
+    private static int CalculateByregotQuality(CraftState craft, StepState step, bool includeInno, int stepsAhead)
+    {
+        // stepsAhead is which step's condition we care about; 0 = current step
+        var adjBuffMod = (1 + 0.1f * step.IQStacks) * (includeInno ? 2.5f : 2.0f);
+        float effPotency = (100 + 20 * step.IQStacks) * adjBuffMod;
+        bool useGood = stepsAhead == 0 ? step.Condition == Condition.Good : stepsAhead == 1 && step.Condition == Condition.GoodOmen;
+        float condMod = useGood ? craft.SplendorCosmic ? 1.75f : 1.5f : 1;
+        return (int)(Simulator.BaseQuality(craft) * condMod * effPotency / 100);
     }
 
     private static bool CU(CraftState craft, StepState step, Skills skill) => Simulator.CanUseAction(craft, step, skill);

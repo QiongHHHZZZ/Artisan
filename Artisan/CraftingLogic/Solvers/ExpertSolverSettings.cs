@@ -100,6 +100,7 @@ public class ExpertSolverSettings
     public bool MidFinishProgressBeforeQuality = false; // if true, at 10 iq we first finish progress before starting on quality
     public bool MidObserveGoodOmenForTricks = false; // if true, we'll observe on good omen where otherwise we'd use tricks on good
     public bool FinisherBaitGoodByregot = true; // if true, use careful observations to try baiting good byregot
+    public bool FinisherUseQuickInno = true; // if true, use quick innovation to finish in an emergency
     public bool EmergencyCPBaitGood = false; // if true, we allow spending careful observations to try baiting good for tricks when we really lack cp
 	public bool RapidSynthYoloAllowed = true; // if false, expert crafting may lock up midway, so not good for AFK crafting. This yolo however is likely to fail the craft, so disabling gives opportunity for intervention
     public bool UseMaterialMiracle = false;
@@ -315,6 +316,8 @@ public class ExpertSolverSettings
                 changed |= ImGui.Checkbox($"For {Skills.TricksOfTrade.NameOfAction()} if really low on CP", ref EmergencyCPBaitGood);
                 ImGuiComponents.HelpMarker($"Invoked when totally out of other options and even {Skills.ByregotsBlessing.NameOfAction()} wouldn't be enough {QualityString.ToLower()}.");
                 ImGui.Unindent();
+                changed |= ImGui.Checkbox($"Use {Skills.QuickInnovation.NameOfAction()} to finish when low on CP", ref FinisherUseQuickInno);
+                ImGuiComponents.HelpMarker($"When there's not enough CP to use {Skills.Innovation.NameOfAction()} and/or {Skills.GreatStrides.NameOfAction()}, but {Skills.QuickInnovation.NameOfAction()} is enough to reach the {QualityString.ToLower()} goal.");
                 changed |= ImGui.Checkbox($"Allow finishing with {Skills.RapidSynthesis.NameOfAction()} when out of options", ref RapidSynthYoloAllowed);
                 ImGuiComponents.HelpMarker($"If disabled, the solver will do nothing instead, which may interrupt AFK expert crafting. Usually safe to enable, as it will only be invoked with no CP or {DurabilityString.ToLower()} left.");
                 ImGui.Dummy(new Vector2(0, 5f));
