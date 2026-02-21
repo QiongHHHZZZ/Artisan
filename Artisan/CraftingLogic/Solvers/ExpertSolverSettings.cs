@@ -149,7 +149,7 @@ public class ExpertSolverSettings
                     ImGuiComponents.HelpMarker($"This saves {DurabilityString.ToLower()} at the cost of {Skills.MuscleMemory.NameOfAction()} steps.");
                     changed |= ImGui.Checkbox($"When 1 step left on {Skills.MuscleMemory.NameOfAction()} and not ● {Condition.Centered.ToLocalizedString()}, use {Skills.IntensiveSynthesis.NameOfAction()} (forcing via {Skills.HeartAndSoul.NameOfAction()} if necessary)", ref MuMeIntensiveLastResort);
                     ImGuiComponents.HelpMarker($"{Skills.RapidSynthesis.NameOfAction()} will still be used if the last step is ● {Condition.Centered.ToLocalizedString()}.");
-                    ImGui.Text($"Use these skills only if {Skills.MuscleMemory.NameOfAction()} has at least this many steps left:");
+                    ImGui.Text($"Use these skills only if {Skills.MuscleMemory.NameOfAction()} has more than this many steps left:");
                     ImGuiComponents.HelpMarker($"The solver will still only use these skills under an appropriate {ConditionString.ToLower()}.");
                     // these have a minimum of 1 to avoid using a buff on the final turn of MuMe
                     ImGui.PushItemWidth(250);
