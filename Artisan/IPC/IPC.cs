@@ -11,6 +11,7 @@ using ECommons.Logging;
 using OtterGui;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Artisan.IPC
 {
@@ -54,6 +55,8 @@ namespace Artisan.IPC
 
             Svc.PluginInterface.GetIpcProvider<uint, string, bool, object>("Artisan.ChangeSolver").RegisterAction(ChangeSolver);
             Svc.PluginInterface.GetIpcProvider<uint, object>("Artisan.SetTempSolverBackToNormal").RegisterAction(SetTempSolverBackToNormal);
+
+            Svc.PluginInterface.GetIpcProvider<uint, uint, bool, uint, bool, uint, uint, object>("Artisan.ChangeItemUsage").RegisterAction(ChangeItemUsage);
         }
 
         internal static void Dispose()
@@ -73,6 +76,8 @@ namespace Artisan.IPC
 
             Svc.PluginInterface.GetIpcProvider<uint, string, bool, object>("Artisan.ChangeSolver").UnregisterAction();
             Svc.PluginInterface.GetIpcProvider<uint, object>("Artisan.SetTempSolverBackToNormal").UnregisterAction();
+
+            Svc.PluginInterface.GetIpcProvider<uint, uint, bool, uint, bool, object>("Artisan.ChangeItemUsage").UnregisterAction();
         }
 
         static bool GetEnduranceStatus()
@@ -181,6 +186,40 @@ namespace Artisan.IPC
                 }
             }
 
+        }
+
+        public static void ChangeItemUsage(uint recipeId, uint FoodId, bool FoodHiQuality, uint PotionId, bool PotionHQ, uint ManualId, uint SquadronManualId)
+        {
+            var oldConfig = P.Config.RecipeConfigs.GetValueOrDefault(recipeId) ?? new();
+
+            var config = P.Config.RecipeConfigs[recipeId] = new();
+            if (LuminaSheets.RecipeSheet.TryGetValue(recipeId, out var recipe))
+            {
+                if (FoodId != 0 && ConsumableChecker.Food.Any(x => x.Id == FoodId))
+                {
+                    config.requiredFood = FoodId;
+                    config.requiredFoodHQ = FoodHiQuality;
+                }
+
+                if (PotionId != 0 && ConsumableChecker.Pots.Any(x => x.Id == PotionId))
+                {
+                    config.requiredPotion = PotionId;
+                    config.requiredPotionHQ = PotionHQ;
+                }
+
+                if (ManualId != 0 && ConsumableChecker.Manuals.Any(x => x.Id == ManualId))
+                    config.requiredManual = ManualId;
+
+                if (SquadronManualId != 0 && ConsumableChecker.SquadronManuals.Any(x => x.Id == SquadronManualId))
+                    config.requiredSquadronManual = SquadronManualId;
+
+                config.SolverFlavour = oldConfig.SolverFlavour;
+                config.SolverType = oldConfig.SolverType;
+                config.TempSolverFlavour = oldConfig.TempSolverFlavour;
+                config.TempSolverType = oldConfig.TempSolverType;
+
+                P.Config.Save();
+            }
         }
 
         public static void SetTempSolverBackToNormal(uint recipeId)
