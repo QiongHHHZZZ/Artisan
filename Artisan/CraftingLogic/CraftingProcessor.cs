@@ -41,7 +41,7 @@ public static class CraftingProcessor
         SolverDefinitions.Add(new ProgressOnlySolverDefinition());
         SolverDefinitions.Add(new ExpertSolverDefinition());
         SolverDefinitions.Add(new MacroSolverDefinition());
-        SolverDefinitions.Add(new ScriptSolverDefinition());
+        //SolverDefinitions.Add(new ScriptSolverDefinition());
         SolverDefinitions.Add(new RaphaelSolverDefintion());
 
         Crafting.CraftStarted += OnCraftStarted;
@@ -96,6 +96,17 @@ public static class CraftingProcessor
             return s2.MaxBy(x => x.Priority);
 
         return default;
+    }
+
+    public static IEnumerable<ISolverDefinition.Desc> GetSolverDefinitions()
+    {
+        foreach (var solver in SolverDefinitions)
+        {
+            foreach (var f in solver.Flavours())
+            {
+                yield return f;
+            }
+        }
     }
 
     private static void OnCraftStarted(Lumina.Excel.Sheets.Recipe recipe, CraftState craft, StepState initialStep, bool trial)

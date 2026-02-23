@@ -1,8 +1,8 @@
 {
   "Author": "Taurenkey (Puni.sh)",
   "Name": "Artisan",
-  "Punchline": "一个“简单”的制作插件。",
-  "Description": "一体化制作插件。",
+  "Punchline": "A 'simple' crafting plugin.",
+  "Description": "The all-in-one crafting plugin.",
   "InternalName": "Artisan",
   "ApplicableVersion": "any",
   "IconUrl": "https://s3.puni.sh/media/plugin/6/icon-3h8wd5b9qr.png",
@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- Update Raphael build method and executable.\n- Fix List Editor details panel rendering and zh-CN title localization."
+  "ChangeLog": "- 同步上游：仅在标准/专家求解器下显示材料奇迹相关选项，并优化 Craft Menu 布局。\n- 补全本地化：恢复本次变更涉及的主要中文文案。"
 }

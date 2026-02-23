@@ -18,6 +18,11 @@ public class ExpertSolverDefinition : ISolverDefinition
     }
 
     public Solver Create(CraftState craft, int flavour) => new ExpertSolver();
+
+    public IEnumerable<ISolverDefinition.Desc> Flavours()
+    {
+        yield return new(this, 0, 2, "Expert Recipe Solver");
+    }
 }
 
 // some thoughts:

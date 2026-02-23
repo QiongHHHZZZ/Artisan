@@ -15,6 +15,8 @@ public interface ISolverDefinition
     }
 
     public IEnumerable<Desc> Flavours(CraftState craft);
+
+    public IEnumerable<Desc> Flavours();
     public Solver Create(CraftState craft, int flavour);
 }
 

@@ -24,6 +24,15 @@ public class MacroSolverDefinition : ISolverDefinition
     }
 
     public Solver Create(CraftState craft, int flavour) => new MacroSolver(P.Config.MacroSolverConfig.FindMacro(flavour) ?? new(), craft);
+
+    public IEnumerable<ISolverDefinition.Desc> Flavours()
+    {
+        foreach (var m in P.Config.MacroSolverConfig.Macros)
+        {
+            if (m.Steps.Count == 0) continue;
+            yield return new(this, m.ID, 0, $"Macro: {m.Name}");
+        }
+    }
 }
 
 public class MacroSolver : Solver, ICraftValidator

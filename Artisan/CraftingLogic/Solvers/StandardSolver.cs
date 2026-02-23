@@ -18,6 +18,11 @@ namespace Artisan.CraftingLogic.Solvers
         }
 
         public Solver Create(CraftState craft, int flavour) => new StandardSolver();
+
+        public IEnumerable<ISolverDefinition.Desc> Flavours()
+        {
+            yield return new(this, 0, 2, "Standard Recipe Solver");
+        }
     }
 
     public class StandardSolver : Solver

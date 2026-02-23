@@ -12,6 +12,11 @@ namespace Artisan.CraftingLogic.Solvers
             if ((!craft.CraftExpert && !craft.CraftCollectible) || craft.IsCosmic)
             yield return new(this, 0, 1, "Progress Only Solver");
         }
+
+        public IEnumerable<ISolverDefinition.Desc> Flavours()
+        {
+            yield return new(this, 0, 1, "Progress Only Solver");
+        }
     }
 
     public class ProgressOnlySolver : Solver

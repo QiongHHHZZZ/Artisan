@@ -41,6 +41,11 @@ namespace Artisan.CraftingLogic.Solvers
         {
             yield return new(this, 3, 0, $"Raphael Recipe Solver", craft.StatLevel <= 7 ? $"Does not work before unlocking {Skills.MastersMend.NameOfAction()}. Please use Standard Recipe Solver" : "");
         }
+
+        public IEnumerable<ISolverDefinition.Desc> Flavours()
+        {
+            yield return new(this, 3, 0, $"Raphael Recipe Solver");
+        }
     }
 
     internal static class RaphaelCache
@@ -109,6 +114,12 @@ namespace Artisan.CraftingLogic.Solvers
                         },
                         EnableRaisingEvents = true
                     };
+
+                    Svc.Log.Debug($"Spawning Raphael process with args: {process.StartInfo.Arguments}");
+                    if (process.StartInfo.Arguments.Contains("adversarial"))
+                        Svc.Log.Warning("Adversial enabled. Support will not be provided.");
+                    if (process.StartInfo.Arguments.Contains("heart-and-soul") || process.StartInfo.Arguments.Contains("quick-innovation"))
+                        Svc.Log.Warning("Specialist actions enabled. This may take a long time.");
 
                     process.Start();
 
@@ -182,6 +193,8 @@ namespace Artisan.CraftingLogic.Solvers
                 }
                 finally
                 {
+                    if (info.Succeeded)
+                        P.Config.Save();
                     Tasks.TryRemove(key, out _);
                 }
             }, cts.Token);
@@ -254,28 +267,9 @@ namespace Artisan.CraftingLogic.Solvers
                 return true;
             }
             else
+            {
                 return false;
-
-            //foreach (var solution in P.Config.RaphaelSolverCacheV4.OrderByDescending(x => KeyParts(x.Key).Control))
-            //{
-            //    if (solution.Value.Steps.Count == 0) continue;
-
-            //    var solKey = KeyParts(solution.Key);
-
-            //    if (solKey.Level == craft.CraftLevel &&
-            //        solKey.Prog == craft.CraftProgress &&
-            //        solKey.Qual == craft.CraftQualityMax &&
-            //        solKey.Crafts == craft.StatCraftsmanship &&
-            //        solKey.Control <= craft.StatControl &&
-            //        solKey.Initial == craft.InitialQuality &&
-            //        solKey.CP <= craft.StatCP &&
-            //        solKey.SP == craft.Specialist)
-            //    {
-            //        raphaelSolutionConfig = solution.Value;
-            //        return true;
-            //    }
-            //}
-            //return false;
+            }
         }
 
         public static bool InProgress(CraftState craft) => Tasks.TryGetValue(GetKey(craft), out var _);
@@ -298,14 +292,13 @@ namespace Artisan.CraftingLogic.Solvers
                 if (!TempConfigs.ContainsKey(key))
                 {
                     TempConfigs.Add(key, new());
-                    TempConfigs[key].EnsureReliability = P.Config.RaphaelSolverConfig.AllowEnsureReliability;
+                    TempConfigs[key].EnsureReliability = P.Config.RaphaelSolverConfig.AllowEnsureReliability && !craft.CraftExpert;
                     TempConfigs[key].BackloadProgress = P.Config.RaphaelSolverConfig.AllowBackloadProgress;
                     TempConfigs[key].HeartAndSoul = P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist;
                     TempConfigs[key].QuickInno = P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist;
                 }
 
-                var opt = CraftingProcessor.GetAvailableSolversForRecipe(craft, true).FirstOrNull(x => x.Name == $"Raphael Recipe Solver");
-                var solverIsRaph = config.CurrentSolverType == opt?.Def.GetType().FullName!;
+                var solverIsRaph = config.SolverIsRaph;
                 if (!hasSolution)
                 {
                     if (solverIsRaph)
@@ -323,7 +316,7 @@ namespace Artisan.CraftingLogic.Solvers
                 if (inProgress)
                     ImGui.BeginDisabled();
 
-                if (P.Config.RaphaelSolverConfig.AllowEnsureReliability)
+                if (P.Config.RaphaelSolverConfig.AllowEnsureReliability && !craft.CraftExpert)
                     ImGui.Checkbox($"{L10n.Tr("Ensure reliability")}##{key}Reliability", ref TempConfigs[key].EnsureReliability);
                 if (P.Config.RaphaelSolverConfig.AllowBackloadProgress)
                     ImGui.Checkbox($"{L10n.Tr("Backload progress")}##{key}Progress", ref TempConfigs[key].BackloadProgress);
@@ -339,18 +332,24 @@ namespace Artisan.CraftingLogic.Solvers
                 {
                     if (!inProgress)
                     {
-                        if (ImGui.Button(L10n.Tr("Build Raphael Solution"), new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
+                        ImGuiEx.LineCentered(() =>
                         {
-                            Build(craft, TempConfigs[key]);
-                        }
+                            if (ImGui.Button(L10n.Tr("Build Raphael Solution"), new Vector2(config.LargestName, 25f.Scale())))
+                            {
+                                Build(craft, TempConfigs[key]);
+                            }
+                        });
                     }
                     else
                     {
-                        if (ImGui.Button(L10n.Tr("Cancel Raphael Generation"), new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
+                        ImGuiEx.LineCentered(() =>
                         {
-                            Tasks.TryRemove(key, out var task);
-                            task.Cancellation.Cancel();
-                        }
+                            if (ImGui.Button(L10n.Tr("Cancel Raphael Generation"), new Vector2(config.LargestName, 25f.Scale())))
+                            {
+                                Tasks.TryRemove(key, out var task);
+                                task.Cancellation.Cancel();
+                            }
+                        });
                     }
                 }
 

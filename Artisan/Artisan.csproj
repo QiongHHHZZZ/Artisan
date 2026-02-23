@@ -1,17 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>4.0.4.3900</Version>
+    <Version>4.0.4.3901</Version>
     <Description>A 'simple' crafting plugin.</Description>
     <Copyright>Taurenkey</Copyright>
   </PropertyGroup>
 
 	<PropertyGroup>
-		<DalamudLibPath>$(appdata)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
-		<DalamudPluginPath>$(appdata)\XIVLauncherCN\installedPlugins\Artisan\$(version)</DalamudPluginPath>
-		<DalamudDevPlugins>$(appdata)\XIVLauncherCN\devPlugins\Artisan\</DalamudDevPlugins>
+		<DalamudLibPath Condition="'$(DalamudLibPath)' == '' and Exists('$(AppData)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll')">$(AppData)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
+		<DalamudLibPath Condition="'$(DalamudLibPath)' == '' and Exists('$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll')">$(AppData)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+		<DalamudPluginPath>$(appdata)\XIVLauncher\installedPlugins\Artisan\$(version)</DalamudPluginPath>
+		<DalamudDevPlugins>$(appdata)\XIVLauncher\devPlugins\Artisan\</DalamudDevPlugins>
 		<AssemblyName>Artisan</AssemblyName>
 		<RootNamespace>Artisan</RootNamespace>
 		<PackageId>Artisan</PackageId>
@@ -20,7 +21,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<TargetFramework>net10.0-windows7.0</TargetFramework>
+		<TargetFramework>net9.0-windows</TargetFramework>
 		<Platforms>x64</Platforms>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
@@ -28,12 +29,12 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<OutputPath>bin/$(Configuration)/</OutputPath>
+		<OutputPath>bin/Release</OutputPath>
 		<NoWarn>CS1591</NoWarn>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-		<TargetFramework>net10.0-windows7.0</TargetFramework>
+		<TargetFramework>net9.0-windows</TargetFramework>
 		<Platforms>x64</Platforms>
 		<Nullable>enable</Nullable>
 		<LangVersion>preview</LangVersion>
@@ -41,12 +42,13 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<OutputPath>bin/$(Configuration)/</OutputPath>
+		<OutputPath>$(DalamudDevPlugins)</OutputPath>
 		<NoWarn>CS1591</NoWarn>
 	</PropertyGroup>
 	
   <PropertyGroup>
-    <DalamudLibPath>$(appdata)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
+    <DalamudLibPath Condition="'$(DalamudLibPath)' == '' and Exists('$(AppData)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll')">$(AppData)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
+    <DalamudLibPath Condition="'$(DalamudLibPath)' == '' and Exists('$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll')">$(AppData)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
     <TargetFramework>net10.0-windows7.0</TargetFramework>
   </PropertyGroup>
 	
