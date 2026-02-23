@@ -34,7 +34,7 @@ public class ExpertSolverSettings
         MidUseTPGroundwork,        // use TP on groundwork for high-prio progress
         MidUseTPPrepIQ,            // use TP on preparatory touch to build IQ stacks
         MidUseTPEitherPreQuality,  // use TP on either of the options above, depending on which status comes up first (default groundwork)
-        MidUseTPPrepQuality        // use TP on prep touch after 10 IQ, with GS+Inno
+        MidUseTPDuringQuality      // use TP on prep or precise after 10 IQ, with GS+Inno
     }
     public string GetMidUseTPSettingName(MidUseTPSetting value)
         => value switch
@@ -42,7 +42,7 @@ public class ExpertSolverSettings
             MidUseTPSetting.MidUseTPGroundwork => $"(Early) {Skills.Groundwork.NameOfAction()}",
             MidUseTPSetting.MidUseTPPrepIQ => $"(Early) {Skills.PreparatoryTouch.NameOfAction()} (build {Buffs.InnerQuiet.NameOfBuff()})",
             MidUseTPSetting.MidUseTPEitherPreQuality => $"(Early) Either action based on {ConditionString.ToLower()}",
-            MidUseTPSetting.MidUseTPPrepQuality or _ => $"(Late) {Skills.PreparatoryTouch.NameOfAction()} at max {Buffs.InnerQuiet.NameOfBuff()} (focus {QualityString.ToLower()})",
+            MidUseTPSetting.MidUseTPDuringQuality or _ => $"(Late) Optimal {QualityString.ToLower()} action at max {Buffs.InnerQuiet.NameOfBuff()} (focus {QualityString.ToLower()})",
         };
     public MidUseTPSetting MidUseTP = MidUseTPSetting.MidUseTPGroundwork;
     public int MidMaxBaitStepsForTP = 0; // how many observes should be used to bait favorable conditions for trained perfection; 0 to disable
@@ -80,16 +80,32 @@ public class ExpertSolverSettings
     public bool MidAllowSturdyPreсise = false; // if true,we consider sturdy+h&s+precise touch a good move for building iq
     public bool MidAllowCenteredHasty = true; // if true, we consider centered hasty touch a good move for building iq (85% reliability)
     public bool MidAllowSturdyHasty = true; // if true, we consider sturdy hasty touch a good move for building iq (50% reliability), otherwise we use combo
-    public bool MidAllowGoodPrep = true; // if true, we consider prep touch a good move for finisher under good+inno+gs
+    public bool MidAllowGoodPrep = false; // if true, we consider prep touch a good move for finisher under good+inno+gs
     public bool MidAllowSturdyPrep = true; // if true, we consider prep touch a good move for finisher under sturdy+inno
     public bool MidGSBeforeInno = true; // if true, we start quality combos with gs+inno rather than just inno
+    public enum MidAllowQuickInnoGoodSetting  // how to use quick innovation on Good+GS procs
+    {
+        MidAllowQuickInnoGoodAny,             // use on precise (or whatever)
+        MidAllowQuickInnoGoodPrepTP,          // only use if TP+prep is set up
+        MidAllowQuickInnoGoodDisable          // save it for finisher
+    }
+    public string GetMidAllowQuickInnoGoodSettingName(MidAllowQuickInnoGoodSetting value)
+        => value switch
+        {
+            MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodAny => $"Use {Skills.QuickInnovation.NameOfAction()} on any quality action",
+            MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodPrepTP => $"Only use {Skills.QuickInnovation.NameOfAction()} on free {Skills.PreparatoryTouch.NameOfAction()}",
+            MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodDisable or _ => $"Don't use {Skills.QuickInnovation.NameOfAction()} (save for finisher)"
+        };
+    public MidAllowQuickInnoGoodSetting MidAllowQuickInnoGood = MidAllowQuickInnoGoodSetting.MidAllowQuickInnoGoodAny;
     public bool MidFinishProgressBeforeQuality = false; // if true, at 10 iq we first finish progress before starting on quality
     public bool MidObserveGoodOmenForTricks = false; // if true, we'll observe on good omen where otherwise we'd use tricks on good
     public bool FinisherBaitGoodByregot = true; // if true, use careful observations to try baiting good byregot
+    public bool FinisherUseQuickInno = true; // if true, use quick innovation to finish in an emergency
     public bool EmergencyCPBaitGood = false; // if true, we allow spending careful observations to try baiting good for tricks when we really lack cp
 	public bool RapidSynthYoloAllowed = true; // if false, expert crafting may lock up midway, so not good for AFK crafting. This yolo however is likely to fail the craft, so disabling gives opportunity for intervention
     public bool UseMaterialMiracle = false;
 	public int MinimumStepsBeforeMiracle = 10;
+    public int MaxSteadyUses = 1; // how many charges of Stellar Steady Hand to use per craft, if available
 
     [NonSerialized]
     public IDalamudTextureWrap? expertIcon;
@@ -133,7 +149,7 @@ public class ExpertSolverSettings
                     ImGuiComponents.HelpMarker($"This saves {DurabilityString.ToLower()} at the cost of {Skills.MuscleMemory.NameOfAction()} steps.");
                     changed |= ImGui.Checkbox($"When 1 step left on {Skills.MuscleMemory.NameOfAction()} and not ● {Condition.Centered.ToLocalizedString()}, use {Skills.IntensiveSynthesis.NameOfAction()} (forcing via {Skills.HeartAndSoul.NameOfAction()} if necessary)", ref MuMeIntensiveLastResort);
                     ImGuiComponents.HelpMarker($"{Skills.RapidSynthesis.NameOfAction()} will still be used if the last step is ● {Condition.Centered.ToLocalizedString()}.");
-                    ImGui.Text($"Use these skills only if {Skills.MuscleMemory.NameOfAction()} has at least this many steps left:");
+                    ImGui.Text($"Use these skills only if {Skills.MuscleMemory.NameOfAction()} has more than this many steps left:");
                     ImGuiComponents.HelpMarker($"The solver will still only use these skills under an appropriate {ConditionString.ToLower()}.");
                     // these have a minimum of 1 to avoid using a buff on the final turn of MuMe
                     ImGui.PushItemWidth(250);
@@ -265,10 +281,25 @@ public class ExpertSolverSettings
                 ImGui.TextWrapped($"Use {Skills.PreparatoryTouch.NameOfAction()}:");
                 ImGui.Indent();
                 changed |= ImGui.Checkbox($"Under ● {Condition.Good.ToLocalizedString()} + {Buffs.Innovation.NameOfBuff()} + {Buffs.GreatStrides.NameOfBuff()}", ref MidAllowGoodPrep);
+                ImGuiComponents.HelpMarker($"Less efficient than {Skills.PreciseTouch.NameOfAction()}, despite the big quality bump.");
                 changed |= ImGui.Checkbox($"Under ● {Condition.Sturdy.ToLocalizedString()}/{Condition.Robust.ToLocalizedString()} + {Buffs.Innovation.NameOfBuff()}", ref MidAllowSturdyPrep);
                 ImGui.Unindent();
                 changed |= ImGui.Checkbox($"Use {Skills.GreatStrides.NameOfAction()} before non-finisher {QualityString.ToLower()} combos", ref MidGSBeforeInno);
                 ImGuiComponents.HelpMarker($"ex. {Buffs.Innovation.NameOfBuff()} → {Skills.Observe.NameOfAction()} → {Skills.AdvancedTouch.NameOfAction()}. Enabling this uses more CP but less {DurabilityString.ToLower()}, and may help avoid a usage of an expensive {DurabilityString.ToLower()}-related action.");
+                ImGui.TextWrapped($"When ● {Condition.Good.ToLocalizedString()} and only {Skills.GreatStrides.NameOfAction()} is up:");
+                ImGuiComponents.HelpMarker($"\"Free\" {Skills.PreparatoryTouch.NameOfAction()} refers to {Skills.TrainedPerfection.NameOfAction()}, which can be enabled in the Pre-{QualityString} settings. Saving {Skills.QuickInnovation.NameOfAction()} for an emergency {Skills.ByregotsBlessing.NameOfAction()} in the finisher is the most efficient, but might not be necessary.");
+                if (ImGui.BeginCombo("##midAllowQuickInnoGoodSetting", GetMidAllowQuickInnoGoodSettingName(MidAllowQuickInnoGood)))
+                {
+                    foreach (MidAllowQuickInnoGoodSetting x in Enum.GetValues<MidAllowQuickInnoGoodSetting>())
+                    {
+                        if (ImGui.Selectable(GetMidAllowQuickInnoGoodSettingName(x)))
+                        {
+                            MidAllowQuickInnoGood = x;
+                            changed = true;
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
                 ImGui.Unindent();
                 ImGui.Dummy(new Vector2(0, 5f));
             }
@@ -285,6 +316,8 @@ public class ExpertSolverSettings
                 changed |= ImGui.Checkbox($"For {Skills.TricksOfTrade.NameOfAction()} if really low on CP", ref EmergencyCPBaitGood);
                 ImGuiComponents.HelpMarker($"Invoked when totally out of other options and even {Skills.ByregotsBlessing.NameOfAction()} wouldn't be enough {QualityString.ToLower()}.");
                 ImGui.Unindent();
+                changed |= ImGui.Checkbox($"Use {Skills.QuickInnovation.NameOfAction()} to finish when low on CP", ref FinisherUseQuickInno);
+                ImGuiComponents.HelpMarker($"When there's not enough CP to use {Skills.Innovation.NameOfAction()} and/or {Skills.GreatStrides.NameOfAction()}, but {Skills.QuickInnovation.NameOfAction()} is enough to reach the {QualityString.ToLower()} goal.");
                 changed |= ImGui.Checkbox($"Allow finishing with {Skills.RapidSynthesis.NameOfAction()} when out of options", ref RapidSynthYoloAllowed);
                 ImGuiComponents.HelpMarker($"If disabled, the solver will do nothing instead, which may interrupt AFK expert crafting. Usually safe to enable, as it will only be invoked with no CP or {DurabilityString.ToLower()} left.");
                 ImGui.Dummy(new Vector2(0, 5f));
@@ -293,11 +326,22 @@ public class ExpertSolverSettings
 
             // Misc. settings
             ImGui.Dummy(new Vector2(0, 5f));
+            ImGui.TextWrapped($"Ishgardian Restoration");
+            ImGui.Indent();
             changed |= ImGui.Checkbox("Max out Ishgard Restoration recipes instead of just hitting max breakpoint", ref MaxIshgardRecipes);
             ImGuiComponents.HelpMarker("This will try to maximise quality to earn more Skyward points.");
-            changed |= ImGui.Checkbox($"Use {Skills.MaterialMiracle.NameOfAction()} in Cosmic Exploration", ref UseMaterialMiracle);
+            ImGui.Unindent();
+            ImGui.TextWrapped($"Cosmic Exploration");
+            ImGui.Indent();
+            changed |= ImGui.Checkbox($"Use {Skills.MaterialMiracle.NameOfAction()}", ref UseMaterialMiracle);
             ImGui.PushItemWidth(250);
-            changed |= ImGui.SliderInt($"Minimum steps to execute before trying {Skills.MaterialMiracle.NameOfAction()}###MinimumStepsBeforeMiracle", ref MinimumStepsBeforeMiracle, 0, 20);
+            if (UseMaterialMiracle)
+                changed |= ImGui.SliderInt($"Minimum steps to execute before trying {Skills.MaterialMiracle.NameOfAction()}###MinimumStepsBeforeMiracle", ref MinimumStepsBeforeMiracle, 0, 20);
+            changed |= ImGui.SliderInt($"Max {Skills.SteadyHand.NameOfAction()} uses per craft###MaxSteadyUses", ref MaxSteadyUses, 0, 2);
+            ImGuiComponents.HelpMarker($"{Skills.SteadyHand.NameOfAction()} will be used ASAP to guarantee {Skills.RapidSynthesis.NameOfAction()}. Set to 0 to disable.");
+            ImGui.Unindent();
+
+            ImGui.Dummy(new Vector2(0, 5f));
             if (ImGuiEx.ButtonCtrl("Reset Expert Solver Settings To Default"))
             {
                 P.Config.ExpertSolverConfig = new();

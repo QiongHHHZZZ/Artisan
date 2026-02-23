@@ -231,6 +231,7 @@ public static class Simulator
         next.ObserveCounter = action == Skills.Observe ? step.ObserveCounter + 1 : 0;
         next.SteadyHandCharges = action == Skills.SteadyHand ? step.SteadyHandCharges - 1 : step.SteadyHandCharges;
         next.SteadyHandLeft = action == Skills.SteadyHand ? 3 : Math.Max(0, step.SteadyHandLeft - 1);
+        next.SteadyHandsUsed = action == Skills.SteadyHand ? step.SteadyHandsUsed + 1 : step.SteadyHandsUsed;
 
         if (step.FinalAppraisalLeft > 0 && next.Progress >= craft.CraftProgress)
             next.Progress = craft.CraftProgress - 1;
