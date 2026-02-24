@@ -11,6 +11,7 @@ using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.Sheets;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 
@@ -91,6 +92,7 @@ public class RecipeConfig
             ? T("Disabled")
             : $"{ConsumableChecker.SquadronManuals.FirstOrDefault(x => x.Id == RequiredSquadronManual).Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(RequiredManual, false))}";
 
+    [JsonIgnore]
     public float LargestName => (Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f);
 
     public bool SolverIsRaph => CurrentSolverType == typeof(RaphaelSolverDefintion).FullName!;

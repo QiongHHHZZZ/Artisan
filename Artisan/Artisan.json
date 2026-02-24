@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 同步上游：仅在标准/专家求解器下显示材料奇迹相关选项，并优化 Craft Menu 布局。\n- 补全本地化：恢复本次变更涉及的主要中文文案。"
+  "ChangeLog": "- 修复启动期崩溃：避免在配置序列化时触发 ImGui 文本测量。\n- 稳定性热修，不影响既有功能。"
 }
