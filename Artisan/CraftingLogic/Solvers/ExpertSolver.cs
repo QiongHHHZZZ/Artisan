@@ -130,7 +130,7 @@ public class ExpertSolver : Solver
 
     private static Skills SolveOpenerMuMe(ExpertSolverSettings cfg, CraftState craft, StepState step)
     {
-        bool lastChance = step.MuscleMemoryLeft == 1;
+        bool lastChance = step.MuscleMemoryLeft == 1 || step.Durability <= 20;
         int rapidDura = Simulator.GetDurabilityCost(step, Skills.RapidSynthesis);
 
         if (step.SteadyHandLeft > 0 && step.Durability > rapidDura && CU(craft, step, Skills.RapidSynthesis))

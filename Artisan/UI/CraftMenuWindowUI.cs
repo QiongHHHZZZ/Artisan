@@ -133,7 +133,8 @@ namespace Artisan.UI
                 if (Crafting.SteadyHandCharges() > 0 && LuminaSheets.RecipeSheet[Endurance.RecipeID].IsExpert)
                 {
                     int maxSteadyUses = P.Config.ExpertSolverConfig.MaxSteadyUses;
-                    if (ImGui.SliderInt($"Max {Skills.SteadyHand.NameOfAction()} uses", ref maxSteadyUses, 0, 2))
+                    ImGui.Text($"Max {Skills.SteadyHand.NameOfAction()} uses");
+                    if (ImGui.SliderInt($"###MaxStellarHand", ref maxSteadyUses, 0, 2))
                     {
                         P.Config.ExpertSolverConfig.MaxSteadyUses = maxSteadyUses;
                     }
