@@ -335,7 +335,7 @@ namespace Artisan.CraftingLogic.Solvers
                     {
                         ImGuiEx.LineCentered(() =>
                         {
-                            if (ImGui.Button("Build Raphael Solution", new Vector2(config.LargestName, 25f.Scale())))
+                            if (ImGui.Button("Build Raphael Solution", new Vector2(config.GetLargestName(), 25f.Scale())))
                             {
                                 Build(craft, TempConfigs[key]);
                             }
@@ -345,7 +345,7 @@ namespace Artisan.CraftingLogic.Solvers
                     {
                         ImGuiEx.LineCentered(() =>
                         {
-                            if (ImGui.Button("Cancel Raphael Generation", new Vector2(config.LargestName, 25f.Scale())))
+                            if (ImGui.Button("Cancel Raphael Generation", new Vector2(config.GetLargestName(), 25f.Scale())))
                             {
                                 Tasks.TryRemove(key, out var task);
                                 task.Cancellation.Cancel();

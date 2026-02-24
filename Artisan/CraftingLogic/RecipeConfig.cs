@@ -74,19 +74,16 @@ public class RecipeConfig
     public string ManualName => requiredManual == Default ? $"{P.Config.DefaultConsumables.ManualName} (Default)" : RequiredManual == Disabled ? "Disabled" : $"{ConsumableChecker.Manuals.FirstOrDefault(x => x.Id == RequiredManual).Name} (Qty: {ConsumableChecker.NumberOfConsumable(RequiredManual, false)})";
     public string SquadronManualName => requiredSquadronManual == Default ? $"{P.Config.DefaultConsumables.SquadronManualName} (Default)" : RequiredSquadronManual == Disabled ? "Disabled" : $"{ConsumableChecker.SquadronManuals.FirstOrDefault(x => x.Id == RequiredSquadronManual).Name} (Qty: {ConsumableChecker.NumberOfConsumable(RequiredManual, false)})";
 
-    public float LargestName
+    public float GetLargestName()
     {
-        get
+        try
         {
-            try
-            {
-                return Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f;
-            }
-            catch(Exception ex)
-            {
-                ex.Log();
-                return 0;
-            }
+            return Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f;
+        }
+        catch (Exception ex)
+        {
+            ex.Log();
+            return 0;
         }
     }
 
@@ -120,7 +117,7 @@ public class RecipeConfig
         ImGuiEx.TextV("Food Usage:");
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##foodBuff", FoodName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -167,7 +164,7 @@ public class RecipeConfig
         ImGuiEx.TextV("Medicine Usage:");
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##potBuff", PotionName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -214,7 +211,7 @@ public class RecipeConfig
         ImGuiEx.TextV("Manual Usage:");
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##manualBuff", ManualName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -251,7 +248,7 @@ public class RecipeConfig
         ImGuiEx.TextV("Squadron Manual:");
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##squadronManualBuff", SquadronManualName))
         {
             if (this != P.Config.DefaultConsumables)
