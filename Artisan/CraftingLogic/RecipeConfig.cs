@@ -6,12 +6,12 @@ using Artisan.RawInformation.Character;
 using Artisan.UI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.Sheets;
-using Newtonsoft.Json;
 using System;
 using System.Linq;
 
@@ -92,8 +92,18 @@ public class RecipeConfig
             ? T("Disabled")
             : $"{ConsumableChecker.SquadronManuals.FirstOrDefault(x => x.Id == RequiredSquadronManual).Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(RequiredManual, false))}";
 
-    [JsonIgnore]
-    public float LargestName => (Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f);
+    public float GetLargestName()
+    {
+        try
+        {
+            return Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f;
+        }
+        catch (Exception ex)
+        {
+            ex.Log();
+            return 0;
+        }
+    }
 
     public bool SolverIsRaph => CurrentSolverType == typeof(RaphaelSolverDefintion).FullName!;
     public bool SolverIsStandard => CurrentSolverType == typeof(StandardSolverDefinition).FullName!;
@@ -125,7 +135,7 @@ public class RecipeConfig
         ImGuiEx.TextV(T("Food Usage:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##foodBuff", FoodName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -172,7 +182,7 @@ public class RecipeConfig
         ImGuiEx.TextV(T("Medicine Usage:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##potBuff", PotionName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -219,7 +229,7 @@ public class RecipeConfig
         ImGuiEx.TextV(T("Manual Usage:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##manualBuff", ManualName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -256,7 +266,7 @@ public class RecipeConfig
         ImGuiEx.TextV(T("Squadron Manual:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##squadronManualBuff", SquadronManualName))
         {
             if (this != P.Config.DefaultConsumables)

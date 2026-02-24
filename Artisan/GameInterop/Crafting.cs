@@ -687,6 +687,7 @@ public static unsafe class Crafting
         ret.MaterialMiracleActive = GetStatus(Buffs.MaterialMiracle) != null;
         ret.SteadyHandCharges = SteadyHandCharges();
         ret.SteadyHandLeft = GetStatus(Buffs.SteadyHand)?.Param ?? 0;
+        ret.SteadyHandsUsed = predictedStep?.SteadyHandsUsed ?? 0;
         ret.ObserveCounter = predictedStep?.ObserveCounter ?? 0;
 
         return ret;

@@ -86,6 +86,7 @@ public record class StepState
     public int ObserveCounter;
     public int SteadyHandCharges;
     public int SteadyHandLeft;
+    public int SteadyHandsUsed;
 
     public override string ToString() => $"#{Index} {Condition}: {Progress}/{Quality}/{Durability}/{RemainingCP}; {BuffsString()}; Prev={PrevComboAction}{(PrevActionFailed ? " (failed)" : "")}";
 
