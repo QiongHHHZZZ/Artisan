@@ -835,10 +835,10 @@ namespace Artisan.UI
                 }
                 ImGuiComponents.HelpMarker(T("Expands the search bar in the recipe menu with instant results and functionality to click to open recipes."));
 
-                if (ImGui.Checkbox("Show Completed Recipes Progress in Recipe Window", ref P.Config.ShowLevelingRecipeProgress))
+                if (ImGui.Checkbox("在配方窗口显示已完成配方进度", ref P.Config.ShowLevelingRecipeProgress))
                     P.Config.Save();
 
-                ImGuiComponents.HelpMarker("Shows a total of completed recipes in each leveling category, or a tick if all are completed.");
+                ImGuiComponents.HelpMarker("在每个练级分类显示已完成配方数量；若该分类全部完成则显示勾选。");
 
                 bool hideQuestHelper = P.Config.HideQuestHelper;
                 if (ImGui.Checkbox(T("Hide Quest Helper"), ref hideQuestHelper))
