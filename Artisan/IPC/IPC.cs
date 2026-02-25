@@ -218,32 +218,29 @@ namespace Artisan.IPC
         public static void ChangeFood(uint recipeId, uint FoodId, bool HighQuality, bool temporary)
         {
             var config = P.Config.RecipeConfigs.GetValueOrDefault(recipeId) ?? new();
-            if (LuminaSheets.RecipeSheet.TryGetValue(recipeId, out var recipe))
+            if (temporary)
             {
-                if (temporary)
-                {
-                    config.TempRequiredFood = FoodId;
-                    config.TempFoodHQ = HighQuality;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                }
-                else
-                {
-                    config.requiredFood = FoodId;
-                    config.requiredFoodHQ = HighQuality;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                    P.Config.Save();
-                }
-
-                var newConfig = P.Config.RecipeConfigs[recipeId];
-                PluginLog.Debug($"Temp FoodId {newConfig.TempRequiredFood}\n" +
-                                $"Temp HQ: {newConfig.TempFoodHQ}\n" +
-                                $"FoodId: {newConfig.requiredFood}\n" +
-                                $"Food HQ: {newConfig.requiredFoodHQ}\n" +
-                                $"Actual Values:" +
-                                $"Food Enabled: {newConfig.FoodEnabled}\n" +
-                                $"Food ID: {newConfig.FoodName}\n" +
-                                $"Food HQ: {newConfig.RequiredFoodHQ}");
+                config.TempRequiredFood = FoodId;
+                config.TempFoodHQ = HighQuality;
+                P.Config.RecipeConfigs[recipeId] = config;
             }
+            else
+            {
+                config.requiredFood = FoodId;
+                config.requiredFoodHQ = HighQuality;
+                P.Config.RecipeConfigs[recipeId] = config;
+                P.Config.Save();
+            }
+
+            var newConfig = P.Config.RecipeConfigs[recipeId];
+            PluginLog.Debug($"Temp FoodId {newConfig.TempRequiredFood}\n" +
+                            $"Temp HQ: {newConfig.TempFoodHQ}\n" +
+                            $"FoodId: {newConfig.requiredFood}\n" +
+                            $"Food HQ: {newConfig.requiredFoodHQ}\n" +
+                            $"Actual Values:" +
+                            $"Food Enabled: {newConfig.FoodEnabled}\n" +
+                            $"Food ID: {newConfig.FoodName}\n" +
+                            $"Food HQ: {newConfig.RequiredFoodHQ}");
         }
 
         /// <summary>
@@ -256,21 +253,18 @@ namespace Artisan.IPC
         public static void ChangePotion(uint recipeId, uint PotionId, bool HighQuality, bool temporary)
         {
             var config = P.Config.RecipeConfigs.GetValueOrDefault(recipeId) ?? new();
-            if (LuminaSheets.RecipeSheet.TryGetValue(recipeId, out var recipe))
+            if (temporary)
             {
-                if (temporary)
-                {
-                    config.TempRequiredPotion = PotionId;
-                    config.TempPotionHQ = HighQuality;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                }
-                else
-                {
-                    config.requiredPotion = PotionId;
-                    config.requiredPotionHQ = HighQuality;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                    P.Config.Save();
-                }
+                config.TempRequiredPotion = PotionId;
+                config.TempPotionHQ = HighQuality;
+                P.Config.RecipeConfigs[recipeId] = config;
+            }
+            else
+            {
+                config.requiredPotion = PotionId;
+                config.requiredPotionHQ = HighQuality;
+                P.Config.RecipeConfigs[recipeId] = config;
+                P.Config.Save();
             }
         }
 
@@ -283,19 +277,16 @@ namespace Artisan.IPC
         public static void ChangeManual(uint recipeId, uint ManualId, bool temporary)
         {
             var config = P.Config.RecipeConfigs.GetValueOrDefault(recipeId) ?? new();
-            if (LuminaSheets.RecipeSheet.TryGetValue(recipeId, out var recipe))
+            if (temporary)
             {
-                if (temporary)
-                {
-                    config.TempRequiredManual = ManualId;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                }
-                else
-                {
-                    config.requiredManual = ManualId;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                    P.Config.Save();
-                }
+                config.TempRequiredManual = ManualId;
+                P.Config.RecipeConfigs[recipeId] = config;
+            }
+            else
+            {
+                config.requiredManual = ManualId;
+                P.Config.RecipeConfigs[recipeId] = config;
+                P.Config.Save();
             }
         }
 
@@ -308,19 +299,16 @@ namespace Artisan.IPC
         public static void ChangeSquadronManual(uint recipeId, uint SquadronManualId, bool temporary)
         {
             var config = P.Config.RecipeConfigs.GetValueOrDefault(recipeId) ?? new();
-            if (LuminaSheets.RecipeSheet.TryGetValue(recipeId, out var recipe))
+            if (temporary)
             {
-                if (temporary)
-                {
-                    config.TempRequiredSquadronManual = SquadronManualId;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                }
-                else
-                {
-                    config.TempRequiredSquadronManual = SquadronManualId;
-                    P.Config.RecipeConfigs[recipeId] = config;
-                    P.Config.Save();
-                }
+                config.TempRequiredSquadronManual = SquadronManualId;
+                P.Config.RecipeConfigs[recipeId] = config;
+            }
+            else
+            {
+                config.TempRequiredSquadronManual = SquadronManualId;
+                P.Config.RecipeConfigs[recipeId] = config;
+                P.Config.Save();
             }
         }
 
