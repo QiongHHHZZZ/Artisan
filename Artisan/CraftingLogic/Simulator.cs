@@ -1,6 +1,7 @@
 ﻿using Artisan.CraftingLogic.CraftData;
 using Artisan.GameInterop;
 using Artisan.GameInterop.CSExt;
+using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
 using Dalamud.Interface.Colors;
 using ECommons.DalamudServices;
@@ -43,7 +44,7 @@ public static class Simulator
 
     public static string ToOutputString(this CraftStatus status)
     {
-        return status.GetAttribute<DescriptionAttribute>().Description;
+        return UI.L10n.Tr(status.GetAttribute<DescriptionAttribute>().Description);
     }
 
     public enum ExecuteResult
@@ -121,7 +122,7 @@ public static class Simulator
     {
         hintColor = ImGuiColors.DalamudWhite;
         var solver = CraftingProcessor.GetSolverForRecipe(config, craft).CreateSolver(craft);
-        if (solver == null) return "No valid solver found.";
+        if (solver == null) return UI.L10n.Tr("No valid solver found.");
         var startingQuality = GetStartingQuality(recipe, assumeMaxStartingQuality, craft.StatLevel);
         var time = SolverUtils.EstimateCraftTime(solver, craft, startingQuality);
         var result = SolverUtils.SimulateSolverExecution(solver, craft, startingQuality);
@@ -130,18 +131,18 @@ public static class Simulator
 
         string solverHint = status switch
         {
-            CraftStatus.InProgress => "Craft did not finish (solver failed to return any more steps before finishing).",
-            CraftStatus.FailedDurability => $"Craft failed due to durability shortage. (P: {(float)result.Progress / craft.CraftProgress * 100:f0}%, Q: {(float)result.Quality / craft.CraftQualityMax * 100:f0}%)",
-            CraftStatus.FailedMinQuality => $"Craft completed but didn't meet minimum quality(P: {(float)result.Progress / craft.CraftProgress * 100:f0}%, Q: {(float)result.Quality / craft.CraftQualityMax * 100:f0}%).",
-            CraftStatus.SucceededQ1 => $"Craft completed and managed to hit 1st quality threshold in {time.TotalSeconds:f0}s.",
-            CraftStatus.SucceededQ2 => $"Craft completed and managed to hit 2nd quality threshold in {time.TotalSeconds:f0}s.",
-            CraftStatus.SucceededQ3 => $"Craft completed and managed to hit 3rd quality threshold in {time.TotalSeconds:f0}s!",
-            CraftStatus.SucceededMaxQuality => $"Craft completed with full quality in {time.TotalSeconds:f0}s!",
-            CraftStatus.SucceededSomeQuality => $"Craft completed but didn't max out quality ({hq}%) in {time.TotalSeconds:f0}s",
-            CraftStatus.SucceededNoQualityReq => $"Craft completed, no quality required in {time.TotalSeconds:f0}s!",
-            CraftStatus.SucceededMetQualityReq => $"Craft completed and minimum quality required met in {time.TotalSeconds:f0}s!",
-            CraftStatus.Count => "You shouldn't be able to see this. Report it please.",
-            _ => "You shouldn't be able to see this. Report it please.",
+            CraftStatus.InProgress => UI.L10n.Tr("Craft did not finish (solver failed to return any more steps before finishing)."),
+            CraftStatus.FailedDurability => UI.L10n.Tr("Craft failed due to durability shortage. (P: {0:f0}%, Q: {1:f0}%)", (float)result.Progress / craft.CraftProgress * 100, (float)result.Quality / craft.CraftQualityMax * 100),
+            CraftStatus.FailedMinQuality => UI.L10n.Tr("Craft completed but didn't meet minimum quality(P: {0:f0}%, Q: {1:f0}%).", (float)result.Progress / craft.CraftProgress * 100, (float)result.Quality / craft.CraftQualityMax * 100),
+            CraftStatus.SucceededQ1 => UI.L10n.Tr("Craft completed and managed to hit 1st quality threshold in {0:f0}s.", time.TotalSeconds),
+            CraftStatus.SucceededQ2 => UI.L10n.Tr("Craft completed and managed to hit 2nd quality threshold in {0:f0}s.", time.TotalSeconds),
+            CraftStatus.SucceededQ3 => UI.L10n.Tr("Craft completed and managed to hit 3rd quality threshold in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.SucceededMaxQuality => UI.L10n.Tr("Craft completed with full quality in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.SucceededSomeQuality => UI.L10n.Tr("Craft completed but didn't max out quality ({0}%) in {1:f0}s", hq, time.TotalSeconds),
+            CraftStatus.SucceededNoQualityReq => UI.L10n.Tr("Craft completed, no quality required in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.SucceededMetQualityReq => UI.L10n.Tr("Craft completed and minimum quality required met in {0:f0}s!", time.TotalSeconds),
+            CraftStatus.Count => UI.L10n.Tr("You shouldn't be able to see this. Report it please."),
+            _ => UI.L10n.Tr("You shouldn't be able to see this. Report it please."),
         };
 
 
@@ -231,6 +232,7 @@ public static class Simulator
         next.ObserveCounter = action == Skills.Observe ? step.ObserveCounter + 1 : 0;
         next.SteadyHandCharges = action == Skills.SteadyHand ? step.SteadyHandCharges - 1 : step.SteadyHandCharges;
         next.SteadyHandLeft = action == Skills.SteadyHand ? 3 : Math.Max(0, step.SteadyHandLeft - 1);
+        next.SteadyHandsUsed = action == Skills.SteadyHand ? step.SteadyHandsUsed + 1 : step.SteadyHandsUsed;
 
         if (step.FinalAppraisalLeft > 0 && next.Progress >= craft.CraftProgress)
             next.Progress = craft.CraftProgress - 1;
@@ -316,20 +318,20 @@ public static class Simulator
         {
             reason = action switch
             {
-                Skills.IntensiveSynthesis or Skills.PreciseTouch or Skills.TricksOfTrade => "Condition is not Good/Excellent or Heart and Soul is not active",
-                Skills.PrudentSynthesis or Skills.PrudentTouch => "You have a Waste Not buff",
-                Skills.MuscleMemory or Skills.Reflect => "You are not on the first step of the craft",
-                Skills.TrainedFinesse => "You have less than 10 Inner Quiet stacks",
-                Skills.ByregotsBlessing => "You have 0 Inner Quiet stacks",
-                Skills.TrainedEye => craft.CraftExpert ? "Craft is expert" : step.Index != 1 ? "You are not on the first step of the craft" : "Craft is not 10 or more levels lower than your current level",
-                Skills.Manipulation => "You haven't unlocked Manipulation",
-                Skills.CarefulObservation => craft.Specialist ? Crafting.DelineationCount() == 0 ? "You have run out of Delineations." : $"You already used Careful Observation 3 times" : "You are not a specialist",
-                Skills.HeartAndSoul => craft.Specialist ? Crafting.DelineationCount() == 0 ? "You have run out of Delineations." : "You don't have Heart & Soul available anymore for this craft" : "You are not a specialist",
-                Skills.TrainedPerfection => "You have already used Trained Perfection",
-                Skills.DaringTouch => "Hasty Touch did not succeed",
-                Skills.QuickInnovation => !craft.Specialist ? "You are not a specialist" : Crafting.DelineationCount() == 0 ? "You have run out of Delineations." : step.QuickInnoLeft == 0 ? "You don't have Quick Innovation available anymore for this craft" : step.InnovationLeft > 0 ? "You have an Innovation buff" : "",
-                Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? "This craft cannot use Material Miracle" : step.MaterialMiracleActive ? "You already have Material Miracle active" : step.MaterialMiracleCharges == 0 ? "You have no more Material Miracle charges" : "",
-                Skills.SteadyHand => !craft.MissionHasSteadyHand ? "This craft cannot use Steady Hand" : step.SteadyHandCharges == 0 ? "You have no more Steady Hand charges" : "",
+                Skills.IntensiveSynthesis or Skills.PreciseTouch or Skills.TricksOfTrade => UI.L10n.Tr("Current condition is not Good/Excellent, and {0} is not active.", Skills.HeartAndSoul.NameOfAction()),
+                Skills.PrudentSynthesis or Skills.PrudentTouch => UI.L10n.Tr("You currently have {0} active.", Skills.WasteNot.NameOfAction()),
+                Skills.MuscleMemory or Skills.Reflect => UI.L10n.Tr("You are not on the first step of the craft."),
+                Skills.TrainedFinesse => UI.L10n.Tr("You have less than {0} stacks of {1}.", 10, Buffs.InnerQuiet.NameOfBuff()),
+                Skills.ByregotsBlessing => UI.L10n.Tr("You have 0 stacks of {0}.", Buffs.InnerQuiet.NameOfBuff()),
+                Skills.TrainedEye => craft.CraftExpert ? UI.L10n.Tr("This is an expert craft.") : step.Index != 1 ? UI.L10n.Tr("You are not on the first step of the craft.") : UI.L10n.Tr("Craft level is not at least 10 levels below your current level."),
+                Skills.Manipulation => UI.L10n.Tr("You haven't unlocked {0}.", Skills.Manipulation.NameOfAction()),
+                Skills.CarefulObservation => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : UI.L10n.Tr("You already used {0} {1} times.", Skills.CarefulObservation.NameOfAction(), 3) : UI.L10n.Tr("You are not a specialist."),
+                Skills.HeartAndSoul => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : UI.L10n.Tr("{0} is no longer available for this craft.", Skills.HeartAndSoul.NameOfAction()) : UI.L10n.Tr("You are not a specialist."),
+                Skills.TrainedPerfection => UI.L10n.Tr("You have already used {0}.", Skills.TrainedPerfection.NameOfAction()),
+                Skills.DaringTouch => UI.L10n.Tr("{0} did not succeed.", Skills.HastyTouch.NameOfAction()),
+                Skills.QuickInnovation => !craft.Specialist ? UI.L10n.Tr("You are not a specialist.") : Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : step.QuickInnoLeft == 0 ? UI.L10n.Tr("{0} is no longer available for this craft.", Skills.QuickInnovation.NameOfAction()) : step.InnovationLeft > 0 ? UI.L10n.Tr("You have an active {0} buff.", Buffs.Innovation.NameOfBuff()) : "",
+                Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? UI.L10n.Tr("This craft cannot use {0}.", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleActive ? UI.L10n.Tr("{0} is already active.", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleCharges == 0 ? UI.L10n.Tr("You have no more {0} charges.", Skills.MaterialMiracle.NameOfAction()) : "",
+                Skills.SteadyHand => !craft.MissionHasSteadyHand ? UI.L10n.Tr("This craft cannot use {0}.", Skills.SteadyHand.NameOfAction()) : step.SteadyHandCharges == 0 ? UI.L10n.Tr("You have no more {0} charges.", Skills.SteadyHand.NameOfAction()) : "",
             };
 
             return true;

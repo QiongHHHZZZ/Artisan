@@ -189,8 +189,9 @@ namespace Artisan.Autocraft
                 {
                     if (Endurance.Enable)
                     {
-                        Svc.Toasts.ShowError("Food not found. Disabling Endurance.");
-                        DuoLog.Error("Food not found. Disabling Endurance.");
+                        var msg = global::Artisan.UI.L10n.Tr("Food not found. Disabling Endurance.");
+                        Svc.Toasts.ShowError(msg);
+                        DuoLog.Error(msg);
                         Endurance.ToggleEndurance(false);
                     }
                     fooded = !P.Config.AbortIfNoFoodPot;
@@ -208,8 +209,9 @@ namespace Artisan.Autocraft
                 {
                     if (Endurance.Enable)
                     {
-                        Svc.Toasts.ShowError("Potion not found. Disabling Endurance.");
-                        DuoLog.Error("Potion not found. Disabling Endurance.");
+                        var msg = global::Artisan.UI.L10n.Tr("Potion not found. Disabling Endurance.");
+                        Svc.Toasts.ShowError(msg);
+                        DuoLog.Error(msg);
                         Endurance.ToggleEndurance(false);
                     }
                     potted = !P.Config.AbortIfNoFoodPot;
@@ -227,8 +229,9 @@ namespace Artisan.Autocraft
                 {
                     if (Endurance.Enable)
                     {
-                        Svc.Toasts.ShowError("Manual not found. Disabling Endurance.");
-                        DuoLog.Error("Manual not found. Disabling Endurance.");
+                        var msg = global::Artisan.UI.L10n.Tr("Manual not found. Disabling Endurance.");
+                        Svc.Toasts.ShowError(msg);
+                        DuoLog.Error(msg);
                         Endurance.ToggleEndurance(false);
                     }
                     manualed = !P.Config.AbortIfNoFoodPot;
@@ -246,8 +249,9 @@ namespace Artisan.Autocraft
                 {
                     if (Endurance.Enable)
                     {
-                        Svc.Toasts.ShowError("Squadron Manual not found. Disabling Endurance.");
-                        DuoLog.Error("Squadron Manual not found. Disabling Endurance.");
+                        var msg = global::Artisan.UI.L10n.Tr("Squadron Manual not found. Disabling Endurance.");
+                        Svc.Toasts.ShowError(msg);
+                        DuoLog.Error(msg);
                         Endurance.ToggleEndurance(false);
                     }
                     squadronManualed = !P.Config.AbortIfNoFoodPot;
@@ -280,3 +284,4 @@ namespace Artisan.Autocraft
         }
     }
 }
+

@@ -131,7 +131,7 @@ namespace Artisan.CraftingLogic.Solvers
                         {
                             if (Tasks.TryRemove(key, out var t) && t.FromStartCraft && Crafting.CurState is Crafting.State.WaitStart)
                             {
-                                DuoLog.Error("Raphael has timed out or cancelled before a solution could be generated. Crafting will not start, please restart this craft.");
+                                DuoLog.Error(L10n.Tr("Raphael has timed out or cancelled before a solution could be generated. Crafting will not start, please restart this craft."));
                                 Crafting.CurState = Crafting.State.InvalidState;
                             }
                         }
@@ -152,7 +152,7 @@ namespace Artisan.CraftingLogic.Solvers
                         if (process.ExitCode != 0)
                         {
                             if (!string.IsNullOrWhiteSpace(error))
-                                DuoLog.Error(error.Split('\r', '\n')[0]);
+                                DuoLog.Error(L10n.Tr("Raphael error: {0}", error.Split('\r', '\n')[0]));
 
                             info.Succeeded = false;
                             cts.Cancel();
@@ -298,12 +298,11 @@ namespace Artisan.CraftingLogic.Solvers
                     TempConfigs[key].QuickInno = P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist;
                 }
 
-                var opt = CraftingProcessor.GetAvailableSolversForRecipe(craft, true).FirstOrNull(x => x.Name == $"Raphael Recipe Solver");
                 var solverIsRaph = config.SolverIsRaph;
                 if (!hasSolution)
                 {
                     if (solverIsRaph)
-                        ImGuiEx.TextCentered(ImGuiColors.DalamudRed, "No Raphael Solution Generated.");
+                        ImGuiEx.TextCentered(ImGuiColors.DalamudRed, L10n.Tr("No Raphael Solution Generated."));
                     if (P.Config.RaphaelSolverConfig.AutoGenerate && CraftingProcessor.GetAvailableSolversForRecipe(craft, true).Any() && (!craft.CraftExpert || (craft.CraftExpert && P.Config.RaphaelSolverConfig.GenerateOnExperts)))
                     {
                         Build(craft, TempConfigs[key]);
@@ -318,13 +317,13 @@ namespace Artisan.CraftingLogic.Solvers
                     ImGui.BeginDisabled();
 
                 if (P.Config.RaphaelSolverConfig.AllowEnsureReliability && !craft.CraftExpert)
-                    ImGui.Checkbox($"Ensure reliability##{key}Reliability", ref TempConfigs[key].EnsureReliability);
+                    ImGui.Checkbox($"{L10n.Tr("Ensure reliability")}##{key}Reliability", ref TempConfigs[key].EnsureReliability);
                 if (P.Config.RaphaelSolverConfig.AllowBackloadProgress)
-                    ImGui.Checkbox($"Backload progress##{key}Progress", ref TempConfigs[key].BackloadProgress);
+                    ImGui.Checkbox($"{L10n.Tr("Backload progress")}##{key}Progress", ref TempConfigs[key].BackloadProgress);
                 if (P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist)
-                    ImGui.Checkbox($"Allow heart and soul usage##{key}HS", ref TempConfigs[key].HeartAndSoul);
+                    ImGui.Checkbox($"{L10n.Tr("Allow using {0}", Skills.HeartAndSoul.NameOfAction())}##{key}HS", ref TempConfigs[key].HeartAndSoul);
                 if (P.Config.RaphaelSolverConfig.ShowSpecialistSettings && craft.Specialist)
-                    ImGui.Checkbox($"Allow quick innovation usage##{key}QI", ref TempConfigs[key].QuickInno);
+                    ImGui.Checkbox($"{L10n.Tr("Allow using {0}", Skills.QuickInnovation.NameOfAction())}##{key}QI", ref TempConfigs[key].QuickInno);
 
                 if (inProgress)
                     ImGui.EndDisabled();
@@ -335,7 +334,7 @@ namespace Artisan.CraftingLogic.Solvers
                     {
                         ImGuiEx.LineCentered(() =>
                         {
-                            if (ImGui.Button("Build Raphael Solution", new Vector2(config.LargestName, 25f.Scale())))
+                            if (ImGui.Button(L10n.Tr("Build Raphael Solution"), new Vector2(config.GetLargestName(), 25f.Scale())))
                             {
                                 Build(craft, TempConfigs[key]);
                             }
@@ -345,7 +344,7 @@ namespace Artisan.CraftingLogic.Solvers
                     {
                         ImGuiEx.LineCentered(() =>
                         {
-                            if (ImGui.Button("Cancel Raphael Generation", new Vector2(config.LargestName, 25f.Scale())))
+                            if (ImGui.Button(L10n.Tr("Cancel Raphael Generation"), new Vector2(config.GetLargestName(), 25f.Scale())))
                             {
                                 Tasks.TryRemove(key, out var task);
                                 task.Cancellation.Cancel();
@@ -357,18 +356,18 @@ namespace Artisan.CraftingLogic.Solvers
                 if (TempConfigs[key].EnsureReliability && ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
-                    ImGui.Text("Ensuring quality is enabled, no support shall be provided when its enabled\nDue to problems that can be caused.");
+                    ImGui.Text(L10n.Tr("Ensuring quality is enabled, no support shall be provided when its enabled\nDue to problems that can be caused."));
                     ImGui.EndTooltip();
                 }
 
                 if (TempConfigs[key].HeartAndSoul || TempConfigs[key].QuickInno)
                 {
-                    ImGui.Text("Specialist actions are enabled, this can slow down the solver a lot.");
+                    ImGui.Text(L10n.Tr("Specialist actions are enabled, this can slow down the solver a lot."));
                 }
 
                 if (inProgress)
                 {
-                    ImGuiEx.TextCentered("Generating...");
+                    ImGuiEx.TextCentered(L10n.Tr("Generating..."));
                 }
             }
         }
@@ -395,48 +394,48 @@ namespace Artisan.CraftingLogic.Solvers
             {
 
                 ImGui.Indent();
-                ImGui.TextWrapped($"Raphael settings can change the performance and system memory consumption. If you have low amounts of RAM try not to change settings, recommended minimum amount of RAM free is 2GB");
+                ImGui.TextWrapped(L10n.Tr("Raphael settings can change the performance and system memory consumption. If you have low amounts of RAM try not to change settings, recommended minimum amount of RAM free is 2GB"));
 
-                if (ImGui.SliderInt("Maximum Threads", ref MaximumThreads, 0, Environment.ProcessorCount))
+                if (ImGui.SliderInt(L10n.Tr("Maximum Threads"), ref MaximumThreads, 0, Environment.ProcessorCount))
                 {
                     P.Config.Save();
                 }
-                ImGuiEx.TextWrapped("By default uses all it can, but on lower end machines you might need to use less cpu at the cost of speed. (0 = everything)");
+                ImGuiEx.TextWrapped(L10n.Tr("By default uses all it can, but on lower end machines you might need to use less cpu at the cost of speed. (0 = everything)"));
 
-                changed |= ImGui.Checkbox("Ensure 100% reliability in macro generation", ref AllowEnsureReliability);
+                changed |= ImGui.Checkbox(L10n.Tr("Ensure 100% reliability in macro generation"), ref AllowEnsureReliability);
                 ImGui.PushTextWrapPos(0);
-                ImGui.TextColored(new System.Numerics.Vector4(255, 0, 0, 1), "Ensuring reliability may not always work and is very CPU and RAM intensive, suggested RAM at least 16GB+ spare. NO SUPPORT SHALL BE GIVEN IF YOU HAVE THIS ON");
+                ImGui.TextColored(new System.Numerics.Vector4(255, 0, 0, 1), L10n.Tr("Ensuring reliability may not always work and is very CPU and RAM intensive, suggested RAM at least 16GB+ spare. NO SUPPORT SHALL BE GIVEN IF YOU HAVE THIS ON"));
                 ImGui.PopTextWrapPos();
-                changed |= ImGui.Checkbox("Allow backloading of progress in macro generation", ref AllowBackloadProgress);
-                changed |= ImGui.Checkbox("Show specialist options when available", ref ShowSpecialistSettings);
-                changed |= ImGui.Checkbox($"Automatically generate a solution if a valid one hasn't been created.", ref AutoGenerate);
+                changed |= ImGui.Checkbox(L10n.Tr("Allow backloading of progress in macro generation"), ref AllowBackloadProgress);
+                changed |= ImGui.Checkbox(L10n.Tr("Show specialist options when available"), ref ShowSpecialistSettings);
+                changed |= ImGui.Checkbox(L10n.Tr("Automatically generate a solution if a valid one hasn't been created."), ref AutoGenerate);
 
                 if (AutoGenerate)
                 {
                     ImGui.Indent();
-                    changed |= ImGui.Checkbox($"Generate on Expert Recipes", ref GenerateOnExperts);
+                    changed |= ImGui.Checkbox(L10n.Tr("Generate on Expert Recipes"), ref GenerateOnExperts);
                     ImGui.Unindent();
                 }
 
-                changed |= ImGui.Checkbox($"Automatically switch to the Raphael Solver once a solution has been created.", ref AutoSwitch);
+                changed |= ImGui.Checkbox(L10n.Tr("Automatically switch to the Raphael Solver once a solution has been created."), ref AutoSwitch);
 
                 if (AutoSwitch)
                 {
                     ImGui.Indent();
-                    changed |= ImGui.Checkbox($"Apply to all valid crafts", ref AutoSwitchOnAll);
-                    changed |= ImGui.Checkbox("Apply over crafts that already have a macro assigned to them", ref AutoSwitchOverManual);
+                    changed |= ImGui.Checkbox(L10n.Tr("Apply to all valid crafts"), ref AutoSwitchOnAll);
+                    changed |= ImGui.Checkbox(L10n.Tr("Apply over crafts that already have a macro assigned to them"), ref AutoSwitchOverManual);
                     ImGui.Unindent();
                 }
 
-                changed |= ImGui.SliderInt("Max Stellar Steady Hand usage", ref MaxStellarHand, 0, 2);
+                changed |= ImGui.SliderInt(L10n.Tr("Maximum usage of {0}", Skills.SteadyHand.NameOfAction()), ref MaxStellarHand, 0, 2);
 
-                ImGuiComponents.HelpMarker("This is only for missions that have Stellar Steady Hand, will limit how many are allowed per macro (Raphael may still use less in its solutions).");
+                ImGuiComponents.HelpMarker(L10n.Tr("Only affects missions with {0}; this limits how many times it is allowed per macro (Raphael may still use less in its solutions).", Skills.SteadyHand.NameOfAction()));
 
-                changed |= ImGui.SliderInt("Timeout solution generation", ref TimeOutMins, 1, 15);
+                changed |= ImGui.SliderInt(L10n.Tr("Timeout solution generation"), ref TimeOutMins, 1, 15);
 
-                ImGuiComponents.HelpMarker($"If a solution takes longer than this many minutes to generate, it will cancel the generation task.");
+                ImGuiComponents.HelpMarker(L10n.Tr("If a solution takes longer than this many minutes to generate, it will cancel the generation task."));
 
-                if (ImGui.Button($"Clear raphael macro cache (Currently {P.Config.RaphaelSolverCacheV5.Count} stored)"))
+                if (ImGui.Button(L10n.Tr("Clear Raphael macro cache (Currently {0} stored)", P.Config.RaphaelSolverCacheV5.Count)))
                 {
                     P.Config.RaphaelSolverCacheV5.Clear();
                     changed |= true;

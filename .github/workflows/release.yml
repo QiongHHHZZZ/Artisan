@@ -1,0 +1,63 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+          $paths = @(
+            "$env:AppData\XIVLauncher\addon\Hooks\dev",
+            "$env:AppData\XIVLauncherCN\addon\Hooks\dev"
+          )
+          foreach ($path in $paths) {
+            New-Item -ItemType Directory -Force -Path $path | Out-Null
+            Expand-Archive -Force latest.zip $path
+            Write-Host "Dalamud extracted to: $path"
+          }
+          Remove-Item latest.zip -Force
+
+      - name: Build Release
+        shell: pwsh
+        run: dotnet build Artisan/Artisan.csproj -c Release -v minimal
+
+      - name: Ensure artifact exists
+        shell: pwsh
+        run: |
+          $source = 'Artisan/bin/Release/Artisan/latest.zip'
+          $target = 'Artisan/bin/Release/Artisan/Artisan.zip'
+          if (!(Test-Path $source)) {
+            throw "未找到构建产物: $source"
+          }
+          Copy-Item $source $target -Force
+          Get-Item $target | Format-List FullName, Length, LastWriteTime
+
+      - name: Upload Artisan.zip to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Artisan/bin/Release/Artisan/Artisan.zip
+          name: ${{ github.ref_name }}
+          fail_on_unmatched_files: true
+          append_body: true
+          overwrite_files: true

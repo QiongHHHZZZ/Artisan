@@ -79,7 +79,7 @@ public class ScriptSolverCompiler : IDisposable
             }
             catch (Exception ex)
             {
-                DuoLog.Error($"Failed to compile {script.SourcePath}, see log for details.");
+                DuoLog.Error(global::Artisan.UI.L10n.Tr("Failed to compile {0}, see log for details.", script.SourcePath));
                 Svc.Log.Error(ex, $"[ArtisanScript] Error compiling {script.SourcePath}");
                 script.UpdateCompilation(ScriptSolverSettings.CompilationState.Failed, diagnostics, null);
             }
@@ -162,3 +162,4 @@ public class ScriptSolverCompiler : IDisposable
         }
     }
 }
+

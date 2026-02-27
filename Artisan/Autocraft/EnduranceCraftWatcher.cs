@@ -44,8 +44,9 @@ namespace Artisan.Autocraft
                                     return;
                             }
                             Endurance.ToggleEndurance(false);
-                            Svc.Toasts.ShowError("You crafted a non-HQ item. Disabling Endurance.");
-                            DuoLog.Error("You crafted a non-HQ item. Disabling Endurance.");
+                            var msg = global::Artisan.UI.L10n.Tr("You crafted a non-HQ item. Disabling Endurance.");
+                            Svc.Toasts.ShowError(msg);
+                            DuoLog.Error(msg);
                         }
                     }
                 }
@@ -82,14 +83,16 @@ namespace Artisan.Autocraft
                 if (cancelled)
                 {
                     Endurance.ToggleEndurance(false);
-                    Svc.Toasts.ShowError("You've cancelled a craft. Disabling Endurance.");
-                    DuoLog.Error("You've cancelled a craft. Disabling Endurance.");
+                    var msg = global::Artisan.UI.L10n.Tr("You've cancelled a craft. Disabling Endurance.");
+                    Svc.Toasts.ShowError(msg);
+                    DuoLog.Error(msg);
                 }
                 else if (finalStep.Progress < craft.CraftProgress && P.Config.EnduranceStopFail)
                 {
                     Endurance.ToggleEndurance(false);
-                    Svc.Toasts.ShowError("You failed a craft. Disabling Endurance.");
-                    DuoLog.Error("You failed a craft. Disabling Endurance.");
+                    var msg = global::Artisan.UI.L10n.Tr("You failed a craft. Disabling Endurance.");
+                    Svc.Toasts.ShowError(msg);
+                    DuoLog.Error(msg);
                 }
                 else if (P.Config.CraftingX && P.Config.CraftX > 0)
                 {
@@ -122,3 +125,4 @@ namespace Artisan.Autocraft
         }
     }
 }
+

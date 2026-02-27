@@ -28,6 +28,9 @@ namespace Artisan.GameInterop;
 // manages 'outer loop' of crafting (equipping correct items, using consumables, etc, and finally initiating crafting)
 public unsafe static class PreCrafting
 {
+    private static string T(string key) => global::Artisan.UI.L10n.Tr(key);
+    private static string T(string key, params object[] args) => global::Artisan.UI.L10n.Tr(key, args);
+
     public enum CraftType { Normal, Quick, Trial }
 
     public static int equipAttemptLoops = 0;
@@ -146,13 +149,13 @@ public unsafe static class PreCrafting
             // handle errors when we're forbidden from rectifying them automatically
             if (P.Config.DontEquipItems && needClassChange)
             {
-                DuoLog.Error($"Can't craft {recipe.ItemResult.Value.Name.ToDalamudString()}: wrong class, {requiredClass} needed");
+                DuoLog.Error(T("Can't craft {0}: wrong class, {1} needed", recipe.ItemResult.Value.Name.ToDalamudString(), requiredClass));
                 PauseOrDisableModes();
                 return;
             }
             if (P.Config.DontEquipItems && needEquipItem)
             {
-                DuoLog.Error($"Can't craft {recipe.ItemResult.Value.Name.ToDalamudString()}: required item {recipe.ItemRequired.Value.Name} not equipped");
+                DuoLog.Error(T("Can't craft {0}: required item {1} not equipped", recipe.ItemResult.Value.Name.ToDalamudString(), recipe.ItemRequired.Value.Name));
                 PauseOrDisableModes();
                 return;
             }
@@ -180,7 +183,7 @@ public unsafe static class PreCrafting
             {
                 List<string> missingIngredients = MissingIngredients(recipe);
 
-                DuoLog.Error($"Not all ingredients for {recipe.ItemResult.Value.Name.ToDalamudString()} found.\r\nMissing: {string.Join(", ", missingIngredients)}");
+                DuoLog.Error(T("Not all ingredients for {0} found.\r\nMissing: {1}", recipe.ItemResult.Value.Name.ToDalamudString(), string.Join(", ", missingIngredients)));
                 return;
             }
 
@@ -228,7 +231,7 @@ public unsafe static class PreCrafting
     {
         List<string> missingConsumables = MissingConsumables(config);
 
-        DuoLog.Error($"Can't craft {recipe.ItemResult.Value.Name.ToDalamudString()}: required consumables not up and missing {string.Join(", ", missingConsumables)}");
+        DuoLog.Error(T("Can't craft {0}: required consumables not up and missing {1}", recipe.ItemResult.Value.Name.ToDalamudString(), string.Join(", ", missingConsumables)));
     }
 
     internal static bool NeedsConsumablesCheck(CraftType type, RecipeConfig? config, Recipe recipe)
@@ -348,7 +351,7 @@ public unsafe static class PreCrafting
 
         if (equipGearsetLoops >= 5)
         {
-            DuoLog.Error("Unable to switch gearsets.");
+            DuoLog.Error(T("Unable to switch gearsets."));
             return TaskResult.Abort;
         }
 
@@ -381,7 +384,7 @@ public unsafe static class PreCrafting
             }
         }
 
-        DuoLog.Error($"Failed to find gearset for {job}");
+        DuoLog.Error(T("Failed to find gearset for {0}", job));
         return TaskResult.Abort;
     }
 
@@ -394,7 +397,7 @@ public unsafe static class PreCrafting
         var pos = FindItemInInventory(ItemId, [InventoryType.Inventory1, InventoryType.Inventory2, InventoryType.Inventory3, InventoryType.Inventory4, InventoryType.ArmoryMainHand, InventoryType.ArmoryHands]);
         if (pos == null)
         {
-            DuoLog.Error($"Failed to find item {itemSheet.Name} (ID: {ItemId}) in inventory");
+            DuoLog.Error(T("Failed to find item {0} (ID: {1}) in inventory", itemSheet.Name, ItemId));
             Endurance.ToggleEndurance(false);
             if (CraftingListUI.Processing)
                 CraftingListFunctions.Paused = true;
@@ -596,6 +599,7 @@ public unsafe static class PreCrafting
         if (recipe != null)
             StartCrafting(recipe.Value, eventParam is 14 ? CraftType.Normal : eventParam is 15 ? CraftType.Quick : CraftType.Trial);
         else
-            DuoLog.Error($"Somehow recipe is null. Please report this on the Discord.");
+            DuoLog.Error(T("Somehow recipe is null. Please report this on the Discord."));
     }
 }
+

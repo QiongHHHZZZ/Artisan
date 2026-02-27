@@ -19,6 +19,9 @@ namespace Artisan.UI
 {
     internal static class MacroUI
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         private static string _newMacroName = string.Empty;
         private static bool _keyboardFocus;
         private const string MacroNamePopupLabel = "Macro Name";
@@ -45,19 +48,19 @@ namespace Artisan.UI
         {
             try
             {
-                ImGui.TextWrapped("This tab will allow you to add macros that Artisan can use instead of its own decisions. Once you create a new macro, click on it from the list below to open up the macro editor window for your macro.");
+                ImGui.TextWrapped(T("This tab will allow you to add macros that Artisan can use instead of its own decisions. Once you create a new macro, click on it from the list below to open up the macro editor window for your macro."));
                 ImGui.Separator();
 
                 if (Svc.ClientState.IsLoggedIn && Crafting.CurState is not Crafting.State.IdleNormal and not Crafting.State.IdleBetween)
                 {
-                    ImGui.Text($"Crafting in progress. Macro settings will be unavailable until you stop crafting.");
+                    ImGui.Text(T("Crafting in progress. Macro settings will be unavailable until you stop crafting."));
                     return;
                 }
                 ImGui.Spacing();
-                if (ImGui.Button("Import Macro From Clipboard"))
+                if (ImGui.Button(T("Import Macro From Clipboard")))
                     OpenMacroNamePopup(MacroNameUse.FromClipboard);
 
-                if (ImGui.Button("Import Macro From Clipboard (Artisan Export)"))
+                if (ImGui.Button(T("Import Macro From Clipboard (Artisan Export)")))
                 {
                     try
                     {
@@ -71,11 +74,11 @@ namespace Artisan.UI
                     catch (Exception ex)
                     {
                         ex.Log();
-                        Notify.Error("Unable to import.");
+                        Notify.Error(T("Unable to import."));
                     }
                 }
 
-                if (ImGui.Button("New Macro"))
+                if (ImGui.Button(T("New Macro")))
                     OpenMacroNamePopup(MacroNameUse.NewMacro);
 
                 DrawMacroNamePopup(MacroNameUse.FromClipboard);
@@ -84,14 +87,14 @@ namespace Artisan.UI
                 if (P.Config.MacroSolverConfig.Macros.Count > 0)
                 {
                     if (P.Config.MacroSolverConfig.Macros.Count > 1)
-                        ImGui.Checkbox("Reorder Mode (Click and Drag to Reorder)", ref reorderMode);
+                        ImGui.Checkbox(T("Reorder Mode (Click and Drag to Reorder)"), ref reorderMode);
                     else
                         reorderMode = false;
 
                     if (reorderMode)
-                        ImGuiEx.CenterColumnText("Reorder Mode");
+                        ImGuiEx.CenterColumnText(T("Reorder Mode"));
                     else
-                        ImGuiEx.CenterColumnText("Macro Editor Select");
+                        ImGuiEx.CenterColumnText(T("Macro Editor Select"));
 
                     if (ImGui.BeginChild("##selector", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y), true))
                     {
@@ -99,7 +102,7 @@ namespace Artisan.UI
                         {
                             var m = P.Config.MacroSolverConfig.Macros[i];
                             int cpCost = GetCPCost(m);
-                            var selected = ImGui.Selectable($"{m.Name} (CP Cost: {cpCost}) (ID: {m.ID})###{m.ID}");
+                            var selected = ImGui.Selectable($"{T("{0} (CP Cost: {1}) (ID: {2})", m.Name, cpCost, m.ID)}###{m.ID}");
 
                             if (ImGui.IsItemActive() && !ImGui.IsItemHovered() && reorderMode)
                             {
@@ -208,7 +211,7 @@ namespace Artisan.UI
                     _keyboardFocus = false;
                 }
 
-                if (ImGui.InputText("Macro Name##macroName", ref _newMacroName, 64, ImGuiInputTextFlags.EnterReturnsTrue) && _newMacroName.Any())
+                if (ImGui.InputText($"{T("Macro Name")}##macroName", ref _newMacroName, 64, ImGuiInputTextFlags.EnterReturnsTrue) && _newMacroName.Any())
                 {
                     switch (use)
                     {
@@ -230,11 +233,11 @@ namespace Artisan.UI
                                     macro.Steps = steps;
                                     P.Config.MacroSolverConfig.AddNewMacro(macro);
                                     P.Config.Save();
-                                    DuoLog.Information($"{macro.Name} has been saved.");
+                                    DuoLog.Information(T("{0} has been saved.", macro.Name));
                                 }
                                 else
                                 {
-                                    DuoLog.Error("Unable to parse clipboard. Please check your clipboard contains a working macro with actions.");
+                                    DuoLog.Error(T("Unable to parse clipboard. Please check your clipboard contains a working macro with actions."));
                                 }
                             }
                             catch (Exception e)
@@ -286,9 +289,9 @@ namespace Artisan.UI
                     action = action.Replace("\"", "");
                     if (string.IsNullOrEmpty(action)) continue;
 
-                    if (action.Equals("Artisan Recommendation", StringComparison.CurrentCultureIgnoreCase) || action.Equals("*"))
+                    if (TryParseMacroAlias(action, out var aliasAction))
                     {
-                        res.Add(new() { Action = Skills.None });
+                        res.Add(new() { Action = aliasAction });
                         continue;
                     }
 
@@ -298,7 +301,7 @@ namespace Artisan.UI
                         act = Enum.GetValues(typeof(Skills)).Cast<Skills>().FirstOrDefault(s => s.NameOfAction(raphParseEN).Replace(" ", "").Replace("'", "").Equals(action, StringComparison.CurrentCultureIgnoreCase));
                         if (act == default)
                         {
-                            DuoLog.Error($"Unable to parse action: {action}");
+                            DuoLog.Error(T("Unable to parse action: {0}", action));
                             continue;
                         }
                     }
@@ -307,6 +310,39 @@ namespace Artisan.UI
             }
             return res;
         }
+
+        private static bool TryParseMacroAlias(string action, out Skills skill)
+        {
+            if (action.Equals("*", StringComparison.Ordinal))
+            {
+                skill = Skills.None;
+                return true;
+            }
+
+            if (IsAlias(action, "Artisan Recommendation", "Artisan 推荐", "自动推荐动作", L10n.Tr("Artisan Recommendation")))
+            {
+                skill = Skills.None;
+                return true;
+            }
+
+            if (IsAlias(action, "Touch Combo", "Touch 连段", "加工连段", L10n.Tr("Touch Combo")))
+            {
+                skill = Skills.TouchCombo;
+                return true;
+            }
+
+            if (IsAlias(action, "Touch Combo (Refined Touch Route)", "Touch 连段（Refined Touch 路线）", "加工连段（精修路线）", L10n.Tr("Touch Combo (Refined Touch Route)")))
+            {
+                skill = Skills.TouchComboRefined;
+                return true;
+            }
+
+            skill = default;
+            return false;
+        }
+
+        private static bool IsAlias(string action, params string[] aliases)
+            => aliases.Any(alias => action.Equals(alias, StringComparison.CurrentCultureIgnoreCase));
 
         private static void OpenMacroNamePopup(MacroNameUse use)
         {

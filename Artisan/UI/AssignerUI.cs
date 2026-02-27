@@ -15,6 +15,8 @@ namespace Artisan.UI
 {
     internal class AssignerUI
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
 
         private static RecipeConfig DummyConfig = new();
         private static int quickAssignLevel = 1;
@@ -38,7 +40,7 @@ namespace Artisan.UI
         {
             try
             {
-                ImGuiEx.TextWrapped($"This tab allows you to quickly assign solvers and consumables to recipes based on recipe criteria.");
+                ImGuiEx.TextWrapped(T("This tab allows you to quickly assign solvers and consumables to recipes based on recipe criteria."));
                 ImGui.Separator();
                 ImGui.Spacing();
                 DrawCriteria();
@@ -49,7 +51,7 @@ namespace Artisan.UI
 
         private static void DrawCriteria()
         {
-            ImGuiEx.TextCentered($"Criteria");
+            ImGuiEx.TextCentered(T("Criteria"));
             DrawAssignOptions();
         }
 
@@ -70,8 +72,8 @@ namespace Artisan.UI
             DummyConfig.DrawSquadronManual();
             DummyConfig.DrawSolver(c, false, false);
 
-            ImGui.Checkbox("Show which crafts have been assigned as a notification", ref Notification);
-            if (ImGui.Button("Assign To All", new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
+            ImGui.Checkbox(T("Show which crafts have been assigned as a notification"), ref Notification);
+            if (ImGui.Button(T("Assign To All"), new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
             {
                 foreach (var rec in filteredRecipes)
                 {
@@ -87,7 +89,7 @@ namespace Artisan.UI
                     };
                     if (Notification)
                     {
-                        P.TM.Enqueue(() => Notify.Success($"Assigned {rec.CraftType.Value.Name} - {rec.ItemResult.Value.Name}"));
+                        P.TM.Enqueue(() => Notify.Success(T("Assigned {0} - {1}", rec.CraftType.Value.Name, rec.ItemResult.Value.Name)));
                         P.TM.DelayNext(75);
                     }
                 }
@@ -152,14 +154,26 @@ namespace Artisan.UI
 
                 ImGuiEx.Text($"{LuminaSheets.AddonSheet[5400].Text}");
                 ImGui.SameLine(100f.Scale());
-                if (ImGui.BeginListBox($"###AssignJobBox", new Vector2(0, 55f.Scale())))
+                const int jobColumns = 4;
+                const int jobCount = 8; // CRP..CUL
+                var jobRows = (int)Math.Ceiling(jobCount / (float)jobColumns);
+                var jobListHeight = ImGui.GetFrameHeightWithSpacing() * jobRows + ImGui.GetStyle().FramePadding.Y * 2 + ImGui.GetStyle().ItemSpacing.Y;
+
+                if (ImGui.BeginListBox($"###AssignJobBox", new Vector2(0, jobListHeight)))
                 {
-                    ImGui.Columns(4, border:false);
+                    ImGui.Columns(jobColumns, border:false);
+                    var borderColor = ImGui.GetStyle().Colors[(int)ImGuiCol.Border];
+                    borderColor.W = Math.Max(borderColor.W, 0.85f);
+                    ImGui.PushStyleColor(ImGuiCol.Border, borderColor);
+                    ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 1f);
                     for (var job = Job.CRP; job <= Job.CUL; ++job)
                     {
-                        ImGui.Checkbox(job.ToString(), ref quickAssignJobs[job - Job.CRP]);
+                        var jobName = LuminaSheets.ClassJobSheet[(uint)job].Name.ToString();
+                        ImGui.Checkbox($"{jobName}##AssignJob{(int)job}", ref quickAssignJobs[job - Job.CRP]);
                         ImGui.NextColumn();
                     }
+                    ImGui.PopStyleVar();
+                    ImGui.PopStyleColor();
                     ImGui.EndListBox();
                 }
                 filteredRecipes = filteredRecipes.Where(x => quickAssignJobs[x.CraftType.RowId]);

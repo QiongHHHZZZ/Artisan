@@ -6,13 +6,13 @@ using Artisan.RawInformation.Character;
 using Artisan.UI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
+using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.Sheets;
 using System;
-using System.Diagnostics.Tracing;
 using System.Linq;
 
 namespace Artisan.CraftingLogic;
@@ -20,6 +20,9 @@ namespace Artisan.CraftingLogic;
 [Serializable]
 public class RecipeConfig
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     public const uint Default = 0;
     public const uint Disabled = 1;
 
@@ -38,7 +41,7 @@ public class RecipeConfig
             foreach (var def in CraftingProcessor.GetSolverDefinitions())
             {
                 if (def.Def.GetType().FullName == CurrentSolverType && def.Flavour == CurrentSolverFlavour)
-                    return def.Name;
+                    return T(def.Name);
             }
             return "";
         }
@@ -81,12 +84,39 @@ public class RecipeConfig
     public bool RequiredPotionHQ => TempRequiredPotion != 0 ? TempPotionHQ : (requiredPotion == Default ? P.Config.DefaultConsumables.requiredPotionHQ : requiredPotionHQ);
 
 
-    public string FoodName => requiredFood == Default && TempRequiredFood == 0 ? $"{P.Config.DefaultConsumables.FoodName} (Default)" : RequiredFood == Disabled ? "Disabled" : $"{(RequiredFoodHQ ? " " : "")}{ConsumableChecker.Food.FirstOrDefault(x => x.Id == RequiredFood).Name} (Qty: {ConsumableChecker.NumberOfConsumable(RequiredFood, RequiredFoodHQ)})";
-    public string PotionName => requiredPotion == Default && TempRequiredPotion == 0 ? $"{P.Config.DefaultConsumables.PotionName} (Default)" : RequiredPotion == Disabled ? "Disabled" : $"{(RequiredPotionHQ ? " " : "")}{ConsumableChecker.Pots.FirstOrDefault(x => x.Id == RequiredPotion).Name} (Qty: {ConsumableChecker.NumberOfConsumable(RequiredPotion, RequiredPotionHQ)})";
-    public string ManualName => requiredManual == Default && TempRequiredManual == 0 ? $"{P.Config.DefaultConsumables.ManualName} (Default)" : RequiredManual == Disabled ? "Disabled" : $"{ConsumableChecker.Manuals.FirstOrDefault(x => x.Id == RequiredManual).Name} (Qty: {ConsumableChecker.NumberOfConsumable(RequiredManual, false)})";
-    public string SquadronManualName => requiredSquadronManual == Default && TempRequiredSquadronManual == 0 ? $"{P.Config.DefaultConsumables.SquadronManualName} (Default)" : RequiredSquadronManual == Disabled  ? "Disabled" : $"{ConsumableChecker.SquadronManuals.FirstOrDefault(x => x.Id == RequiredSquadronManual).Name} (Qty: {ConsumableChecker.NumberOfConsumable(RequiredSquadronManual, false)})";
+    public string FoodName => requiredFood == Default && TempRequiredFood == 0
+        ? T("{0} (Default)", P.Config.DefaultConsumables.FoodName)
+        : RequiredFood == Disabled
+            ? T("Disabled")
+            : $"{(RequiredFoodHQ ? " " : "")}{ConsumableChecker.Food.FirstOrDefault(x => x.Id == RequiredFood).Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(RequiredFood, RequiredFoodHQ))}";
+    public string PotionName => requiredPotion == Default && TempRequiredPotion == 0
+        ? T("{0} (Default)", P.Config.DefaultConsumables.PotionName)
+        : RequiredPotion == Disabled
+            ? T("Disabled")
+            : $"{(RequiredPotionHQ ? " " : "")}{ConsumableChecker.Pots.FirstOrDefault(x => x.Id == RequiredPotion).Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(RequiredPotion, RequiredPotionHQ))}";
+    public string ManualName => requiredManual == Default && TempRequiredManual == 0
+        ? T("{0} (Default)", P.Config.DefaultConsumables.ManualName)
+        : RequiredManual == Disabled
+            ? T("Disabled")
+            : $"{ConsumableChecker.Manuals.FirstOrDefault(x => x.Id == RequiredManual).Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(RequiredManual, false))}";
+    public string SquadronManualName => requiredSquadronManual == Default && TempRequiredSquadronManual == 0
+        ? T("{0} (Default)", P.Config.DefaultConsumables.SquadronManualName)
+        : RequiredSquadronManual == Disabled
+            ? T("Disabled")
+            : $"{ConsumableChecker.SquadronManuals.FirstOrDefault(x => x.Id == RequiredSquadronManual).Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(RequiredSquadronManual, false))}";
 
-    public float LargestName => (Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f);
+    public float GetLargestName()
+    {
+        try
+        {
+            return Math.Max(Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X), ImGui.CalcTextSize(CurrentSolverName).X) + 32f;
+        }
+        catch (Exception ex)
+        {
+            ex.Log();
+            return 0;
+        }
+    }
 
     public bool SolverIsRaph => CurrentSolverType == typeof(RaphaelSolverDefintion).FullName!;
     public bool SolverIsStandard => CurrentSolverType == typeof(StandardSolverDefinition).FullName!;
@@ -115,22 +145,22 @@ public class RecipeConfig
     public bool DrawFood(bool hasButton = false)
     {
         bool changed = false;
-        ImGuiEx.TextV("Food Usage:");
+        ImGuiEx.TextV(T("Food Usage:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##foodBuff", FoodName))
         {
             if (this != P.Config.DefaultConsumables)
             {
-                if (ImGui.Selectable($"{P.Config.DefaultConsumables.FoodName} (Default)"))
+                if (ImGui.Selectable(T("{0} (Default)", P.Config.DefaultConsumables.FoodName)))
                 {
                     requiredFood = Default;
                     requiredFoodHQ = false;
                     changed = true;
                 }
             }
-            if (ImGui.Selectable("Disable"))
+            if (ImGui.Selectable(T("Disable")))
             {
                 requiredFood = Disabled;
                 requiredFoodHQ = false;
@@ -138,7 +168,7 @@ public class RecipeConfig
             }
             foreach (var x in ConsumableChecker.GetFood(true))
             {
-                if (ImGui.Selectable($"{x.Name} (Qty: {ConsumableChecker.NumberOfConsumable(x.Id, false)})"))
+                if (ImGui.Selectable($"{x.Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(x.Id, false))}"))
                 {
                     requiredFood = x.Id;
                     requiredFoodHQ = false;
@@ -147,7 +177,7 @@ public class RecipeConfig
             }
             foreach (var x in ConsumableChecker.GetFood(true, true))
             {
-                if (ImGui.Selectable($" {x.Name} (Qty: {ConsumableChecker.NumberOfConsumable(x.Id, true)})"))
+                if (ImGui.Selectable($" {x.Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(x.Id, true))}"))
                 {
                     requiredFood = x.Id;
                     requiredFoodHQ = true;
@@ -162,22 +192,22 @@ public class RecipeConfig
     public bool DrawPotion(bool hasButton = false)
     {
         bool changed = false;
-        ImGuiEx.TextV("Medicine Usage:");
+        ImGuiEx.TextV(T("Medicine Usage:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##potBuff", PotionName))
         {
             if (this != P.Config.DefaultConsumables)
             {
-                if (ImGui.Selectable($"{P.Config.DefaultConsumables.PotionName} (Default)"))
+                if (ImGui.Selectable(T("{0} (Default)", P.Config.DefaultConsumables.PotionName)))
                 {
                     requiredPotion = Default;
                     requiredPotionHQ = false;
                     changed = true;
                 }
             }
-            if (ImGui.Selectable("Disable"))
+            if (ImGui.Selectable(T("Disable")))
             {
                 requiredPotion = Disabled;
                 requiredPotionHQ = false;
@@ -185,7 +215,7 @@ public class RecipeConfig
             }
             foreach (var x in ConsumableChecker.GetPots(true))
             {
-                if (ImGui.Selectable($"{x.Name} (Qty: {ConsumableChecker.NumberOfConsumable(x.Id, false)})"))
+                if (ImGui.Selectable($"{x.Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(x.Id, false))}"))
                 {
                     requiredPotion = x.Id;
                     requiredPotionHQ = false;
@@ -194,7 +224,7 @@ public class RecipeConfig
             }
             foreach (var x in ConsumableChecker.GetPots(true, true))
             {
-                if (ImGui.Selectable($" {x.Name} (Qty: {ConsumableChecker.NumberOfConsumable(x.Id, true)})"))
+                if (ImGui.Selectable($" {x.Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(x.Id, true))}"))
                 {
                     requiredPotion = x.Id;
                     requiredPotionHQ = true;
@@ -209,28 +239,28 @@ public class RecipeConfig
     public bool DrawManual(bool hasButton = false)
     {
         bool changed = false;
-        ImGuiEx.TextV("Manual Usage:");
+        ImGuiEx.TextV(T("Manual Usage:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##manualBuff", ManualName))
         {
             if (this != P.Config.DefaultConsumables)
             {
-                if (ImGui.Selectable($"{P.Config.DefaultConsumables.ManualName} (Default)"))
+                if (ImGui.Selectable(T("{0} (Default)", P.Config.DefaultConsumables.ManualName)))
                 {
                     requiredManual = Default;
                     changed = true;
                 }
             }
-            if (ImGui.Selectable("Disable"))
+            if (ImGui.Selectable(T("Disable")))
             {
                 requiredManual = Disabled;
                 changed = true;
             }
             foreach (var x in ConsumableChecker.GetManuals(true))
             {
-                if (ImGui.Selectable($"{x.Name} (Qty: {ConsumableChecker.NumberOfConsumable(x.Id, false)})"))
+                if (ImGui.Selectable($"{x.Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(x.Id, false))}"))
                 {
                     requiredManual = x.Id;
                     changed = true;
@@ -246,28 +276,28 @@ public class RecipeConfig
     public bool DrawSquadronManual(bool hasButton = false)
     {
         bool changed = false;
-        ImGuiEx.TextV("Squadron Manual:");
+        ImGuiEx.TextV(T("Squadron Manual:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(LargestName);
+        else ImGui.PushItemWidth(GetLargestName());
         if (ImGui.BeginCombo("##squadronManualBuff", SquadronManualName))
         {
             if (this != P.Config.DefaultConsumables)
             {
-                if (ImGui.Selectable($"{P.Config.DefaultConsumables.SquadronManualName} (Default)"))
+                if (ImGui.Selectable(T("{0} (Default)", P.Config.DefaultConsumables.SquadronManualName)))
                 {
                     requiredSquadronManual = Default;
                     changed = true;
                 }
             }
-            if (ImGui.Selectable("Disable"))
+            if (ImGui.Selectable(T("Disable")))
             {
                 requiredSquadronManual = Disabled;
                 changed = true;
             }
             foreach (var x in ConsumableChecker.GetSquadronManuals(true))
             {
-                if (ImGui.Selectable($"{x.Name} (Qty: {ConsumableChecker.NumberOfConsumable(x.Id, false)})"))
+                if (ImGui.Selectable($"{x.Name} {T("(Qty: {0})", ConsumableChecker.NumberOfConsumable(x.Id, false))}"))
                 {
                     requiredSquadronManual = x.Id;
                     changed = true;
@@ -284,25 +314,25 @@ public class RecipeConfig
         var solver = CraftingProcessor.GetSolverForRecipe(this, craft);
         if (string.IsNullOrEmpty(solver.Name))
         {
-            ImGuiEx.Text(ImGuiColors.DalamudRed, "Unable to select default solver. Please select from dropdown.");
+            ImGuiEx.Text(ImGuiColors.DalamudRed, T("Unable to select default solver. Please select from dropdown."));
         }
-        ImGuiEx.TextV($"Solver:");
+        ImGuiEx.TextV(T("Solver:"));
         ImGui.SameLine(130f.Scale());
         if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
 
-        if (ImGui.BeginCombo("##solver", solver.Name))
+        if (ImGui.BeginCombo("##solver", T(solver.Name)))
         {
             foreach (var opt in CraftingProcessor.GetAvailableSolversForRecipe(craft, true).OrderByDescending(x => x.Priority))
             {
                 if (opt == default) continue;
                 if (opt.UnsupportedReason.Length > 0)
                 {
-                    ImGui.Text($"{opt.Name} is unsupported - {opt.UnsupportedReason}");
+                    ImGui.Text(T("{0} is unsupported - {1}", T(opt.Name), T(opt.UnsupportedReason)));
                 }
                 else
                 {
                     bool selected = opt.Name == solver.Name;
-                    if (ImGui.Selectable(opt.Name, selected))
+                    if (ImGui.Selectable(T(opt.Name), selected))
                     {
                         IPC.IPC.SetTempSolverBackToNormal(craft.RecipeId);
                         SolverType = opt.Def.GetType().FullName!;
@@ -317,15 +347,15 @@ public class RecipeConfig
 
         if (!Crafting.EnoughDelinsForCraft(this, craft, out var req))
         {
-            ImGuiEx.TextCentered(ImGuiColors.DalamudRed, $"You do not have enough {Svc.Data.GetExcelSheet<Item>().GetRow(28724).Name} for this solver ({req} required).");
+            ImGuiEx.TextCentered(ImGuiColors.DalamudRed, T("You do not have enough {0} for this solver ({1} required).", Svc.Data.GetExcelSheet<Item>().GetRow(28724).Name, req));
             if (this.CurrentSolverType.Contains("Raphael"))
             {
-                ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, $"An alternative solution will be used/generated when you start crafting.");
+                ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, T("An alternative solution will be used/generated when you start crafting."));
             }
         }
 
         if (ConsumableChecker.SkippingConsumablesByConfig(craft.Recipe))
-            ImGuiEx.Text(ImGuiColors.DalamudRed, "Consumables will not be used due to level difference setting.");
+            ImGuiEx.Text(ImGuiColors.DalamudRed, T("Consumables will not be used due to level difference setting."));
 
         if (!hasButton)
             RaphaelCache.DrawRaphaelDropdown(craft, liveStats);
@@ -346,15 +376,15 @@ public class RecipeConfig
             if (solver.Name != "Expert Recipe Solver")
             {
                 if (craft.MissionHasMaterialMiracle && solver.Name == "Standard Recipe Solver" && P.Config.UseMaterialMiracle)
-                    ImGuiEx.TextCentered($"This would use Material Miracle, which is not compatible with the simulator.");
+                    ImGuiEx.TextCentered(T("This would use Material Miracle, which is not compatible with the simulator."));
                 else
                     if (solver.Name == "Raphael Recipe Solver" && !RaphaelCache.HasSolution(craft, out _))
-                        ImGuiEx.TextCentered($"Unable to generate a simulator without a Raphael solution generated.");
+                        ImGuiEx.TextCentered(T("Unable to generate a simulator without a Raphael solution generated."));
                     else
                         ImGuiEx.TextCentered(hintColor, solverHint);
             }
             else
-                ImGuiEx.TextCentered($"Please run this recipe in the simulator for results.");
+                ImGuiEx.TextCentered(T("Please run this recipe in the simulator for results."));
 
             if (ImGui.IsItemClicked())
             {
@@ -397,7 +427,7 @@ public class RecipeConfig
 
             if (ImGui.IsItemHovered())
             {
-                ImGuiEx.Tooltip($"Click to open in simulator");
+                ImGuiEx.Tooltip(T("Click to open in simulator"));
             }
 
 

@@ -23,7 +23,14 @@ namespace Artisan.RawInformation
             try
             {
                 var v = Svc.PluginInterface.GetDalamudVersion();
-                if (v.BetaTrack.Equals("release", StringComparison.CurrentCultureIgnoreCase))
+                if (string.IsNullOrWhiteSpace(v?.BetaTrack))
+                {
+                    StagingChecked = true;
+                    IsStaging = false;
+                    return false;
+                }
+
+                if (string.Equals(v.BetaTrack, "release", StringComparison.CurrentCultureIgnoreCase))
                 {
                     StagingChecked = true;
                     IsStaging = false;
@@ -31,7 +38,7 @@ namespace Artisan.RawInformation
                 }
                 else
                 {
-                    StagingChecked = false;
+                    StagingChecked = true;
                     IsStaging = true;
                     return true;
                 }

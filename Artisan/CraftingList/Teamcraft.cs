@@ -18,6 +18,9 @@ namespace Artisan.CraftingLists
 {
     internal static class Teamcraft
     {
+        private static string T(string key) => L10n.Tr(key);
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         internal static string importListName = "";
         internal static string importListPreCraft = "";
         internal static string importListItems = "";
@@ -27,18 +30,18 @@ namespace Artisan.CraftingLists
 
         internal static void DrawTeamCraftListButtons()
         {
-            string labelText = "Teamcraft Lists";
+            string labelText = T("Teamcraft Lists");
             var labelLength = ImGui.CalcTextSize(labelText);
             ImGui.SetCursorPosX((ImGui.GetContentRegionMax().X - labelLength.X) * 0.5f);
             ImGui.TextColored(ImGuiColors.ParsedGreen, labelText);
-            if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Download, "Import", new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+            if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Download, T("Import"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
             {
                 openImportWindow = true;
             }
             OpenTeamcraftImportWindow();
             if (CraftingListUI.selectedList.ID != 0)
             {
-                if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Upload, "Export", new Vector2(ImGui.GetContentRegionAvail().X, 30), true))
+                if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Upload, T("Export"), new Vector2(ImGui.GetContentRegionAvail().X, 30), true))
                 {
                     ExportSelectedListToTC();
                 }
@@ -79,7 +82,7 @@ namespace Artisan.CraftingLists
 
             Svc.Log.Debug($"{baseUrl}{base64}");
             ImGui.SetClipboardText($"{baseUrl}{base64}");
-            Notify.Success("Link copied to clipboard");
+            Notify.Success(T("Link copied to clipboard"));
         }
 
         private static void ExtractRecipes(List<ListItem> sublist, Recipe recipe)
@@ -116,34 +119,29 @@ namespace Artisan.CraftingLists
 
             ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.2f, 0.1f, 0.2f, 1f));
             ImGui.SetNextWindowSize(new Vector2(1, 1), ImGuiCond.Appearing);
-            if (ImGui.Begin("Teamcraft Import###TCImport", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
+            if (ImGui.Begin($"{T("Teamcraft Import")}###TCImport", ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.Text("List Name");
+                ImGui.Text(T("List Name"));
                 ImGui.SameLine();
-                ImGuiComponents.HelpMarker("Guide to importing lists.\r\n\r\n" +
-                    "Step 1. Open a list on Teamcraft with the items you wish to craft.\r\n\r\n" +
-                    "Step 2. Find the pre crafts section and click the \"Copy as Text\" button.\r\n\r\n" +
-                    "Step 3. Paste into the Pre-Craft Items box in this window.\r\n\r\n" +
-                    "Step 4. Repeat Step 2 & 3 but for the final items section.\r\n\r\n" +
-                    "Step 5. Give your list a name and click import.");
+                ImGuiComponents.HelpMarker(T("Guide to importing lists.\r\n\r\nStep 1. Open a list on Teamcraft with the items you wish to craft.\r\n\r\nStep 2. Find the pre crafts section and click the \"Copy as Text\" button.\r\n\r\nStep 3. Paste into the Pre-Craft Items box in this window.\r\n\r\nStep 4. Repeat Step 2 & 3 but for the final items section.\r\n\r\nStep 5. Give your list a name and click import."));
                 ImGui.InputText("###ImportListName", ref importListName, 50);
-                ImGui.Text("Pre-craft Items");
+                ImGui.Text(T("Pre-craft Items"));
                 ImGui.InputTextMultiline("###PrecraftItems", ref importListPreCraft, 5000000, new Vector2(ImGui.GetContentRegionAvail().X, 100));
 
                 if (!P.Config.DefaultListQuickSynth)
-                    ImGui.Checkbox("Import as Quick Synth###ImportQSPre", ref precraftQS);
+                    ImGui.Checkbox($"{T("Import as Quick Synth")}###ImportQSPre", ref precraftQS);
                 else
-                    ImGui.TextWrapped($@"These items will try to be added as quick synth due to the default setting being enabled.");
-                ImGui.Text("Final Items");
+                    ImGui.TextWrapped(T("These items will try to be added as quick synth due to the default setting being enabled."));
+                ImGui.Text(T("Final Items"));
                 ImGui.InputTextMultiline("###FinalItems", ref importListItems, 5000000, new Vector2(ImGui.GetContentRegionAvail().X, 100));
                 if (!P.Config.DefaultListQuickSynth)
-                    ImGui.Checkbox("Import as Quick Synth###ImportQSFinal", ref finalitemQS);
+                    ImGui.Checkbox($"{T("Import as Quick Synth")}###ImportQSFinal", ref finalitemQS);
                 else
-                    ImGui.TextWrapped($@"These items will try to be added as quick synth due to the default setting being enabled.");
+                    ImGui.TextWrapped(T("These items will try to be added as quick synth due to the default setting being enabled."));
 
                 try
                 {
-                    if (ImGui.Button("Import"))
+                    if (ImGui.Button(T("Import")))
                     {
                         NewCraftingList? importedList = ParseImport(precraftQS, finalitemQS);
                         if (importedList is not null)
@@ -160,7 +158,7 @@ namespace Artisan.CraftingLists
                         }
                         else
                         {
-                            Notify.Error("The imported list has no items. Please check your import and try again.");
+                            Notify.Error(T("The imported list has no items. Please check your import and try again."));
                         }
 
                     }
@@ -170,7 +168,7 @@ namespace Artisan.CraftingLists
                     ex.Log();
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
+                if (ImGui.Button(T("Cancel")))
                 {
                     openImportWindow = false;
                     importListName = "";

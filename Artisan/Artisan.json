@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- Hide Material Miracle options on non-standard/expert solvers.\n- Tweak Craft Menu window slightly to fit better."
+  "ChangeLog": "- 同步 upstream moreExpertStuff 测试分支更新。\n- 对齐专家求解器新增文案并完成中文汉化。"
 }

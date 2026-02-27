@@ -18,6 +18,9 @@ namespace Artisan.ContextMenus;
 
 internal static class CraftingListContextMenu
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     private static IContextMenu? contextMenu;
     private static Chat2IPC? Chat2IPC;
 
@@ -60,7 +63,7 @@ internal static class CraftingListContextMenu
 
         var recipeId = LuminaSheets.RecipeSheet.Values.First(x => x.ItemResult.RowId == ItemId).RowId;
 
-        if (ImGui.Selectable($"Open Recipe Log"))
+        if (ImGui.Selectable(T("Open Recipe Log")))
         {
             CraftingListFunctions.OpenRecipeByID(recipeId);
         }
@@ -87,7 +90,7 @@ internal static class CraftingListContextMenu
             var recipeId = LuminaSheets.RecipeSheet.Values.First(x => x.ItemResult.RowId == itemId).RowId;
 
             var menuItem = new MenuItem();
-            menuItem.Name = "Open Recipe Log";
+            menuItem.Name = T("Open Recipe Log");
             menuItem.PrefixChar = 'A';
             menuItem.PrefixColor = 706;
             menuItem.OnClicked += clickedArgs => CraftingListFunctions.OpenRecipeByID(recipeId, true);
@@ -100,7 +103,7 @@ internal static class CraftingListContextMenu
 
             var subMenu = new MenuItem();
             subMenu.IsSubmenu = true;
-            subMenu.Name = "Artisan Crafting List";
+            subMenu.Name = T("Artisan Crafting List");
             subMenu.PrefixChar = 'A';
             subMenu.PrefixColor = 706;
 
@@ -124,7 +127,7 @@ internal static class CraftingListContextMenu
                 }
 
                 var menuItem = new MenuItem();
-                menuItem.Name = "Withdraw from Retainer";
+                menuItem.Name = T("Withdraw from Retainer");
                 menuItem.PrefixChar = 'A';
                 menuItem.PrefixColor = 706;
                 menuItem.OnClicked += clickedArgs => RetainerInfo.RestockFromRetainers(ItemId, amountToGet);
@@ -138,7 +141,7 @@ internal static class CraftingListContextMenu
 
             var subMenu = new MenuItem();
             subMenu.IsSubmenu = true;
-            subMenu.Name = "Artisan Crafting List";
+            subMenu.Name = T("Artisan Crafting List");
             subMenu.PrefixChar = 'A';
             subMenu.PrefixColor = 706;
 
@@ -158,7 +161,7 @@ internal static class CraftingListContextMenu
             var recipeId = LuminaSheets.RecipeSheet.Values.First(x => x.ItemResult.RowId == ItemId).RowId;
 
             var menuItem = new MenuItem();
-            menuItem.Name = "Open Recipe Log";
+            menuItem.Name = T("Open Recipe Log");
             menuItem.PrefixChar = 'A';
             menuItem.PrefixColor = 706;
             menuItem.OnClicked += clickedArgs => CraftingListFunctions.OpenRecipeByID(recipeId, true);
@@ -174,7 +177,7 @@ internal static class CraftingListContextMenu
         if (CraftingListUI.selectedList.ID == 0)
         {
             var menuItem = new MenuItem();
-            menuItem.Name = "Add to New Artisan Crafting List";
+            menuItem.Name = T("Add to New Artisan Crafting List");
             menuItem.PrefixChar = 'A';
             menuItem.PrefixColor = 706;
             menuItem.OnClicked += clickedArgs => AddToNewList(ItemId, craftTypeIndex);
@@ -183,7 +186,7 @@ internal static class CraftingListContextMenu
             if (ingredientsSubCraft)
             {
                 var menuItem2 = new MenuItem();
-                menuItem2.Name = "Add to New Artisan Crafting List (with Sub-crafts)";
+                menuItem2.Name = T("Add to New Artisan Crafting List (with Sub-crafts)");
                 menuItem2.PrefixChar = 'A';
                 menuItem2.PrefixColor = 706;
                 menuItem2.OnClicked += clickedArgs => AddToNewList(ItemId, craftTypeIndex, true);
@@ -194,7 +197,7 @@ internal static class CraftingListContextMenu
         else
         {
             var menuItem = new MenuItem();
-            menuItem.Name = "Add to Current Artisan Crafting List";
+            menuItem.Name = T("Add to Current Artisan Crafting List");
             menuItem.PrefixChar = 'A';
             menuItem.PrefixColor = 706;
             menuItem.OnClicked += clickedArgs => AddToList(ItemId, craftTypeIndex);
@@ -203,7 +206,7 @@ internal static class CraftingListContextMenu
             if (ingredientsSubCraft)
             {
                 var menuItem2 = new MenuItem();
-                menuItem2.Name = "Add to Current Artisan Crafting List (with Sub-crafts)";
+                menuItem2.Name = T("Add to Current Artisan Crafting List (with Sub-crafts)");
                 menuItem2.PrefixChar = 'A';
                 menuItem2.PrefixColor = 706;
                 menuItem2.OnClicked += clickedArgs => AddToList(ItemId, craftTypeIndex, true);
@@ -368,4 +371,3 @@ internal static class CraftingListContextMenu
         Chat2IPC.Disable();
     }
 }
-

@@ -68,18 +68,18 @@ public unsafe class Artisan : IDalamudPlugin
 
         Svc.Commands.AddHandler(commandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Opens the Artisan menu.\n" +
-            "/artisan lists → Open Lists.\n" +
-            "/artisan lists <ID> → Opens specific list by ID.\n" +
-            "/artisan lists <ID> start → Starts specific list by ID.\n" +
-            "/artisan macros → Open Macros.\n" +
-            "/artisan macros <ID> → Opens specific macro by ID.\n" +
-            "/artisan endurance → Open Endurance.\n" +
-            "/artisan endurance start|stop → Starts or stops endurance mode.\n" +
-            "/artisan settings → Open Settings.\n" +
-            "/artisan workshops → Open FC Workshops.\n" +
-            "/artisan builder → Open List Builder.\n" +
-            "/artisan automode → Toggles Automatic Action Execution Mode on/off.",
+            HelpMessage = "打开 Artisan 菜单。\n" +
+            "/artisan lists → 打开制作清单。\n" +
+            "/artisan lists <ID> → 按 ID 打开指定清单。\n" +
+            "/artisan lists <ID> start → 按 ID 启动指定清单。\n" +
+            "/artisan macros → 打开宏列表。\n" +
+            "/artisan macros <ID> → 按 ID 打开指定宏。\n" +
+            "/artisan endurance → 打开耐力模式。\n" +
+            "/artisan endurance start|stop → 启动或停止耐力模式。\n" +
+            "/artisan settings → 打开设置。\n" +
+            "/artisan workshops → 打开部队工房。\n" +
+            "/artisan builder → 打开清单构建。\n" +
+            "/artisan automode → 开启/关闭自动动作执行模式。",
             ShowInHelp = true,
         });
 
@@ -311,19 +311,19 @@ public unsafe class Artisan : IDalamudPlugin
                         }
                         else
                         {
-                            DuoLog.Error("List ID does not exist.");
+                            DuoLog.Error(UI.L10n.Tr("List ID does not exist."));
                             return;
                         }
                     }
                     else
                     {
-                        DuoLog.Error("Unable to parse ID as a number.");
+                        DuoLog.Error(UI.L10n.Tr("Unable to parse ID as a number."));
                         return;
                     }
                 }
                 else
                 {
-                    DuoLog.Error("Unable to open list whilst processing.");
+                    DuoLog.Error(UI.L10n.Tr("Unable to open list whilst processing."));
                     return;
                 }
             }
@@ -342,19 +342,19 @@ public unsafe class Artisan : IDalamudPlugin
                         }
                         else
                         {
-                            DuoLog.Error("Macro ID does not exist.");
+                            DuoLog.Error(UI.L10n.Tr("Macro ID does not exist."));
                             return;
                         }
                     }
                     else
                     {
-                        DuoLog.Error("Unable to parse ID as a number.");
+                        DuoLog.Error(UI.L10n.Tr("Unable to parse ID as a number."));
                         return;
                     }
                 }
                 else
                 {
-                    DuoLog.Error("Unable to open edit macros whilst crafting.");
+                    DuoLog.Error(UI.L10n.Tr("Unable to open edit macros whilst crafting."));
                     return;
                 }
             }
@@ -365,17 +365,17 @@ public unsafe class Artisan : IDalamudPlugin
                 {
                     if (CraftingListUI.Processing)
                     {
-                        DuoLog.Error("Cannot start endurance whilst processing a list.");
+                        DuoLog.Error(UI.L10n.Tr("Cannot start endurance whilst processing a list."));
                         return;
                     }
                     if (Endurance.RecipeID == 0)
                     {
-                        DuoLog.Error("Cannot start endurance without setting a recipe.");
+                        DuoLog.Error(UI.L10n.Tr("Cannot start endurance without setting a recipe."));
                         return;
                     }
                     if (!CraftingListFunctions.HasItemsForRecipe(Endurance.RecipeID))
                     {
-                        DuoLog.Error("Cannot start endurance as you do not possess all ingredients for your recipe in your inventory.");
+                        DuoLog.Error(UI.L10n.Tr("Cannot start endurance as you do not possess all ingredients for your recipe in your inventory."));
                         return;
                     }
 
@@ -390,7 +390,7 @@ public unsafe class Artisan : IDalamudPlugin
                 {
                     if (!Endurance.Enable)
                     {
-                        DuoLog.Error("Endurance is not running so cannot be stopped.");
+                        DuoLog.Error(UI.L10n.Tr("Endurance is not running so cannot be stopped."));
                         return;
                     }
                     if (Endurance.Enable)
@@ -473,4 +473,3 @@ public unsafe class Artisan : IDalamudPlugin
         }
     }
 }
-
