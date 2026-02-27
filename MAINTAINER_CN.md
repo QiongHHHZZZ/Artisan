@@ -12,6 +12,20 @@
   - 仓库清单：`QiongHHHZZZ/DalamudPlugins`
 - 版本号必须可比较、可追溯、可复现。
 
+## 上游同步规则（避免历史再次混乱）
+
+- 同步顺序固定为：**先同步上游，再做本地化修复**。
+- 仅使用 `merge` 同步上游，不使用 `cherry-pick` 复制上游提交。
+- 不使用 GitHub 网页端的“丢弃 N 个提交”同步方式。
+
+标准流程：
+
+1. `git fetch upstream --prune`
+2. `git checkout main`
+3. `git merge upstream/main`
+4. 处理冲突并编译验证
+5. 再进行本地化/CN 适配修复并提交
+
 ## 版本规则（唯一规则）
 
 - 版本真源：`Artisan/Artisan.csproj`
