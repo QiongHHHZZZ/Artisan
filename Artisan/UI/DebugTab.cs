@@ -373,7 +373,7 @@ namespace Artisan.UI
                     ImGui.Text($"修理价格：{RepairManager.GetNPCRepairPrice()}");
 
                 }
-                if (ImGui.CollapsingHeader("配方等级完成度"))
+                if (ImGui.CollapsingHeader(T("Recipe Level Completion")))
                 {
                     ImGui.Columns(8);
                     for (int i = (int)Job.CRP; i <= (int)Job.CUL; i++)
