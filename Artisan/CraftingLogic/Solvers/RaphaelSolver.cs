@@ -19,6 +19,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using TerraFX.Interop.Windows;
 
 namespace Artisan.CraftingLogic.Solvers
 {
@@ -39,12 +40,12 @@ namespace Artisan.CraftingLogic.Solvers
 
         public IEnumerable<ISolverDefinition.Desc> Flavours(CraftState craft)
         {
-            yield return new(this, 3, 0, $"Raphael Recipe Solver", craft.StatLevel <= 7 ? $"Does not work before unlocking {Skills.MastersMend.NameOfAction()}. Please use Standard Recipe Solver" : "");
+            yield return new(this, 3, 1, $"Raphael Recipe Solver", craft.StatLevel <= 7 ? $"Does not work before unlocking {Skills.MastersMend.NameOfAction()}. Please use Standard Recipe Solver" : "");
         }
 
         public IEnumerable<ISolverDefinition.Desc> Flavours()
         {
-            yield return new(this, 3, 0, $"Raphael Recipe Solver");
+            yield return new(this, 3, 1, $"Raphael Recipe Solver");
         }
     }
 
@@ -152,7 +153,7 @@ namespace Artisan.CraftingLogic.Solvers
                         if (process.ExitCode != 0)
                         {
                             if (!string.IsNullOrWhiteSpace(error))
-                                DuoLog.Error(L10n.Tr("Raphael error: {0}", error.Split('\r', '\n')[0]));
+                                DuoLog.Error(L10n.Tr("Raphael error: {0}", error));
 
                             info.Succeeded = false;
                             cts.Cancel();
@@ -194,7 +195,10 @@ namespace Artisan.CraftingLogic.Solvers
                 finally
                 {
                     if (info.Succeeded)
+                    {
+                        AuotSwitch(craft, key);
                         P.Config.Save();
+                    }
                     Tasks.TryRemove(key, out _);
                 }
             }, cts.Token);
@@ -202,6 +206,68 @@ namespace Artisan.CraftingLogic.Solvers
             Tasks.TryAdd(key, info);
         }
 
+        private static void AuotSwitch(CraftState craft, string key)
+        {
+            static bool autoSwitchOk(uint recipeId)
+            {
+                if (P.Config.RaphaelSolverConfig.AutoSwitchOverManual)
+                    return true;
+
+                if (P.Config.RecipeConfigs.TryGetValue(recipeId, out var cfg))
+                    // flavours: 0 = standard, expert; 3 = raphael; otherwise = macro/script
+                    return cfg.SolverFlavour is 0 or 3;
+
+                return true;
+            }
+
+            if (P.Config.RaphaelSolverConfig.AutoSwitch)
+            {
+                Svc.Log.Information("Auto-switch is enabled, switching solver for recipe if applicable.");
+                if (!P.Config.RaphaelSolverConfig.AutoSwitchOnAll)
+                {
+                    Svc.Log.Debug("Switching to Raphael solver - Single");
+                    var nopt = CraftingProcessor.GetAvailableSolversForRecipe(craft, true).FirstOrNull(x => x.Name == $"Raphael Recipe Solver");
+                    if (nopt is { } opt)
+                    {
+                        if (autoSwitchOk(craft.Recipe.RowId))
+                        {
+                            Svc.Log.Information("AutoSwitchOk, setting");
+                            var config = P.Config.RecipeConfigs.GetValueOrDefault(craft.Recipe.RowId) ?? new();
+                            config.SolverType = opt.Def.GetType().FullName!;
+                            config.SolverFlavour = opt.Flavour;
+                            P.Config.RecipeConfigs[craft.Recipe.RowId] = config;
+                        }
+                        else
+                            Svc.Log.Information("Never mind, recipe already has a macro assigned");
+                    }
+                }
+                else
+                {
+                    var crafts = AllValidCrafts(key).ToList();
+                    Svc.Log.Information($"Applying solver to {crafts.Count} recipes.");
+                    var nopt = CraftingProcessor.GetAvailableSolversForRecipe(craft, true).FirstOrNull(x => x.Name == $"Raphael Recipe Solver");
+                    if (nopt is { } opt)
+                    {
+                        var config = P.Config.RecipeConfigs.GetValueOrDefault(craft.Recipe.RowId) ?? new();
+                        config.SolverType = opt.Def.GetType().FullName!;
+                        config.SolverFlavour = opt.Flavour;
+                        foreach (var c in crafts)
+                        {
+                            if (autoSwitchOk(c.Recipe.RowId))
+                            {
+                                Svc.Log.Information($"Switching {c.Recipe.RowId} ({c.Recipe.ItemResult.Value.Name}) to Raphael solver");
+                                var switchConfig = P.Config.RecipeConfigs.GetValueOrDefault(c.Recipe.RowId) ?? new();
+                                switchConfig.SolverType = opt.Def.GetType().FullName!;
+                                switchConfig.SolverFlavour = opt.Flavour;
+                                P.Config.RecipeConfigs[c.Recipe.RowId] = switchConfig;
+                            }
+                            else
+                                Svc.Log.Information($"Skipping {c.Recipe.RowId} ({c.Recipe.ItemResult.Value.Name}) because it already has a macro assigned");
+                        }
+                    }
+                }
+            }
+        }
 
         public static string GetKey(CraftState craft)
         {
@@ -387,6 +453,7 @@ namespace Artisan.CraftingLogic.Solvers
         public bool GenerateOnExperts = false;
         public int TimeOutMins = 1;
         public int MaxStellarHand = 2;
+        public bool DefaultRaphSolver = false;
         public bool Draw()
         {
             bool changed = false;
@@ -434,6 +501,10 @@ namespace Artisan.CraftingLogic.Solvers
                 changed |= ImGui.SliderInt(L10n.Tr("Timeout solution generation"), ref TimeOutMins, 1, 15);
 
                 ImGuiComponents.HelpMarker(L10n.Tr("If a solution takes longer than this many minutes to generate, it will cancel the generation task."));
+
+                changed |= ImGui.Checkbox(L10n.Tr("Set Raphael as Default Solver For Recipes Without a Solver Set."), ref DefaultRaphSolver);
+
+                ImGuiComponents.HelpMarker(L10n.Tr("Once the solver is set with this setting, turning this setting off will still keep it saved as Raphael."));
 
                 if (ImGui.Button(L10n.Tr("Clear Raphael macro cache (Currently {0} stored)", P.Config.RaphaelSolverCacheV5.Count)))
                 {

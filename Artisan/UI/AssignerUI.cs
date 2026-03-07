@@ -1,11 +1,12 @@
-﻿using System;
-using Artisan.CraftingLogic;
+﻿using Artisan.CraftingLogic;
+using Artisan.CraftingLogic.Solvers;
 using Artisan.GameInterop;
 using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
+using Dalamud.Bindings.ImGui;
 using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
-using Dalamud.Bindings.ImGui;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -71,6 +72,9 @@ namespace Artisan.UI
             DummyConfig.DrawManual();
             DummyConfig.DrawSquadronManual();
             DummyConfig.DrawSolver(c, false, false);
+            DummyConfig.DrawExpertProfiles(c);
+            DummyConfig.DrawWarnings(c);
+            RaphaelCache.DrawRaphaelDropdown(c, false);
 
             ImGui.Checkbox(T("Show which crafts have been assigned as a notification"), ref Notification);
             if (ImGui.Button(T("Assign To All"), new Vector2(ImGui.GetContentRegionAvail().X, 25f.Scale())))
@@ -86,6 +90,7 @@ namespace Artisan.UI
                         requiredSquadronManual = DummyConfig.requiredSquadronManual,
                         SolverFlavour = DummyConfig.SolverFlavour,
                         SolverType = DummyConfig.SolverType,
+                        expertProfileID = DummyConfig.expertProfileID,
                     };
                     if (Notification)
                     {
