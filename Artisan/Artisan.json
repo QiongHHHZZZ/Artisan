@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 修复 Raphael 缓存宏在 fallback 场景下可能导致的递归崩溃。"
+  "ChangeLog": "- 修复专家求解器不可用时潜在的递归问题。"
 }

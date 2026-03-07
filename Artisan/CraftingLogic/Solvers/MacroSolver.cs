@@ -44,11 +44,7 @@ public class MacroSolver : Solver, ICraftValidator
     public MacroSolver(MacroSolverSettings.Macro m, CraftState craft)
     {
         _macro = m;
-        // Raphael can wrap a cached solution in MacroSolver, so letting macro fallback pick Raphael again can recurse indefinitely.
-        var fallback = CraftingProcessor.GetAvailableSolversForRecipe(craft, false)
-            .Where(f => f.Def.GetType() != typeof(MacroSolverDefinition) && f.Def.GetType() != typeof(RaphaelSolverDefintion))
-            .MinBy(f => f.Priority);
-        _fallback = fallback.CreateSolver(craft);
+        _fallback = CraftingProcessor.GetAvailableSolversForRecipe(craft, false, typeof(MacroSolverDefinition)).MinBy(f => f.Priority).CreateSolver(craft);
     }
 
     public override Solver Clone()
