@@ -25,6 +25,22 @@ public class RecipeConfig
     private static string T(string key) => L10n.Tr(key);
     private static string T(string key, params object[] args) => L10n.Tr(key, args);
 
+    private void SetConfigComboWidth(bool hasButton)
+    {
+        if (hasButton)
+        {
+            var reserve = ImGui.CalcTextSize(T("Apply To all")).X
+                + ImGui.GetStyle().FramePadding.X * 2
+                + ImGui.GetStyle().ItemSpacing.X
+                + 24f.Scale();
+            ImGui.SetNextItemWidth(Math.Max(1f, ImGui.GetContentRegionAvail().X - reserve));
+        }
+        else
+        {
+            ImGui.PushItemWidth(GetLargestName());
+        }
+    }
+
     public const uint Default = 0;
     public const uint Disabled = 1;
 
@@ -171,8 +187,7 @@ public class RecipeConfig
         bool changed = false;
         ImGuiEx.TextV(T("Food Usage:"));
         ImGui.SameLine(130f.Scale());
-        if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(GetLargestName());
+        SetConfigComboWidth(hasButton);
         if (ImGui.BeginCombo("##foodBuff", FoodName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -218,8 +233,7 @@ public class RecipeConfig
         bool changed = false;
         ImGuiEx.TextV(T("Medicine Usage:"));
         ImGui.SameLine(130f.Scale());
-        if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(GetLargestName());
+        SetConfigComboWidth(hasButton);
         if (ImGui.BeginCombo("##potBuff", PotionName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -265,8 +279,7 @@ public class RecipeConfig
         bool changed = false;
         ImGuiEx.TextV(T("Manual Usage:"));
         ImGui.SameLine(130f.Scale());
-        if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(GetLargestName());
+        SetConfigComboWidth(hasButton);
         if (ImGui.BeginCombo("##manualBuff", ManualName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -300,8 +313,7 @@ public class RecipeConfig
         bool changed = false;
         ImGuiEx.TextV(T("Squadron Manual:"));
         ImGui.SameLine(130f.Scale());
-        if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-        else ImGui.PushItemWidth(GetLargestName());
+        SetConfigComboWidth(hasButton);
         if (ImGui.BeginCombo("##squadronManualBuff", SquadronManualName))
         {
             if (this != P.Config.DefaultConsumables)
@@ -347,7 +359,7 @@ public class RecipeConfig
         }
         ImGuiEx.TextV(T("Solver:"));
         ImGui.SameLine(130f.Scale());
-        if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
+        SetConfigComboWidth(hasButton);
 
         if (ImGui.BeginCombo("##solver", T(solver.Name)))
         {
@@ -385,13 +397,13 @@ public class RecipeConfig
             var expertProfile = CraftingProcessor.GetExpertProfileForRecipe(this);
             if (string.IsNullOrEmpty(expertProfile.Name))
             {
-                ImGuiEx.Text(ImGuiColors.DalamudRed, "Unable to select an expert solver profile. Please select from dropdown.");
+                ImGuiEx.Text(ImGuiColors.DalamudRed, T("Unable to select an expert solver profile. Please select from dropdown."));
             }
 
-            ImGuiEx.TextV($"Expert Profile:");
+            ImGuiEx.TextV(T("Expert Profile:"));
             ImGui.SameLine();
 
-            ImGuiEx.IconWithTooltip(new Vector4(0.5f, 0.5f, 0.5f, 1f), FontAwesomeIcon.PencilAlt, "Add or edit expert solver profiles");
+            ImGuiEx.IconWithTooltip(new Vector4(0.5f, 0.5f, 0.5f, 1f), FontAwesomeIcon.PencilAlt, T("Add or edit expert solver profiles"));
             if (ImGui.IsItemHovered())
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
@@ -403,13 +415,13 @@ public class RecipeConfig
             }
             ImGui.SameLine(130f.Scale());
 
-            if (hasButton) ImGuiEx.SetNextItemFullWidth(-120);
-            if (ImGui.BeginCombo("##expertProfile", expertProfile.Name))
+            SetConfigComboWidth(hasButton);
+            if (ImGui.BeginCombo("##expertProfile", T(expertProfile.Name)))
             {
                 foreach (var c in P.Config.ExpertSolverProfiles.GetExpertProfilesWithDefault())
                 {
                     bool selected = c.Name == expertProfile.Name;
-                    if (ImGui.Selectable(c.Name, selected))
+                    if (ImGui.Selectable(T(c.Name), selected))
                     {
                         expertProfileID = c.ID;
                         changed = true;
@@ -433,7 +445,6 @@ public class RecipeConfig
         }
 
         if (ConsumableChecker.SkippingConsumablesByConfig(craft.Recipe))
-            ImGuiEx.Text(ImGuiColors.DalamudRed, T("Consumables will not be used due to level difference setting."));
             ImGuiEx.Text(ImGuiColors.DalamudRed, T("Consumables will not be used due to level difference setting."));
     }
 

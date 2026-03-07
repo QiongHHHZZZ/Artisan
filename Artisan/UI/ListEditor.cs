@@ -1,6 +1,7 @@
-﻿namespace Artisan.UI;
+namespace Artisan.UI;
 
 using Autocraft;
+using global::Artisan.UI.ImGUI;
 using CraftingLists;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -1429,23 +1430,27 @@ internal class ListEditor : Window, IDisposable
             P.Config.Save();
         }
 
-        if (config.DrawExpertProfiles(craft, true))
+        var showExpertProfiles = config.CurrentSolverType.Contains("Expert") || (config.CurrentSolverType == "" && craft.CraftExpert);
+        if (showExpertProfiles)
         {
-            P.Config.RecipeConfigs[selectedListItem] = config;
-            P.Config.Save();
-        }
-
-        ImGui.SameLine();
-
-        if (ImGui.Button($"Apply to all###ExpertProfileOnAll"))
-        {
-            foreach (var r in SelectedList.Recipes.Distinct())
+            if (config.DrawExpertProfiles(craft, true))
             {
-                var o = P.Config.RecipeConfigs.GetValueOrDefault(r.ID) ?? new();
-                o.expertProfileID = config.expertProfileID;
-                P.Config.RecipeConfigs[r.ID] = o;
+                P.Config.RecipeConfigs[selectedListItem] = config;
+                P.Config.Save();
             }
-            P.Config.Save();
+
+            ImGui.SameLine();
+
+            if (ImGui.Button($"{T("Apply To all")}###ExpertProfileOnAll"))
+            {
+                foreach (var r in SelectedList.Recipes.Distinct())
+                {
+                    var o = P.Config.RecipeConfigs.GetValueOrDefault(r.ID) ?? new();
+                    o.expertProfileID = config.expertProfileID;
+                    P.Config.RecipeConfigs[r.ID] = o;
+                }
+                P.Config.Save();
+            }
         }
 
         config.DrawWarnings(craft);
@@ -1472,7 +1477,7 @@ internal class ListEditor : Window, IDisposable
     {
         if (!RenameMode)
         {
-            if (IconButtons.IconTextButton(FontAwesomeIcon.Pen, $"{SelectedList.Name.Replace($"%", "%%")}"))
+            if (ImGUIMethods.IconTextButton(FontAwesomeIcon.Pen, $"{SelectedList.Name.Replace($"%", "%%")}"))
             {
                 newName = SelectedList.Name;
                 RenameMode = true;

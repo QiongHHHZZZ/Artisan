@@ -13,8 +13,10 @@
 	<PropertyGroup>
 		<DalamudLibPath Condition="'$(DalamudLibPath)' == '' and Exists('$(AppData)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll')">$(AppData)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
 		<DalamudLibPath Condition="'$(DalamudLibPath)' == '' and Exists('$(AppData)\XIVLauncher\addon\Hooks\dev\Dalamud.dll')">$(AppData)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
-		<DalamudPluginPath>$(appdata)\XIVLauncher\installedPlugins\Artisan\$(version)</DalamudPluginPath>
-		<DalamudDevPlugins>$(appdata)\XIVLauncher\devPlugins\Artisan\</DalamudDevPlugins>
+		<DalamudPluginPath Condition="'$(DalamudPluginPath)' == '' and Exists('$(AppData)\XIVLauncherCN\installedPlugins')">$(AppData)\XIVLauncherCN\installedPlugins\Artisan\$(Version)</DalamudPluginPath>
+		<DalamudPluginPath Condition="'$(DalamudPluginPath)' == ''">$(AppData)\XIVLauncher\installedPlugins\Artisan\$(Version)</DalamudPluginPath>
+		<DalamudDevPlugins Condition="'$(DalamudDevPlugins)' == '' and Exists('$(AppData)\XIVLauncherCN\devPlugins')">$(AppData)\XIVLauncherCN\devPlugins\Artisan\</DalamudDevPlugins>
+		<DalamudDevPlugins Condition="'$(DalamudDevPlugins)' == ''">$(AppData)\XIVLauncher\devPlugins\Artisan\</DalamudDevPlugins>
 		<AssemblyName>Artisan</AssemblyName>
 		<RootNamespace>Artisan</RootNamespace>
 		<PackageId>Artisan</PackageId>
@@ -44,7 +46,7 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<OutputPath>$(DalamudDevPlugins)</OutputPath>
+		<OutputPath>bin/Debug</OutputPath>
 		<NoWarn>CS1591</NoWarn>
 	</PropertyGroup>
 	

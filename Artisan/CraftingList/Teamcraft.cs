@@ -1,5 +1,6 @@
-﻿using Artisan.RawInformation;
+using Artisan.RawInformation;
 using Artisan.UI;
+using Artisan.UI.ImGUI;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using ECommons;
@@ -34,14 +35,14 @@ namespace Artisan.CraftingLists
             var labelLength = ImGui.CalcTextSize(labelText);
             ImGui.SetCursorPosX((ImGui.GetContentRegionMax().X - labelLength.X) * 0.5f);
             ImGui.TextColored(ImGuiColors.ParsedGreen, labelText);
-            if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Download, T("Import"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+            if (ImGUIMethods.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Download, T("Import"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
             {
                 openImportWindow = true;
             }
             OpenTeamcraftImportWindow();
             if (CraftingListUI.selectedList.ID != 0)
             {
-                if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Upload, T("Export"), new Vector2(ImGui.GetContentRegionAvail().X, 30), true))
+                if (ImGUIMethods.IconTextButton(Dalamud.Interface.FontAwesomeIcon.Upload, T("Export"), new Vector2(ImGui.GetContentRegionAvail().X, 30), true))
                 {
                     ExportSelectedListToTC();
                 }

@@ -19,12 +19,15 @@ using static global::Artisan.CraftingLogic.Solvers.ExpertSolverProfiles;
 
 internal class ExpertProfileEditor : Window, IDisposable
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     public bool Minimized = false;
 
     public readonly ExpertProfile profile;
     private string profileName = "";
 
-    public ExpertProfileEditor(int profileId) : base($"Expert Settings Profile Editor###{profileId}")
+    public ExpertProfileEditor(int profileId) : base($"{L10n.Tr("Expert Settings Profile Editor")}###{profileId}")
     {
         profile = P.Config.ExpertSolverProfiles.ExpertProfiles.First(x => x.ID == profileId);
 
@@ -59,7 +62,7 @@ internal class ExpertProfileEditor : Window, IDisposable
         bool changed = false;
         try
         {
-            ImGuiEx.TextV($"Name:");
+            ImGuiEx.TextV(T("Name:"));
             ImGui.SameLine(50f.Scale());
 
             profileName = profile.Name!;
@@ -70,13 +73,13 @@ internal class ExpertProfileEditor : Window, IDisposable
             }
 
             ImGui.Dummy(new Vector2(0, 5f));
-            if (ImGuiEx.ButtonCtrl("Reset to Global Expert Settings"))
+            if (ImGui.Button(T("{0} (Hold CTRL)", T("Reset to Global Expert Settings"))) && ImGui.GetIO().KeyCtrl)
             {
                 profile.Settings = P.Config.ExpertSolverConfig.JSONClone();
                 changed = true;
             }
             ImGui.SameLine();
-            if (ImGuiEx.ButtonCtrl("Reset to Artisan Default Expert Settings"))
+            if (ImGui.Button(T("{0} (Hold CTRL)", T("Reset to Artisan Default Expert Settings"))) && ImGui.GetIO().KeyCtrl)
             {
                 profile.Settings = new ExpertSolverSettings();
                 changed = true;

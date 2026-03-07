@@ -1,7 +1,8 @@
-﻿using Artisan.CraftingLogic.CraftData;
+using Artisan.CraftingLogic.CraftData;
 using Artisan.CraftingLogic.Solvers;
 using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
+using Artisan.UI.ImGUI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -23,6 +24,9 @@ namespace Artisan.UI;
 
 internal class ExpertSolverSettingsUI
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     public IDalamudTextureWrap? expertIcon;
 
     public enum SkillIconID
@@ -99,7 +103,7 @@ internal class ExpertSolverSettingsUI
             ImGui.Dummy(new Vector2(0, 5f));
             if (!s.UseReflectOpener)
             {
-                DrawIconText("These settings only apply while [s!MuscleMemory] is active at the start of a craft.", color: ImGuiColors.DalamudYellow);
+        DrawIconText(T("These settings only apply while [s!MuscleMemory] is active at the start of a craft."), color: ImGuiColors.DalamudYellow);
                 ImGui.Dummy(new Vector2(0, 5f));
 
                 changed |= CheckboxWithIcons("MuMeIntensiveGood", ref s.MuMeIntensiveGood, "When [c!Good], prioritize [s!IntensiveSynthesis] (400%) over [s!RapidSynthesis] (500%)");
@@ -113,7 +117,7 @@ internal class ExpertSolverSettingsUI
 
                 ImGui.Dummy(new Vector2(0, 5f));
                 DrawIconText("Use these skills only if [s!MuscleMemory] has more than this many steps left:");
-                ImGuiComponents.HelpMarker($"The solver will still only use these skills under an appropriate {ConditionString.ToLower()}.");
+            ImGuiComponents.HelpMarker(T("The solver will still only use these skills under an appropriate {0}.", ConditionString.ToLower()));
                 // these have a minimum of 1 to avoid using a buff on the final turn of MuMe
                 ImGui.PushItemWidth(250);
                 SliderIntWithIcons("MuMeMinStepsForManip", ref s.MuMeMinStepsForManip, 1, 5, "[s!Manipulation]");
@@ -133,11 +137,11 @@ internal class ExpertSolverSettingsUI
         bool changed = false;
         try
         {
-            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, $"These settings apply after the opener, but before reaching max {Buffs.InnerQuiet.NameOfBuff()} stacks.");
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, T("These settings apply after the opener, but before reaching max {0} stacks.", Buffs.InnerQuiet.NameOfBuff()));
 
             // Pre-quality dura/CP settings
             ImGui.Dummy(new Vector2(0, 5f));
-            ImGui.TextWrapped($"General");
+            ImGui.TextWrapped(T("General"));
             ImGui.Indent();
             DrawIconText("Use [s!TrainedPerfection] on:");
             HelpMarkerWithIcons(["The \"(Late)\" option will try to use [s!PreparatoryTouch] under [s!Innovation] and [s!GreatStrides].", "The \"Either action\" option is most effective when paired with the {0} setting below.", "\"Either action\" defaults to [s!Groundwork] on a neutral {1}."], [Skills.Observe.NameOfAction(), ConditionString.ToLower()]);
@@ -244,11 +248,11 @@ internal class ExpertSolverSettingsUI
         bool changed = false;
         try
         {
-            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, $"These settings apply after reaching max {Buffs.InnerQuiet.NameOfBuff()} stacks.");
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, T("These settings apply after reaching max {0} stacks.", Buffs.InnerQuiet.NameOfBuff()));
 
             // Mid-quality dura/CP settings
             ImGui.Dummy(new Vector2(0, 5f));
-            ImGui.TextWrapped($"General");
+            ImGui.TextWrapped(T("General"));
             ImGui.Indent();
             changed |= CheckboxWithIcons("MidBaitPliantWithObserveAfterIQ", ref s.MidBaitPliantWithObserveAfterIQ, "When {0} is very low, use [s!Observe] to proc a favorable {1} for restoring {0}", [DurabilityString.ToLower(), ConditionString.ToLower()]);
             HelpMarkerWithIcons(["Fishes for [c!Pliant] (and possibly [c!Primed]).", "If disabled, actions that restore or require 0 {0} will be used immediately regardless of {1}."], [DurabilityString.ToLower(), ConditionString.ToLower()]);
@@ -311,7 +315,7 @@ internal class ExpertSolverSettingsUI
         bool changed = false;
         try
         {
-            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, $"These settings apply when close to max {QualityString.ToLower()} or when running out of other options.");
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, T("These settings apply when close to max {0} or when running out of other options.", QualityString.ToLower()));
 
             ImGui.Dummy(new Vector2(0, 5f));
             DrawIconText("Use [s!CarefulObservation] to try and proc [c!Good]:");
@@ -324,9 +328,9 @@ internal class ExpertSolverSettingsUI
 
             ImGui.Dummy(new Vector2(0, 5f));
             changed |= CheckboxWithIcons("FinisherUseQuickInno", ref s.FinisherUseQuickInno, "Use [s!QuickInnovation] to finish when low on CP");
-            HelpMarkerWithIcons("When there's not enough CP to use [s!Innovation] and/or [s!GreatStrides], but [s!QuickInnovation] is enough to reach the {} goal.", [QualityString.ToLower()]);
+            HelpMarkerWithIcons("When there's not enough CP to use [s!Innovation] and/or [s!GreatStrides], but [s!QuickInnovation] is enough to reach the {0} goal.", [QualityString.ToLower()]);
             changed |= CheckboxWithIcons("RapidSynthYoloAllowed", ref s.RapidSynthYoloAllowed, "Allow finishing with [s!RapidSynthesis] when out of options");
-            ImGuiComponents.HelpMarker($"If disabled, the solver will do nothing instead, which may interrupt AFK expert crafting. Usually safe to enable, as it will only be invoked with no CP or {DurabilityString.ToLower()} left.");
+            ImGuiComponents.HelpMarker(T("If disabled, the solver will do nothing instead, which may interrupt AFK expert crafting. Usually safe to enable, as it will only be invoked with no CP or {0} left.", DurabilityString.ToLower()));
         }
         catch (Exception ex)
         {
@@ -340,15 +344,15 @@ internal class ExpertSolverSettingsUI
         bool changed = false;
         try
         {
-            ImGui.TextWrapped($"Ishgardian Restoration");
+            ImGui.TextWrapped(T("Ishgardian Restoration"));
             ImGui.Indent();
-            changed |= ImGui.Checkbox("Max out Ishgard Restoration recipes instead of just hitting max breakpoint", ref s.MaxIshgardRecipes);
-            ImGuiComponents.HelpMarker("This will try to maximise quality to earn more Skyward points.");
+            changed |= ImGui.Checkbox(T("Max out Ishgard Restoration recipes instead of just hitting max breakpoint"), ref s.MaxIshgardRecipes);
+            ImGuiComponents.HelpMarker(T("This will try to maximise quality to earn more Skyward points."));
             ImGui.Unindent();
 
-            ImGui.TextWrapped($"Cosmic Exploration");
-            changed |= ImGui.Checkbox("Override per-recipe Cosmic Exploration settings###overrideCosmic", ref s.OverrideCosmicRecipeSettings);
-            ImGuiComponents.HelpMarker("By default, Cosmic Exploration settings are tracked for each recipe and ignore the selected expert profile. Enable this option to instead use the settings below.");
+            ImGui.TextWrapped(T("Cosmic Exploration"));
+            changed |= ImGui.Checkbox($"{T("Override per-recipe Cosmic Exploration settings")}###overrideCosmic", ref s.OverrideCosmicRecipeSettings);
+            ImGuiComponents.HelpMarker(T("By default, Cosmic Exploration settings are tracked for each recipe and ignore the selected expert profile. Enable this option to instead use the settings below."));
 
             ImGui.Indent();
             if (!s.OverrideCosmicRecipeSettings) ImGui.BeginDisabled();
@@ -379,28 +383,28 @@ internal class ExpertSolverSettingsUI
         ImGui.Dummy(new Vector2(0, 5f));
 
         ImGuiTreeNodeFlags flags = startOpen ? ImGuiTreeNodeFlags.DefaultOpen : ImGuiTreeNodeFlags.None;
-        if (ImGui.CollapsingHeader("Opener", flags))
+        if (ImGui.CollapsingHeader(T("Opener"), flags))
         {
             ImGui.Dummy(new Vector2(0, 5f));
             changed |= DrawOpenerSettings(s);
             ImGui.Dummy(new Vector2(0, 5f));
         }
 
-        if (ImGui.CollapsingHeader($"Main Rotation - Pre-{QualityString} Phase", flags))
+        if (ImGui.CollapsingHeader(T("Main Rotation - Pre-{0} Phase", QualityString), flags))
         {
             ImGui.Dummy(new Vector2(0, 5f));
             changed |= DrawPreQualitySettings(s);
             ImGui.Dummy(new Vector2(0, 5f));
         }
 
-        if (ImGui.CollapsingHeader($"Main Rotation - {QualityString} Phase", flags))
+        if (ImGui.CollapsingHeader(T("Main Rotation - {0} Phase", QualityString), flags))
         {
             ImGui.Dummy(new Vector2(0, 5f));
             changed |= DrawQualitySettings(s);
             ImGui.Dummy(new Vector2(0, 5f));
         }
 
-        if (ImGui.CollapsingHeader($"Finisher", flags))
+        if (ImGui.CollapsingHeader(T("Finisher"), flags))
         {
             ImGui.Dummy(new Vector2(0, 5f));
             changed |= DrawFinisherSettings(s);
@@ -414,18 +418,18 @@ internal class ExpertSolverSettingsUI
         bool changed = false;
         try
         {
-            ImGui.TextWrapped($"The expert recipe solver is not an alternative to the standard solver. This is used exclusively with expert recipes.");
+        ImGui.TextWrapped(T("The expert recipe solver is not an alternative to the standard solver. This is used exclusively with expert recipes."));
             if (expertIcon != null)
             {
-                ImGui.TextWrapped($"This solver only applies to recipes with the");
+        ImGui.TextWrapped(T("This solver only applies to recipes with the"));
                 ImGui.SameLine();
                 ImGui.Image(expertIcon.Handle, expertIcon.Size, new Vector2(0, 0), new Vector2(1, 1), new Vector4(0.94f, 0.57f, 0f, 1f));
                 ImGui.SameLine();
-                ImGui.TextWrapped($"icon in the crafting log.");
+        ImGui.TextWrapped(T("icon in the crafting log."));
             }
 
             ImGui.Dummy(new Vector2(0, 5f));
-            if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.ExternalLinkAlt, "Create/Edit Expert Solver Profiles"))
+            if (ImGUIMethods.IconTextButton(Dalamud.Interface.FontAwesomeIcon.ExternalLinkAlt, T("Create/Edit Expert Solver Profiles")))
             {
                 P.PluginUi.OpenWindow = OpenWindow.ExpertProfiles;
             }
@@ -436,7 +440,7 @@ internal class ExpertSolverSettingsUI
             ImGui.Unindent();
 
             ImGui.Dummy(new Vector2(0, 5f));
-            if (ImGuiEx.ButtonCtrl("Reset Expert Solver Settings To Default"))
+        if (ImGui.Button(T("{0} (Hold CTRL)", T("Reset Expert Solver Settings To Default"))) && ImGui.GetIO().KeyCtrl)
             {
                 s = new();
                 changed |= true;
@@ -476,7 +480,7 @@ internal class ExpertSolverSettingsUI
             using (ImRaii.Tooltip())
             {
                 foreach (string str in lines)
-                    DrawIconText(str, args);
+                    DrawIconText(T(str), args);
             }
         }
     }
@@ -499,7 +503,7 @@ internal class ExpertSolverSettingsUI
         changed |= ImGui.Checkbox($"##{ID}", ref val);
         ImGui.SameLine(0.0f, 4.0f);
 
-        DrawIconText(str, args);
+        DrawIconText(T(str), args);
 
         ImGui.PopID();
         return changed;
@@ -525,7 +529,7 @@ internal class ExpertSolverSettingsUI
         changed |= ImGui.SliderInt($"##{ID}", ref val, min, max);
         ImGui.SameLine(0.0f, 4.0f);
 
-        DrawIconText(str, args);
+        DrawIconText(T(str), args);
 
         ImGui.PopID();
         return changed;
@@ -547,7 +551,7 @@ internal class ExpertSolverSettingsUI
         SkillIconID skillIcon;
         Condition condition;
         Skills skill;
-        string formatStr = String.Format(str, args);
+        string formatStr = String.Format(T(str), args);
         string[] parts = Regex.Split(formatStr, @"(\[.+?\])");
         for (int i = 0; i < parts.Length; i++)
         {
