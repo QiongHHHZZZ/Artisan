@@ -916,7 +916,7 @@ namespace Artisan
                 if (craftableCount == 0) return;
 
                 ImGuiHelpers.ForceNextWindowMainViewport();
-                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(position.X + (4f * scale.X) - 40f, position.Y - 16f - (17f * scale.Y)));
+                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(position.X + (4f * scale.X) - 68f, position.Y - 18f - (17f * scale.Y)));
 
                 //Svc.Log.Debug($"Length: {size.Length()}, Width: {node->Width}, Scale: {scale.Y}");
 
@@ -928,7 +928,7 @@ namespace Artisan
         {
             ImGui.PushStyleColor(ImGuiCol.WindowBg, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5f, 2.5f));
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(5f, 1f));
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(3f, 3f));
             ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(0f, 0f));
             ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0f);
@@ -942,10 +942,10 @@ namespace Artisan
             using (ImRaii.PushFont(ImGui.GetFont()))
             {
                 ImGui.AlignTextToFramePadding();
-                ImGui.Text(T("Craft X Times:"));
-                ImGui.SameLine();
-                ImGui.PushItemWidth(110f * scale.X);
-                if (ImGui.InputInt($"###TimesRepeat{node->NodeId}", ref P.Config.CraftX, step: 1, stepFast: 1))
+                ImGui.PushItemWidth(56f * scale.X);
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 3f);
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 1f);
+                if (ImGui.InputInt($"###TimesRepeat{node->NodeId}", ref P.Config.CraftX, step: 0, stepFast: 0))
                 {
                     if (P.Config.CraftX < 0)
                         P.Config.CraftX = 0;
@@ -954,10 +954,20 @@ namespace Artisan
                         P.Config.CraftX = craftableCount;
 
                 }
+                ImGui.PopStyleVar(2);
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 3f);
+                ImGui.SameLine(0, 2f * scale.X);
+                if (ImGui.Button("-", new Vector2(22f * scale.X, 0f)))
+                    P.Config.CraftX = Math.Max(0, P.Config.CraftX - 1);
+
+                ImGui.SameLine(0, 2f * scale.X);
+                if (ImGui.Button("+", new Vector2(22f * scale.X, 0f)))
+                    P.Config.CraftX = Math.Min(craftableCount, P.Config.CraftX + 1);
+
                 ImGui.SameLine();
                 if (P.Config.CraftX > 0)
                 {
-                    if (ImGui.Button(T("Craft {0}", P.Config.CraftX)))
+                    if (ImGui.Button(T("Craft")))
                     {
                         P.Config.CraftingX = true;
                         Endurance.ToggleEndurance(true);
@@ -965,13 +975,14 @@ namespace Artisan
                 }
                 else
                 {
-                    if (ImGui.Button(T("Craft All ({0})", craftableCount)))
+                    if (ImGui.Button(T("All ({0})", craftableCount)))
                     {
                         P.Config.CraftX = craftableCount;
                         P.Config.CraftingX = true;
                         Endurance.ToggleEndurance(true);
                     }
                 }
+                ImGui.PopStyleVar();
 
                 ImGui.GetIO().FontGlobalScale = oldScale;
             }

@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 修复宇宙探索收藏价值阈值计算，并调整 Raphael 的宇宙探索目标品质。"
+  "ChangeLog": "- 调整配方窗口连续制作控件的显示、位置与中文文案。"
 }
