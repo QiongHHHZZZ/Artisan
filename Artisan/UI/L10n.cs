@@ -555,6 +555,7 @@ internal static class L10n
         ["Crafting List Created"] = "制作清单已创建",
         ["Create crafting list for this phase"] = "为当前阶段创建制作清单",
         ["Create crafting list for this phase (including precrafts)"] = "为当前阶段创建制作清单（包含前置制作）",
+        ["Exit Crafting Stance After Completion"] = "完成后退出制作姿态",
         ["Craft"] = "制作",
         ["All"] = "全部",
         ["All ({0})"] = "全部({0})",

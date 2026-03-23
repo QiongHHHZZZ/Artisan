@@ -218,7 +218,7 @@ namespace Artisan.Autocraft
 
                 ImGuiComponents.HelpMarker(L10n.Tr("Will set ingredients for you, to maximise the amount of crafts possible."));
 
-                if (ImGui.Checkbox("Exit Crafting Stance After Completion", ref P.Config.ExitCraftStanceEndurance))
+                if (ImGui.Checkbox(L10n.Tr("Exit Crafting Stance After Completion"), ref P.Config.ExitCraftStanceEndurance))
                 {
                     P.Config.Save();
                 }
