@@ -217,6 +217,11 @@ namespace Artisan.Autocraft
                 }
 
                 ImGuiComponents.HelpMarker(L10n.Tr("Will set ingredients for you, to maximise the amount of crafts possible."));
+
+                if (ImGui.Checkbox("Exit Crafting Stance After Completion", ref P.Config.ExitCraftStanceEndurance))
+                {
+                    P.Config.Save();
+                }
             }
             catch { }
         }
@@ -275,6 +280,9 @@ namespace Artisan.Autocraft
                     SoundPlayer.PlaySound();
 
                 ToggleEndurance(false);
+
+                if (P.Config.ExitCraftStanceEndurance)
+                    PreCrafting.Tasks.Add((() => PreCrafting.TaskExitCraft(), default));
             }
         }
 
@@ -304,6 +312,8 @@ namespace Artisan.Autocraft
                     P.Config.CraftingX = false;
                     if (P.Config.PlaySoundFinishEndurance)
                         SoundPlayer.PlaySound();
+                    if (P.Config.ExitCraftStanceEndurance)
+                        PreCrafting.Tasks.Add((() => PreCrafting.TaskExitCraft(), default));
 
                     return;
                 }

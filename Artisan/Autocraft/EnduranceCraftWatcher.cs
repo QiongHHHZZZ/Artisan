@@ -104,6 +104,9 @@ namespace Artisan.Autocraft
                         if (P.Config.PlaySoundFinishEndurance)
                             SoundPlayer.PlaySound();
 
+                        if (P.Config.ExitCraftStanceEndurance)
+                            PreCrafting.Tasks.Add((() => PreCrafting.TaskExitCraft(), default));
+
                     }
                 }
             }
