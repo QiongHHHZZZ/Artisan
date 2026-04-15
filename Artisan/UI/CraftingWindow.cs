@@ -23,6 +23,7 @@ namespace Artisan.UI
     {
         public bool RepeatTrial;
         private DateTime _estimatedCraftEnd;
+        public int _delay;
 
         public CraftingWindow() : base($"{L10n.Tr("Artisan Crafting Window")}###MainCraftWindow", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse)
         {
@@ -46,6 +47,8 @@ namespace Artisan.UI
                 ShowTooltip = () => ImGuiEx.SetTooltip(L10n.Tr("Open Config")),
                 Click = (x) => P.PluginUi.IsOpen = true,
             });
+
+            _delay = P.Config.AutoDelay;
         }
 
         public void Dispose()
@@ -124,15 +127,14 @@ namespace Artisan.UI
 
                 if (autoMode && !P.Config.ReplicateMacroDelay)
                 {
-                    var delay = P.Config.AutoDelay;
-                    ImGui.Text(L10n.Tr("Set delay (ms)"));
-                    ImGui.SetNextItemWidth(-1f);
-                    if (ImGui.SliderInt("##SetDelayMs", ref delay, 0, 1000))
+                    ImGui.PushItemWidth(200);
+                    ImGui.SliderInt(L10n.Tr("Set delay (ms)"), ref _delay, 0, 1000);
+                    if (ImGui.IsItemDeactivatedAfterEdit())
                     {
-                        if (delay < 0) delay = 0;
-                        if (delay > 1000) delay = 1000;
+                        if (_delay < 0) _delay = 0;
+                        if (_delay > 1000) _delay = 1000;
 
-                        P.Config.AutoDelay = delay;
+                        P.Config.AutoDelay = _delay;
                         P.Config.Save();
                     }
                 }
