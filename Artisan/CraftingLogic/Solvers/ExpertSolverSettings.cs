@@ -1,6 +1,7 @@
-﻿using Artisan.CraftingLogic.CraftData;
+using Artisan.CraftingLogic.CraftData;
 using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
+using Artisan.UI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -15,6 +16,9 @@ namespace Artisan.CraftingLogic.Solvers;
 
 public class ExpertSolverSettings
 {
+    private static string T(string key) => L10n.Tr(key);
+    private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
     // General settings
     public bool EnableExpertProfiles = false;
     public int ImmacMissingDura = 45; // prioritize immaculate mend over manipulation when missing this much durability
@@ -29,10 +33,10 @@ public class ExpertSolverSettings
     public string GetMidUseTPSettingName(MidUseTPSetting value)
         => value switch
         {
-            MidUseTPSetting.MidUseTPGroundwork => $"（前期）{Skills.Groundwork.NameOfAction()}",
-            MidUseTPSetting.MidUseTPPrepIQ => $"（前期）{Skills.PreparatoryTouch.NameOfAction()}（叠 {Buffs.InnerQuiet.NameOfBuff()}）",
-            MidUseTPSetting.MidUseTPEitherPreQuality => $"（前期）根据{ConditionString.ToLower()}选择任一动作",
-            MidUseTPSetting.MidUseTPDuringQuality => $"（后期）{Buffs.InnerQuiet.NameOfBuff()}满层时，优先最优{QualityString.ToLower()}动作",
+            MidUseTPSetting.MidUseTPGroundwork => T("(Early) {0}", Skills.Groundwork.NameOfAction()),
+            MidUseTPSetting.MidUseTPPrepIQ => T("(Early) {0} (build {1})", Skills.PreparatoryTouch.NameOfAction(), Buffs.InnerQuiet.NameOfBuff()),
+            MidUseTPSetting.MidUseTPEitherPreQuality => T("(Early) Either action based on {0}", ConditionString.ToLower()),
+            MidUseTPSetting.MidUseTPDuringQuality => T("(Late) Optimal {0} action at max {1} (focus {0})", QualityString.ToLower(), Buffs.InnerQuiet.NameOfBuff()),
             _ => throw new NotImplementedException()
         };
     public MidUseTPSetting MidUseTP = MidUseTPSetting.MidUseTPDuringQuality;
@@ -51,10 +55,10 @@ public class ExpertSolverSettings
     public string GetMMSet(MMSet value)
         => value switch
         {
-            MMSet.Steps => $"After X steps",
-            MMSet.Opener => $"After the special opener action",
-            MMSet.AfterOpener => $"At the start of the {Buffs.InnerQuiet.NameOfBuff()} phase",
-            MMSet.Quality => $"At the start of the {QualityString} phase",
+            MMSet.Steps => T("After X steps"),
+            MMSet.Opener => T("After the special opener action"),
+            MMSet.AfterOpener => T("At the start of the {0} phase", Buffs.InnerQuiet.NameOfBuff()),
+            MMSet.Quality => T("At the start of the {0} phase", QualityString),
             _ => throw new NotImplementedException()
         };
     public MMSet UseMMWhen = MMSet.AfterOpener;
@@ -73,8 +77,8 @@ public class ExpertSolverSettings
     public string GetOpenerSet(OpenerSet value)
         => value switch
         {
-            OpenerSet.Reflect => $"Always use {Skills.Reflect.NameOfAction()}",
-            OpenerSet.MuMe => $"Always use {Skills.MuscleMemory.NameOfAction()}",
+            OpenerSet.Reflect => T("Always use {0}", Skills.Reflect.NameOfAction()),
+            OpenerSet.MuMe => T("Always use {0}", Skills.MuscleMemory.NameOfAction()),
             _ => throw new NotImplementedException()
         };
     public OpenerSet OpenerAction = OpenerSet.Reflect;
@@ -99,9 +103,9 @@ public class ExpertSolverSettings
     public string GetPQPrimedManipSet(PQPrimedManipSet value)
         => value switch
         {
-            PQPrimedManipSet.NoPliant => $"Only if the recipe does not have {Condition.Pliant.ToLocalizedString()}",
-            PQPrimedManipSet.Always => $"Always",
-            PQPrimedManipSet.Never => $"Never",
+            PQPrimedManipSet.NoPliant => T("Only if the recipe does not have {0}", Condition.Pliant.ToLocalizedString()),
+            PQPrimedManipSet.Always => T("Always"),
+            PQPrimedManipSet.Never => T("Never"),
             _ => throw new NotImplementedException()
         };
     public PQPrimedManipSet PQPrimedManip = PQPrimedManipSet.NoPliant;
@@ -114,9 +118,9 @@ public class ExpertSolverSettings
     public string GetPQWasteNotSet(PQWasteNotSet value)
         => value switch
         {
-            PQWasteNotSet.NoPliant => $"Only if the recipe does not have {Condition.Pliant.ToLocalizedString()}",
-            PQWasteNotSet.Always => $"Always",
-            PQWasteNotSet.Never => $"Never",
+            PQWasteNotSet.NoPliant => T("Only if the recipe does not have {0}", Condition.Pliant.ToLocalizedString()),
+            PQWasteNotSet.Always => T("Always"),
+            PQWasteNotSet.Never => T("Never"),
             _ => throw new NotImplementedException()
         };
     public PQWasteNotSet PQWasteNot = PQWasteNotSet.Never;
@@ -133,9 +137,9 @@ public class ExpertSolverSettings
     public string GetWhenToForceProgressSettingName(WhenToForceProgressSetting value)
         => value switch
         {
-            WhenToForceProgressSetting.WhenToForceProgressNever => $"Never force progress",
-            WhenToForceProgressSetting.WhenToForceProgressBeforeQuality => $"Force progress upon reaching 10 {Buffs.InnerQuiet.NameOfBuff()} stacks",
-            WhenToForceProgressSetting.WhenToForceProgressASAP => $"Force progress ASAP after opener",
+            WhenToForceProgressSetting.WhenToForceProgressNever => T("Never force progress"),
+            WhenToForceProgressSetting.WhenToForceProgressBeforeQuality => T("Force progress upon reaching 10 {0} stacks", Buffs.InnerQuiet.NameOfBuff()),
+            WhenToForceProgressSetting.WhenToForceProgressASAP => T("Force progress ASAP after opener"),
             _ => throw new NotImplementedException()
         };
     public WhenToForceProgressSetting WhenToForceProgress = WhenToForceProgressSetting.WhenToForceProgressBeforeQuality;
@@ -150,9 +154,9 @@ public class ExpertSolverSettings
     public string GetMidKeepHighDuraSettingName(MidKeepHighDuraSetting value)
         => value switch
         {
-            MidKeepHighDuraSetting.MidKeepHighDuraUnbuffed => $"未开启{Buffs.Veneration.NameOfBuff()}时，使用{Skills.Observe.NameOfAction()}等待更好的{ConditionString.ToLower()}",
-            MidKeepHighDuraSetting.MidKeepHighDuraVeneration => $"即使在{Buffs.Veneration.NameOfBuff()}期间，也使用{Skills.Observe.NameOfAction()}等待更好的{ConditionString.ToLower()}",
-            MidKeepHighDuraSetting.MidUseDura => $"不使用{Skills.Observe.NameOfAction()}，直接继续推进",
+            MidKeepHighDuraSetting.MidKeepHighDuraUnbuffed => T("Use {0} for a better {1}, as long as {2} isn't on", Skills.Observe.NameOfAction(), ConditionString.ToLower(), Buffs.Veneration.NameOfBuff()),
+            MidKeepHighDuraSetting.MidKeepHighDuraVeneration => T("Use {0} for a better {1}, even during {2}", Skills.Observe.NameOfAction(), ConditionString.ToLower(), Buffs.Veneration.NameOfBuff()),
+            MidKeepHighDuraSetting.MidUseDura => T("Don't use {0}, just keep going", Skills.Observe.NameOfAction()),
             _ => throw new NotImplementedException()
         };
     public MidKeepHighDuraSetting MidKeepHighDura = MidKeepHighDuraSetting.MidKeepHighDuraUnbuffed;
@@ -165,9 +169,9 @@ public class ExpertSolverSettings
     public string GetMidAllowIntensiveSettingName(MidAllowIntensiveSetting value)
         => value switch
         {
-            MidAllowIntensiveSetting.MidNoIntensive => $"不使用{Skills.IntensiveSynthesis.NameOfAction()}",
-            MidAllowIntensiveSetting.MidAllowIntensiveVeneration => $"仅在{Buffs.Veneration.NameOfBuff()}生效时使用{Skills.IntensiveSynthesis.NameOfAction()}",
-            MidAllowIntensiveSetting.MidAllowIntensiveUnbuffed => $"无视增益状态，始终使用{Skills.IntensiveSynthesis.NameOfAction()}",
+            MidAllowIntensiveSetting.MidNoIntensive => T("Don't use {0}", Skills.IntensiveSynthesis.NameOfAction()),
+            MidAllowIntensiveSetting.MidAllowIntensiveVeneration => T("Use {0} as long as {1} is on", Skills.IntensiveSynthesis.NameOfAction(), Buffs.Veneration.NameOfBuff()),
+            MidAllowIntensiveSetting.MidAllowIntensiveUnbuffed => T("Use {0} regardless of buffs", Skills.IntensiveSynthesis.NameOfAction()),
             _ => throw new NotImplementedException()
         };
     public MidAllowIntensiveSetting MidAllowIntensive = MidAllowIntensiveSetting.MidNoIntensive;
@@ -184,9 +188,9 @@ public class ExpertSolverSettings
     public string GetPQGoodPreciseSet(PQGoodPreciseSet value)
         => value switch
         {
-            PQGoodPreciseSet.NoPliant => $"Only if the recipe does not have {Condition.Pliant.ToLocalizedString()}",
-            PQGoodPreciseSet.Always => $"Always",
-            PQGoodPreciseSet.Never => $"Never",
+            PQGoodPreciseSet.NoPliant => T("Only if the recipe does not have {0}", Condition.Pliant.ToLocalizedString()),
+            PQGoodPreciseSet.Always => T("Always"),
+            PQGoodPreciseSet.Never => T("Never"),
             _ => throw new NotImplementedException()
         };
     public PQGoodPreciseSet PQGoodPrecise = PQGoodPreciseSet.Always;
@@ -225,9 +229,9 @@ public class ExpertSolverSettings
     public string GetQQuickInnoGoodSet(QQuickInnoGoodSet value)
         => value switch
         {
-            QQuickInnoGoodSet.Any => $"在任意品质动作上使用 {Skills.QuickInnovation.NameOfAction()}",
-            QQuickInnoGoodSet.PrepTP => $"仅在“免费 {Skills.PreparatoryTouch.NameOfAction()}”时使用 {Skills.QuickInnovation.NameOfAction()}",
-            QQuickInnoGoodSet.Disable => $"不使用 {Skills.QuickInnovation.NameOfAction()}（留给收尾）",
+            QQuickInnoGoodSet.Any => T("Use {0} on any quality action", Skills.QuickInnovation.NameOfAction()),
+            QQuickInnoGoodSet.PrepTP => T("Only use {0} on free {1}", Skills.QuickInnovation.NameOfAction(), Skills.PreparatoryTouch.NameOfAction()),
+            QQuickInnoGoodSet.Disable => T("Don't use {0} (save for finisher)", Skills.QuickInnovation.NameOfAction()),
             _ => throw new NotImplementedException()
         };
     public QQuickInnoGoodSet QQuickInnoGood = QQuickInnoGoodSet.Disable;

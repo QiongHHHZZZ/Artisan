@@ -170,11 +170,10 @@ namespace Artisan.UI
                     }
 
                     if (expCfg.OverrideCosmicRecipeSettings && SolverIs(config, "expert")) ImGui.EndDisabled();
-                    var mmNote = "To change Raphael solver usage, go to Settings > Raphael Solver Settings.";
                     if (SolverIs(config, "expert"))
-                        ImGuiComponents.HelpMarker(T("This setting only applies to the expert solver.\r\n{0}", mmNote));
+                        ImGuiComponents.HelpMarker(T("This setting only applies to the expert solver.\r\nTo change Raphael solver usage, go to Settings > Raphael Solver Settings."));
                     if (SolverIs(config, "standard"))
-                        ImGuiComponents.HelpMarker(T("This will switch the Standard Recipe Solver over to the Expert Solver for the duration of the buff.\r\n{0}", mmNote));
+                        ImGuiComponents.HelpMarker(T("This will switch the Standard Recipe Solver over to the Expert Solver for the duration of the buff. Material Miracle is a timed buff, not a permanent one with stacks, so the simulator will estimate how long it lasts based on the length of each skill's animation."));
 
                     if (expCfg.OverrideCosmicRecipeSettings && SolverIs(config, "expert")) ImGui.BeginDisabled();
 
@@ -202,7 +201,7 @@ namespace Artisan.UI
                             ExpertSettingsUI.DrawIconText("[ex] When to start");
                         }
                         else
-                            ImGui.Text("Use after this many steps:");
+                            ImGui.Text(T("Use after this many steps:"));
 
                         if ((SolverIs(config, "expert") && useMMWhen == MMSet.Steps) || SolverIs(config, "standard"))
                         {

@@ -128,17 +128,17 @@ internal class ExpertSolverSettingsUI
         }
 
         ImGui.Dummy(new Vector2(0, 5f));
-        ImGui.TextWrapped($"Ishgardian Restoration");
+        ImGui.TextWrapped(T("Ishgardian Restoration"));
         ImGui.Indent();
-        changed |= ImGui.Checkbox("Max out Ishgard Restoration recipes instead of just hitting max breakpoint", ref s.MaxIshgardRecipes);
-        ImGuiComponents.HelpMarker("This will try to maximise quality to earn more Skyward points.");
+        changed |= ImGui.Checkbox(T("Max out Ishgard Restoration recipes instead of just hitting max breakpoint"), ref s.MaxIshgardRecipes);
+        ImGuiComponents.HelpMarker(T("This will try to maximise quality to earn more Skyward points."));
         ImGui.Unindent();
 
-        ImGui.TextWrapped($"Cosmic Exploration");
+        ImGui.TextWrapped(T("Cosmic Exploration"));
         ImGui.Indent();
-        changed |= ImGui.Checkbox("Max out Cosmic Exploration recipes instead of hitting third breakpoint", ref s.MaxCosmicRecipes);
-        changed |= ImGui.Checkbox("Override per-recipe Cosmic Exploration settings###overrideCosmic", ref s.OverrideCosmicRecipeSettings);
-        ImGuiComponents.HelpMarker("By default, Cosmic Exploration settings are tracked for each recipe. Enable this option to instead use the settings below.");
+        changed |= ImGui.Checkbox(T("Max out Cosmic Exploration recipes instead of hitting third breakpoint"), ref s.MaxCosmicRecipes);
+        changed |= ImGui.Checkbox($"{T("Override per-recipe Cosmic Exploration settings")}###overrideCosmic", ref s.OverrideCosmicRecipeSettings);
+        ImGuiComponents.HelpMarker(T("By default, Cosmic Exploration settings are tracked for each recipe. Enable this option to instead use the settings below."));
         ImGui.Indent();
         if (!s.OverrideCosmicRecipeSettings) ImGui.BeginDisabled();
         ImGui.Dummy(new Vector2(0, 2f));
@@ -146,7 +146,7 @@ internal class ExpertSolverSettingsUI
         ImGui.Indent();
         ImGui.PushItemWidth(250);
         changed |= SliderIntWithIcons("MaxMaterialMiracleUses", ref s.MaxMaterialMiracleUses, 0, 3, "Max uses per craft");
-        ImGuiComponents.HelpMarker("If being used more than once, the buff will be immediately re-applied when it runs out.");
+        ImGuiComponents.HelpMarker(T("If being used more than once, the buff will be immediately re-applied when it runs out."));
         if (s.MaxMaterialMiracleUses > 0)
         {
             ImGui.PushItemWidth(250);
@@ -186,7 +186,7 @@ internal class ExpertSolverSettingsUI
         bool changed = false;
         try
         {
-            ImGui.TextWrapped($"Opener action:");
+            ImGui.TextWrapped(T("Opener action:"));
             ImGui.PushItemWidth(400);
             if (ImGui.BeginCombo("##OpenerAction", s.GetOpenerSet(s.OpenerAction)))
             {
@@ -325,7 +325,7 @@ internal class ExpertSolverSettingsUI
                 DrawIconText("When forcing {1}, [s!Observe] this many times for better [s!RapidSynthesis] {0}:", [ConditionString.ToLower(), ProgressString.ToLower()]);
                 HelpMarkerWithIcons("Looks for [c!Centered], [c!Sturdy]/[c!Robust], or [c!Malleable].");
                 ImGui.PushItemWidth(250);
-                changed |= ImGui.SliderInt("(-1 for no limit, 0 to disable)##ForceProgressMaxBait", ref s.ForceProgressMaxBait, -1, 10);
+                changed |= ImGui.SliderInt($"{T("(-1 for no limit, 0 to disable)")}##ForceProgressMaxBait", ref s.ForceProgressMaxBait, -1, 10);
                 ImGui.Unindent();
             }
 
@@ -563,9 +563,9 @@ internal class ExpertSolverSettingsUI
 
 #if DEBUG
         ImGui.Dummy(new Vector2(0, 5f));
-        changed |= ImGui.Checkbox("DEBUG: Observe only###debugObserve", ref s.DebugObserveOnly);
+        changed |= ImGui.Checkbox($"{T("DEBUG: Observe only")}###debugObserve", ref s.DebugObserveOnly);
         HelpMarkerWithIcons("CAUTION: Will only spam [s!Observe] and [s!TricksOfTrade] to collect condition data.");
-        changed |= ImGui.Checkbox("DEBUG: Innovation only###debugInnovate", ref s.DebugInnovateOnly);
+        changed |= ImGui.Checkbox($"{T("DEBUG: Innovation only")}###debugInnovate", ref s.DebugInnovateOnly);
         HelpMarkerWithIcons("CAUTION: Will only spam [s!Innovation] to collect condition data. Faster than [s!Observe].");
 #endif
 
@@ -588,8 +588,8 @@ internal class ExpertSolverSettingsUI
             }
 
             ImGui.Dummy(new Vector2(0, 5f));
-            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, $"IMPORTANT: These settings have been selected for optimal performance. Changing them may make the solver significantly worse. Use at your own risk.");
-            if (ImGui.Checkbox("I understand, let me in", ref P.Config.AcknowledgeExpertSettings))
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudYellow, T("IMPORTANT: These settings have been selected for optimal performance. Changing them may make the solver significantly worse. Use at your own risk."));
+            if (ImGui.Checkbox(T("I understand, let me in"), ref P.Config.AcknowledgeExpertSettings))
             {
                 P.Config.Save();
             }
@@ -603,14 +603,14 @@ internal class ExpertSolverSettingsUI
                 ImGui.Unindent();
 
                 ImGui.Indent();
-                ImGui.TextWrapped($"Expert Profiles");
+                ImGui.TextWrapped(T("Expert Profiles"));
                 ImGui.Indent();
-                changed |= ImGui.Checkbox("Use expert solver profiles", ref s.EnableExpertProfiles);
-                ImGuiComponents.HelpMarker("Profiles let you set different expert solver settings for different recipes. This is for advanced users - the expert solver should \"just work\" for almost everything.");
+                changed |= ImGui.Checkbox(T("Use expert solver profiles"), ref s.EnableExpertProfiles);
+                ImGuiComponents.HelpMarker(T("Profiles let you set different expert solver settings for different recipes. This is for advanced users - the expert solver should \"just work\" for almost everything."));
 
                 if (s.EnableExpertProfiles)
                 {
-                    if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.ExternalLinkAlt, "Create/Edit Expert Solver Profiles"))
+                    if (IconButtons.IconTextButton(Dalamud.Interface.FontAwesomeIcon.ExternalLinkAlt, T("Create/Edit Expert Solver Profiles")))
                     {
                         P.PluginUi.OpenWindow = OpenWindow.ExpertProfiles;
                     }
@@ -618,7 +618,7 @@ internal class ExpertSolverSettingsUI
                 ImGui.Unindent();
 
                 ImGui.Dummy(new Vector2(0, 5f));
-                if (ImGuiEx.ButtonCtrl("Reset Expert Solver Settings To Default"))
+                if (ImGuiEx.ButtonCtrl(T("Reset Expert Solver Settings To Default")))
                 {
                     P.Config.ExpertSolverConfig = new();
                     changed |= true;
