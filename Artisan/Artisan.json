@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 同步上游 Expert Solver / Material Miracle 更新，并补齐中文本地化。"
+  "ChangeLog": "- 同步上游求解器选择器同名宏修复。"
 }
