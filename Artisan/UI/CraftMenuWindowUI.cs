@@ -288,7 +288,6 @@ namespace Artisan.UI
 
                     if (changed)
                     {
-                        config.solverHint = "";
                         P.Config.RecipeConfigs[Endurance.RecipeID] = config;
                         P.Config.Save();
                     }

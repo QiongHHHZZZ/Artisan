@@ -16,11 +16,13 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
+using OtterGui.Extensions;
 using System;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using TerraFX.Interop.Windows;
 using static ECommons.GenericHelpers;
 
 namespace Artisan
@@ -85,8 +87,11 @@ namespace Artisan
 
                 DrawSearchReplace();
 
-                DrawEnduranceCounter();
-                DrawCosmicEnduranceCounter();
+                if (!P.Config.UseNativeButtons)
+                {
+                    DrawEnduranceCounter();
+                    DrawCosmicEnduranceCounter();
+                }
 
                 DrawWorkshopOverlay();
 
@@ -102,10 +107,12 @@ namespace Artisan
 
         private unsafe void DrawRecipeCompletion()
         {
-            if (!P.Config.ShowLevelingRecipeProgress)
+            var curPage = AgentRecipeNote.Instance()->SelectedRecipeCategoryPage;
+
+            if (AgentRecipeNote.Instance()->RecipeSearchOpen || (!P.Config.ShowLevelingRecipeProgress && !P.Config.ShowOtherRecipeProgress) || curPage > 1)
                 return;
 
-            if (AgentRecipeNote.Instance()->SelectedRecipeCategoryPage != 0 || AgentRecipeNote.Instance()->RecipeSearchOpen)
+            if ((!P.Config.ShowLevelingRecipeProgress && curPage == 0) || (!P.Config.ShowOtherRecipeProgress && curPage == 1))
                 return;
 
             try
@@ -125,7 +132,7 @@ namespace Artisan
                 RecipeInformation.UpdateCompletedRecipes();
                 var job = (Job)AgentRecipeNote.Instance()->SelectedCraftType + 8;
                 var jobLevel = CharacterInfo.JobLevel(job);
-                var filteredList = RecipeInformation.CompletedRecipes.Where(x => x.Key.Job == job).ToDictionary(x => x.Key.LevelBracket, x => x.Value);
+                var filteredList = RecipeInformation.CompletedRecipes.Where(x => x.Key.Job == job).ToDictionary(x => x.Key.DivisionID, x => x.Value);
 
                 uint visited = 0;
                 uint toVisit = (((uint)Math.Round(jobLevel / 5.0) * 5) / 5);
@@ -146,25 +153,42 @@ namespace Artisan
                         if (textNode == null || textNode->Type is not NodeType.Text)
                             continue;
 
-                        uint bracket = toVisit - visited;
-                        if (bracket > toVisit)
-                            continue;
-
-                        if (filteredList.TryGetFirst(x => x.Key == bracket, out var entry))
+                        if (curPage == 0) // leveling
                         {
-                            var label = Svc.Data.GetExcelSheet<NotebookDivision>().GetRow(bracket).Name.ToString();
+                            uint bracket = toVisit - visited;
+                            if (bracket > toVisit && curPage == 0)
+                                continue;
 
-                            if (entry.Value.Completed == entry.Value.Total)
+                            if (filteredList.TryGetFirst(x => x.Key == bracket, out var entry))
                             {
-                                textNode->GetAsAtkTextNode()->SetText($"{label} ✓");
-                            }
-                            else
-                            {
-                                textNode->GetAsAtkTextNode()->SetText($"{label} [{entry.Value.Completed}/{entry.Value.Total}]");
-                            }
+                                var label = Svc.Data.GetExcelSheet<NotebookDivision>().GetRow(bracket).Name.ToString();
 
+                                if (entry.Value.Completed == entry.Value.Total)
+                                    textNode->GetAsAtkTextNode()->SetText($"{label} ✓");
+                                else
+                                    textNode->GetAsAtkTextNode()->SetText($"{label} [{entry.Value.Completed}/{entry.Value.Total}]");
+
+                            }
+                            visited++;
                         }
-                        visited++;
+                        else if (curPage == 1) // special recipes
+                        {
+                            var curLabel = textNode->GetAsAtkTextNode()->NodeText.GetText();
+                            foreach (var (divisionId, v) in filteredList)
+                            {
+                                var divLabel = Svc.Data.GetExcelSheet<NotebookDivision>().GetRow(divisionId).Name.ToString();
+                                if (curLabel == divLabel)
+                                {
+                                    var noParenLabel = curLabel.Replace("(", "").Replace(")", "");
+                                    var trimLabel = noParenLabel.Length > 12 ? noParenLabel.Substring(0, 12) + "..." : noParenLabel;
+
+                                    if (v.Completed == v.Total)
+                                        textNode->GetAsAtkTextNode()->SetText($"{trimLabel} ✓");
+                                    else
+                                        textNode->GetAsAtkTextNode()->SetText($"{trimLabel} [{v.Completed}/{v.Total}]");
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1002,7 +1026,7 @@ namespace Artisan
 
         public static CraftMenuWindowUI AddCraftMenuWindow()
         {
-            _craftMenuWindowUi = new CraftMenuWindowUI("CraftMenuWindow", GetWindowFlags());
+            _craftMenuWindowUi = new CraftMenuWindowUI("Artisan Crafting Window###CraftMenuWindow", GetWindowFlags());
             return _craftMenuWindowUi;
         }
 
@@ -1031,7 +1055,7 @@ namespace Artisan
 
         public static CraftMenuWindowUI AddCosmicCraftMenuWindow()
         {
-            _cosmicCraftMenuWindowUi = new CraftMenuWindowUI("CosmicCraftMenuWindow", GetWindowFlags());
+            _cosmicCraftMenuWindowUi = new CraftMenuWindowUI("Artisan Crafting Window###CosmicCraftMenuWindow", GetWindowFlags());
             return _cosmicCraftMenuWindowUi;
         }
 

@@ -80,10 +80,6 @@ public class RecipeConfig
     public string SolverType = ""; // TODO: ideally it should be a Type?, but that causes problems for serialization
     public int SolverFlavour;
     public int expertProfileID = (int)Default;
-    [NonSerialized]
-    public string solverHint = "";
-    [NonSerialized]
-    public Vector4 hintColor;
 
     public uint expertMaxSteadyUses = Default;
     public uint expertMaxMaterialMiracleUses = Default;
@@ -348,8 +344,23 @@ public class RecipeConfig
         bool exists = P.Config.RecipeConfigs.ContainsKey(craft.RecipeId);
         if (!exists && P.Config.RaphaelSolverConfig.DefaultRaphSolver)
         {
-            this.SolverFlavour = 3;
-            this.SolverType = typeof(RaphaelSolverDefintion).FullName!;
+            if (craft.StatLevel < 7 && P.Config.RaphaelSolverConfig.FallbackToSolverIfRaphaelLocked)
+            {
+                this.SolverType = P.Config.RaphaelSolverConfig.FallbackSolverType;
+                this.SolverFlavour = P.Config.RaphaelSolverConfig.FallbackSolverFlavour;
+                changed = true;
+            }
+            else
+            {
+                this.SolverFlavour = 3;
+                this.SolverType = typeof(RaphaelSolverDefintion).FullName!;
+                changed = true;
+            }
+        }
+        else if (exists && craft.StatLevel < 7 && this.SolverType == typeof(RaphaelSolverDefintion).FullName! && P.Config.RaphaelSolverConfig.FallbackToSolverIfRaphaelLocked)
+        {
+            this.SolverType = P.Config.RaphaelSolverConfig.FallbackSolverType;
+            this.SolverFlavour = P.Config.RaphaelSolverConfig.FallbackSolverFlavour;
             changed = true;
         }
         if (string.IsNullOrEmpty(solver.Name))
@@ -449,13 +460,11 @@ public class RecipeConfig
 
     public unsafe void DrawSimulator(CraftState craft)
     {
-
         if (!P.Config.HideRecipeWindowSimulator)
         {
             var recipe = craft.Recipe;
             var config = this;
-            if (solverHint == "")
-                solverHint = Simulator.SimulatorResult(recipe, config, craft, out hintColor);
+            var solverHint = Simulator.SimulatorResult(recipe, config, craft, out var hintColor);
             var solver = CraftingProcessor.GetSolverForRecipe(config, craft);
 
             if (solver.Name != "Expert Recipe Solver")

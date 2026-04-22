@@ -44,6 +44,7 @@ namespace Artisan
         public bool UseSimulatedStartingQuality = false;
         public bool DisableHighlightedAction = false;
         public bool AcknowledgeExpertSettings = false;
+        public bool UseNativeButtons = true;
 
         public ExpertSolverSettings ExpertSolverConfig = new(); // the global expert profile/settings
         public ExpertSolverProfiles ExpertSolverProfiles = new(); // handles all expert profiles, including the global one
@@ -172,6 +173,7 @@ namespace Artisan
         public ConcurrentDictionary<string, MacroSolverSettings.Macro> RaphaelSolverCacheV4 = [];
         public ConcurrentDictionary<string, MacroSolverSettings.Macro> RaphaelSolverCacheV5 = [];
         public bool ShowLevelingRecipeProgress = true;
+        public bool ShowOtherRecipeProgress = true;
         public bool ExitCraftStanceEndurance = true;
 
         [NonSerialized]
