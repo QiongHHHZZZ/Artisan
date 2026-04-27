@@ -383,7 +383,7 @@ public class RecipeConfig
                 else
                 {
                     bool selected = opt.Name == solver.Name && opt.Flavour == solver.Flavour;
-                    if (ImGui.Selectable($"{T(opt.Name)}###{opt.Flavour}", selected))
+                    if (ImGui.Selectable($"{T(opt.Name)}###{opt.Name}{opt.Flavour}", selected))
                     {
                         IPC.IPC.SetTempSolverBackToNormal(craft.RecipeId);
                         SolverType = opt.Def.GetType().FullName!;

@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 同步上游求解器选择器同名宏修复。"
+  "ChangeLog": "- 设置界面整理。\n- 新增使用原生 Craft X 按钮选项。\n- 住宅与摆设分类新增完成度检查。\n- 同步上游求解器选择器同名宏修复。"
 }
