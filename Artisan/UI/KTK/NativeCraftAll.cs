@@ -11,6 +11,8 @@ namespace Artisan.UI.KTK
 {
     internal unsafe class NativeCraftAll
     {
+        private static string T(string key, params object[] args) => L10n.Tr(key, args);
+
         AddonController? regularRecipeNoteController;
         AddonController? moonRecipeNoteController;
         TextButtonNodeSynth? SynthesizeAll;
@@ -78,10 +80,10 @@ namespace Artisan.UI.KTK
             {
                 Position = new Vector2(buttonX, buttonY),
                 Size = new Vector2(synthButton->Width, 36),
-                String = $"Craft All ({SynthesizeableCount})",
+                String = T("Craft All ({0})", SynthesizeableCount),
                 OnClick = () => SynthesizeX(),
                 IsEnabled = SynthesizeableCount > 0,
-                TextTooltip = "Button added by Artisan.",
+                TextTooltip = T("Button added by Artisan."),
                 NodeId = 100000
             };
 
@@ -94,7 +96,7 @@ namespace Artisan.UI.KTK
                 OnValueUpdate = (t) =>
                 {
                     val = t;
-                    SynthesizeAll?.String = val == 0 ? $"Craft All ({SynthesizeableCount})" : $"Craft {t}";
+                    SynthesizeAll?.String = val == 0 ? T("Craft All ({0})", SynthesizeableCount) : T("Craft {0}", t);
                 },
                 NodeFlags = synthButton->NodeFlags,
                 Max = SynthesizeableCount,
@@ -141,7 +143,7 @@ namespace Artisan.UI.KTK
             val = Math.Min(SynthesizeableCount, val);
             SynthesizeXCounter.Value = val;
             if (val == 0)
-                SynthesizeAll.String = $"Craft All ({SynthesizeableCount})";
+                SynthesizeAll.String = T("Craft All ({0})", SynthesizeableCount);
         }
 
         private void RegularOnSetup(AtkUnitBase* addon)
@@ -163,10 +165,10 @@ namespace Artisan.UI.KTK
             {
                 Position = new Vector2(buttonX, buttonY),
                 Size = new Vector2(synthBg->Width, synthBg->Height),
-                String = $"Craft All ({SynthesizeableCount})",
+                String = T("Craft All ({0})", SynthesizeableCount),
                 OnClick = () => SynthesizeX(),
                 IsEnabled = SynthesizeableCount > 0,
-                TextTooltip = "Button added by Artisan.",
+                TextTooltip = T("Button added by Artisan."),
                 NodeId = 100000
             };
 
@@ -180,7 +182,7 @@ namespace Artisan.UI.KTK
                 OnValueUpdate = (t) =>
                 {
                     val = t;
-                    SynthesizeAll?.String = val == 0 ? $"Craft All ({SynthesizeableCount})" : $"Craft {t}";
+                    SynthesizeAll?.String = val == 0 ? T("Craft All ({0})", SynthesizeableCount) : T("Craft {0}", t);
                 },
                 Max = SynthesizeableCount,
                 IsEnabled = SynthesizeableCount > 0,

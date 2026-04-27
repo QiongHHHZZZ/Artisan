@@ -151,7 +151,7 @@ internal class ExpertSolverSettingsUI
         if (s.MaxMaterialMiracleUses > 0)
         {
             ImGui.PushItemWidth(250);
-            if (ImGui.BeginCombo("When to start##mmSet", s.GetMMSet(s.UseMMWhen)))
+            if (ImGui.BeginCombo($"{T("When to start")}##mmSet", s.GetMMSet(s.UseMMWhen)))
             {
                 foreach (MMSet x in Enum.GetValues<MMSet>())
                 {

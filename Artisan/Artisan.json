@@ -12,5 +12,5 @@
   "RepoUrl": "https://github.com/PunishXIV/Artisan",
   "DalamudApiLevel": 14,
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 设置界面整理。\n- 新增使用原生 Craft X 按钮选项。\n- 住宅与摆设分类新增完成度检查。\n- 同步上游求解器选择器同名宏修复。"
+  "ChangeLog": "- 同步上游 4.0.4.54 相关更新。\n- 补齐设置页、Raphael 求解器设置页与 Craft UI 中文本地化。\n- 修复原生 Craft X、制作窗口标题与回退求解器下拉的英文显示。"
 }
