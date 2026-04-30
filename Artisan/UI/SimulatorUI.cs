@@ -1025,7 +1025,7 @@ namespace Artisan.UI
         private static void DrawIngredientLayout()
         {
             using var group = ImRaii.Group();
-            if (!group)
+            if (!group.Alive)
                 return;
 
             ImGuiEx.LineCentered("###LayoutIngredients", () => ImGuiEx.TextUnderlined(T("Ingredient Layouts")));
