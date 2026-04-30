@@ -1,16 +1,19 @@
 {
-  "Author": "Taurenkey (Puni.sh)",
+  "Author": "Taurenkey (Puni.sh), QiongHHHZZZ(汉化&适配)",
   "Name": "Artisan",
-  "Punchline": "一个“简单”的生产插件。",
-  "Description": "一体化生产插件。",
+  "Punchline": "一个“简单”的制作插件。",
+  "Description": "一体化制作插件。",
   "InternalName": "Artisan",
+  "AssemblyVersion": "4.0.4.5500",
   "ApplicableVersion": "any",
-  "IconUrl": "https://s3.puni.sh/media/plugin/6/icon-3h8wd5b9qr.png",
+  "IconUrl": "https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/icons/artisan.png",
   "Tags": [
     "crafting"
   ],
-  "RepoUrl": "https://github.com/PunishXIV/Artisan",
-  "DalamudApiLevel": 14,
-  "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 同步上游 4.0.4.54 相关更新。\n- 补齐设置页、Raphael 求解器设置页与 Craft UI 中文本地化。\n- 修复原生 Craft X、制作窗口标题与回退求解器下拉的英文显示。"
+  "RepoUrl": "https://github.com/QiongHHHZZZ/Artisan",
+  "DalamudApiLevel": 15,
+  "LoadPriority": 0,
+  "AcceptsFeedback": true,
+  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.4.5500/Artisan.zip",
+  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.4.5500/Artisan.zip"
 }

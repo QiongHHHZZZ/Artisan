@@ -26,17 +26,21 @@ jobs:
       - name: Download Dalamud
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+          Invoke-WebRequest -Uri https://github.com/Dalamud-DailyRoutines/Dalamud/releases/latest/download/latest.7z -OutFile latest.7z
+          $sevenZip = "$env:ProgramFiles\7-Zip\7z.exe"
+          if (!(Test-Path $sevenZip)) {
+            $sevenZip = "7z"
+          }
           $paths = @(
             "$env:AppData\XIVLauncher\addon\Hooks\dev",
             "$env:AppData\XIVLauncherCN\addon\Hooks\dev"
           )
           foreach ($path in $paths) {
             New-Item -ItemType Directory -Force -Path $path | Out-Null
-            Expand-Archive -Force latest.zip $path
+            & $sevenZip x latest.7z "-o$path" -y
             Write-Host "Dalamud extracted to: $path"
           }
-          Remove-Item latest.zip -Force
+          Remove-Item latest.7z -Force
 
       - name: Build Release
         shell: pwsh

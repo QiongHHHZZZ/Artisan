@@ -1,8 +1,8 @@
 <!-- Repository Header Begin -->
 <div align="center">
-<img src="https://github.com/PunishXIV/Artisan/blob/main/PunishImages/artisan-icon.png?raw=true" alt="Artisan IconUrl" width="15%">
+<img src="https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/icons/artisan.png" alt="Artisan IconUrl" width="15%">
 <br>
-<img src="https://github.com/PunishXIV/Artisan/blob/050a58be7b0ce94c959c17e43dabecb65e38a55c/PunishImages/artisan.png" width="30%" />
+<img src="https://github.com/QiongHHHZZZ/Artisan/blob/main/PunishImages/artisan.png?raw=true" width="30%" />
 
 Crafting Automation Plugin/Helper for FFXIV
 
@@ -10,5 +10,5 @@ Crafting Automation Plugin/Helper for FFXIV
 
 Repo Url: 
 
-`https://love.puni.sh/ment.json`
+`https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/pluginmaster.json`
 </div>

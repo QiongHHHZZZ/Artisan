@@ -498,7 +498,7 @@ namespace Artisan.UI
 
                 if (ImGui.IsItemClicked())
                 {
-                    Util.OpenLink("https://github.com/PunishXIV/Artisan");
+                    Util.OpenLink("https://github.com/QiongHHHZZZ/Artisan");
                 }
             }
 
