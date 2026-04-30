@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using TerraFX.Interop.Windows;
 using TerraFX.Interop.WinRT;
 using static ECommons.GenericHelpers;
@@ -337,10 +338,17 @@ namespace Artisan.UI
                 if (ImGui.CollapsingHeader("配方笔记"))
                 {
                     var recipes = RecipeNoteRecipeData.Ptr();
+
+                    byte* basePtr = (byte*)recipes;
+                    byte* targetPtr = basePtr + 1112 + DebugValue;
+
+                    // Suppose the value at that offset is an int:
+                    ushort value = *(ushort*)targetPtr;
+                    ImGui.Text($"{*targetPtr}");
                     if (recipes != null && recipes->Recipes != null)
                     {
                         if (recipes->SelectedIndex < recipes->RecipesCount)
-                            DrawRecipeEntry($"已选中", recipes->Recipes + recipes->SelectedIndex);
+                            DrawRecipeEntry($"已选中 {recipes->SelectedIndex}", recipes->Recipes + recipes->SelectedIndex);
                         for (int i = 0; i < recipes->RecipesCount; ++i)
                             DrawRecipeEntry(i.ToString(), recipes->Recipes + i);
                     }
@@ -634,7 +642,7 @@ namespace Artisan.UI
                     IPC.IPC.CraftX((ushort)DebugValue, 1);
                 }
 
-                ImGui.InputInt("调试值", ref DebugValue);
+                ImGui.InputInt("调试值", ref DebugValue, 1, 10);
                 if (ImGui.Button($"打开配方"))
                 {
                     PreCrafting.TaskSelectRecipe(Svc.Data.GetExcelSheet<Recipe>().GetRow((uint)DebugValue));
