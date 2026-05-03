@@ -4,7 +4,7 @@
   "Punchline": "一个“简单”的制作插件。",
   "Description": "一体化制作插件。",
   "InternalName": "Artisan",
-  "AssemblyVersion": "4.0.5.2000",
+  "AssemblyVersion": "5.3000",
   "ApplicableVersion": "any",
   "IconUrl": "https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/icons/artisan.png",
   "Tags": [
@@ -14,7 +14,7 @@
   "DalamudApiLevel": 15,
   "LoadPriority": 0,
   "AcceptsFeedback": true,
-  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.2000/Artisan.zip",
-  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.2000/Artisan.zip",
-  "ChangeLog": "- Patch fixes"
+  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v5.3000/Artisan.zip",
+  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v5.3000/Artisan.zip",
+  "ChangeLog": "- Fix NPC repair\n- More repair refactors"
 }
