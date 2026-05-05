@@ -16,5 +16,5 @@
   "AcceptsFeedback": true,
   "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.3000/Artisan.zip",
   "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.3000/Artisan.zip",
-  "ChangeLog": "- Fix NPC repair\n- More repair refactors"
+  "ChangeLog": "- Fix NPC repairs\n- Fix manual usage not exiting craft stance"
 }

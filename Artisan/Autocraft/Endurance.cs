@@ -381,6 +381,8 @@ namespace Artisan.Autocraft
                     {
                         if (!P.TM.IsBusy && !PreCrafting.Occupied())
                         {
+                            if (needManual || needSquadronManual)
+                                P.TM.Enqueue(() => PreCrafting.Tasks.Add((() => PreCrafting.TaskExitCraft(), TimeSpan.FromMilliseconds(200))));
                             P.TM.Enqueue(() => PreCrafting.Tasks.Add((() => PreCrafting.TaskUseConsumables(config, type), TimeSpan.FromMilliseconds(200))));
                             P.TM.DelayNext(100);
                         }
