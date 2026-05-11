@@ -36,7 +36,6 @@ public unsafe static class PreCrafting
     public static int equipAttemptLoops = 0;
     public static int equipGearsetLoops = 0;
     public static int timeWasteLoops = 0;
-    private static long NextTaskAt = 0;
 
     private delegate void ClickSynthesisButton(void* thisPtr, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData);
     private static Hook<ClickSynthesisButton>? _clickButton;
@@ -167,7 +166,7 @@ public unsafe static class PreCrafting
                 return;
             }
 
-            bool needExitCraft = Crafting.CurState == Crafting.State.IdleBetween && (needEquipItem || needsManuals);
+            bool needExitCraft = Crafting.CurState == Crafting.State.IdleBetween && (needClassChange || needEquipItem || needsManuals);
 
             // TODO: pre-setup solver for incoming craft
             Tasks.Clear();
@@ -523,7 +522,7 @@ public unsafe static class PreCrafting
                     if (re != null && re->RecipeId == recipe.RowId)
                         return TaskResult.Done;
                 }
-                catch (Exception ex)
+                catch
                 {
                     return TaskResult.Done;
                 }

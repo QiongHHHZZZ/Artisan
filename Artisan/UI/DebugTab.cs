@@ -782,7 +782,7 @@ namespace Artisan.UI
                 using var n2 = ImRaii.TreeNode($"起始品质：{startingQuality}/{Calculations.RecipeMaxQuality(recipe.Value)}", ImGuiTreeNodeFlags.Leaf);
             }
 
-            Util.ShowObject(recipe.Value.RecipeLevelTable.Value);
+            Util.ShowObject(recipe!.Value.RecipeLevelTable.Value);
         }
 
         private static void DrawEquippedGear()

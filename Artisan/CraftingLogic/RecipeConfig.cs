@@ -138,8 +138,6 @@ public class RecipeConfig
         try
         {
             return 32f + 350f; //Bandaid fix for the time being as below might crash
-            var ret = Math.Max(Math.Max(Math.Max(ImGui.CalcTextSize(FoodName).X, ImGui.CalcTextSize(PotionName).X), ImGui.CalcTextSize(ManualName).X), ImGui.CalcTextSize(SquadronManualName).X) + 32f;
-            return ret;
         }
         catch (Exception ex)
         {
@@ -173,6 +171,7 @@ public class RecipeConfig
             changed |= DrawExpertProfiles(craft);
         DrawWarnings(craft);
         RaphaelCache.DrawRaphaelDropdown(craft, liveStats);
+        ImGui.Separator();
         DrawSimulator(craft);
         return changed;
     }
@@ -469,16 +468,16 @@ public class RecipeConfig
 
             if (solver.Name != "Expert Recipe Solver")
             {
-                if (craft.MissionHasMaterialMiracle && solver.Name == "Standard Recipe Solver" && P.Config.MaxMaterialMiracles > 0)
-                    ImGuiEx.TextCentered(T("Material Miracle will give inconsistent simulator results."));
+                if (craft.MissionHasMaterialMiracle && solver.Name == "Standard Recipe Solver" && P.Config.StandardMMUses > 0)
+                    ImGuiEx.TextCentered(T("Material Miracle 会导致模拟器结果不一致。"));
                 else
                     if (solver.Name == "Raphael Recipe Solver" && !RaphaelCache.HasSolution(craft, out _))
                         ImGuiEx.TextCentered(T("Unable to generate a simulator without a Raphael solution generated."));
                     else
-                        ImGuiEx.TextCentered(hintColor, solverHint);
+                        ImGuiEx.TextCentered(hintColor, $"[{solver.Name.Split(' ')[0].Trim(":")}] {solverHint}");
             }
             else
-                ImGuiEx.TextCentered(T("Please run this recipe in the simulator for results."));
+                ImGuiEx.TextCentered(T("[Expert] 请在模拟器中运行此配方以查看结果。"));
 
             if (ImGui.IsItemClicked())
             {

@@ -95,7 +95,6 @@ internal class ListEditor : Window, IDisposable
 
     private bool hqSim = false;
 
-    private int addMoreCount = 0;
     public bool loading;
 
     public ListEditor(int listId)
@@ -189,7 +188,7 @@ internal class ListEditor : Window, IDisposable
         public uint CraftType => LuminaSheets.RecipeSheet[RecID].CraftType.RowId;
 
         public int ListQuantity = 0;
-        public ListItemOptions ops;
+        public ListItemOptions? ops;
     }
 
     public async override void Draw()
@@ -463,12 +462,12 @@ internal class ListEditor : Window, IDisposable
             }
 
             ImGui.SameLine();
-            ImGui.TextWrapped(T("Include Retainers"));
+            ImGui.TextWrapped(T("包含雇员"));
         }
 
         var preview = SelectedRecipe is null
                           ? string.Empty
-                          : $"{SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()} ({LuminaSheets.ClassJobSheet[SelectedRecipe.Value.CraftType.RowId + 8].Name.ToString()})";
+                          : $"{SelectedRecipe!.Value.ItemResult.Value.Name.ToDalamudString().ToString()} ({LuminaSheets.ClassJobSheet[SelectedRecipe!.Value.CraftType.RowId + 8].Abbreviation.ToString()})";
 
         if (ImGui.BeginCombo(T("Select Recipe"), preview))
         {
@@ -477,11 +476,11 @@ internal class ListEditor : Window, IDisposable
             ImGui.EndCombo();
         }
 
-        if (SelectedRecipe != null)
+        if (SelectedRecipe! != null)
         {
             if (ImGui.CollapsingHeader(T("Recipe Information"))) DrawRecipeOptions();
             if (SelectedRecipeRawIngredients.Count == 0)
-                CraftingListHelpers.AddRecipeIngredientsToList(SelectedRecipe, ref SelectedRecipeRawIngredients);
+                CraftingListHelpers.AddRecipeIngredientsToList(SelectedRecipe!, ref SelectedRecipeRawIngredients);
 
             if (ImGui.CollapsingHeader(T("Raw Ingredients")))
             {
@@ -499,15 +498,15 @@ internal class ListEditor : Window, IDisposable
             if (timesToAdd < 1)
                 ImGui.BeginDisabled();
 
-            if (ImGui.Button(T("Add to List"), new Vector2(ImGui.GetContentRegionAvail().X / 2, 30)))
+            if (ImGui.Button(T("添加到列表"), new Vector2(ImGui.GetContentRegionAvail().X / 2, 30)))
             {
-                AddToList(SelectedRecipe.Value, false, true);
+                AddToList(SelectedRecipe!.Value, false, true);
             }
 
             ImGui.SameLine();
-            if (ImGui.Button(T("Add to List (with all sub-crafts)"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
+            if (ImGui.Button(T("添加到列表（包含所有子配方）"), new Vector2(ImGui.GetContentRegionAvail().X, 30)))
             {
-                AddToList(SelectedRecipe.Value, true, true);
+                AddToList(SelectedRecipe!.Value, true, true);
             }
 
             if (timesToAdd < 1)
@@ -522,17 +521,26 @@ internal class ListEditor : Window, IDisposable
             T("Quick disclaimer: This will treat whatever item you have selected as a \"Final Craft\" and only adjust sub-crafts required for that item, and not anything this item may be used for e.g changing lumber won't update crafts that use that lumber."));
         ImGui.Separator();
 
-        if (ImGui.Button(T("Sort Recipes")))
+        if (ImGui.Button(T("排序")))
         {
             SortList();
         }
-
         if (ImGui.IsItemHovered())
         {
             ImGuiEx.Tooltip(T("This will sort your list by recipe depth, then difficulty. Recipe depth is defined by how many of the ingredients depend on other recipes on the list.\n\n") +
                 T("For example: {0} requires {1}, which in turn requires {2}, giving this recipe a depth of 3 if all these items are on the list.\n", LuminaSheets.RecipeSheet[35508].ItemResult.Value.Name.ToDalamudString(), LuminaSheets.ItemSheet[36186].Name, LuminaSheets.ItemSheet[36189].Name) +
                 T("Items that do not have other recipe dependencies have a depth of 1, so go to the top of the list, e.g {0}\n\n", LuminaSheets.RecipeSheet[5299].ItemResult.Value.Name.ToDalamudString()) +
                 T("Finally, this is sorted by the in-game difficulty of the crafts, hopefully grouping together similar crafts."));
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button(T("切换")))
+        {
+            ToggleList();
+        }
+        if (ImGui.IsItemHovered())
+        {
+            ImGuiEx.Tooltip(T("这会在‘跳过’与‘启用’之间切换列表中的所有项目。"));
         }
 
         Task.Run(() =>
@@ -626,6 +634,17 @@ internal class ListEditor : Window, IDisposable
         SelectedList.Recipes = newList;
         RecipeSelector.Items = SelectedList.Recipes.Distinct().ToList();
         P.Config.Save();
+    }
+
+    bool toggleLast;
+
+    private void ToggleList()
+    {
+        toggleLast = !toggleLast;
+        foreach (var result in SelectedList.Recipes)
+        {
+            result.ListItemOptions.Skipping = toggleLast;
+        }
     }
 
     TimeSpan listTime;
@@ -755,12 +774,12 @@ internal class ListEditor : Window, IDisposable
     private void DrawRecipeOptions()
     {
         {
-            List<uint> craftingJobs = LuminaSheets.RecipeSheet.Values.Where(x => x.ItemResult.Value.Name.ToDalamudString().ToString() == SelectedRecipe.Value.ItemResult.Value.Name.ToDalamudString().ToString()).Select(x => x.CraftType.Value.RowId + 8).ToList();
-            string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => craftingJobs.Any(y => y == x.RowId)).Select(x => x.Name.ToString()).ToArray();
-            ImGui.Text(T("Crafted by: {0}", string.Join(", ", jobstrings)));
+            List<uint> craftingJobs = LuminaSheets.RecipeSheet.Values.Where(x => x.ItemResult.Value.Name.ToDalamudString().ToString() == SelectedRecipe!.Value.ItemResult.Value.Name.ToDalamudString().ToString()).Select(x => x.CraftType.Value.RowId + 8).ToList();
+            string[]? jobstrings = LuminaSheets.ClassJobSheet.Values.Where(x => craftingJobs.Any(y => y == x.RowId)).Select(x => x.Abbreviation.ToString()).ToArray();
+            ImGui.Text(T("可制作职业：{0}", string.Join(", ", jobstrings)));
         }
 
-        var ItemsRequired = SelectedRecipe.Value.Ingredients();
+        var ItemsRequired = SelectedRecipe!.Value.Ingredients();
 
         int numRows = RetainerInfo.ATools ? 6 : 5;
         if (ImGui.BeginTable("###RecipeTable", numRows, ImGuiTableFlags.Borders))

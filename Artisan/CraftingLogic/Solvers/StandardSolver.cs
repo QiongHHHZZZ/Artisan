@@ -64,7 +64,7 @@ namespace Artisan.CraftingLogic.Solvers
 
             }
 
-            if ((rec.Action is not Skills.MastersMend or Skills.ImmaculateMend) &&
+            if ((rec.Action is not Skills.MastersMend and not Skills.ImmaculateMend) &&
                 step.Quality < craft.CraftQualityMax &&
                 Simulator.CanUseAction(craft, step, Skills.ByregotsBlessing) &&
                 step.RemainingCP - Simulator.GetCPCost(step, rec.Action) < Simulator.GetCPCost(step, Skills.ByregotsBlessing) &&
@@ -165,7 +165,7 @@ namespace Artisan.CraftingLogic.Solvers
             if (step.MaterialMiracleActive)
                 return fallbackRec;
 
-            if (_materialMiracleUses < P.Config.MaxMaterialMiracles && step.Index > P.Config.MinimumStepsBeforeMiracle && Simulator.CanUseAction(craft, step, Skills.MaterialMiracle))
+            if (_materialMiracleUses < P.Config.StandardMMUses && step.Index > P.Config.StandardMMSteps && Simulator.CanUseAction(craft, step, Skills.MaterialMiracle))
                 return new(Skills.MaterialMiracle);
 
             bool inCombo = (step.PrevComboAction == Skills.BasicTouch && Simulator.CanUseAction(craft, step, Skills.StandardTouch)) || (step.PrevComboAction == Skills.StandardTouch && Simulator.CanUseAction(craft, step, Skills.AdvancedTouch));

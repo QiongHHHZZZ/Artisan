@@ -4,7 +4,7 @@ using Artisan.CraftingLogic;
 using Artisan.FCWorkshops;
 using Artisan.RawInformation;
 using Artisan.RawInformation.Character;
-using Artisan.UI.ImGUI;
+using Artisan.UI.Tables;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -36,7 +36,7 @@ namespace Artisan.UI
 
         public event EventHandler<bool>? CraftingWindowStateChanged;
         public ExpertSolverSettingsUI ExpertSettingsUI = new();
-
+        public RaphaelCacheUI RaphaelCacheUI = new();
 
         private bool visible = false;
         public OpenWindow OpenWindow { get; set; }
@@ -790,7 +790,7 @@ namespace Artisan.UI
                 if (P.PluginUi.ExpertSettingsUI.expertIcon is not null)
                 {
                     ImGui.SameLine();
-                    ImGui.Image(P.PluginUi.ExpertSettingsUI.expertIcon.Handle, new(P.PluginUi.ExpertSettingsUI.expertIcon.Width * ImGuiHelpers.GlobalScaleSafe, ImGui.GetItemRectSize().Y), new(0, 0), new Vector2(1, 1), new(0.94f, 0.57f, 0f, 1f));
+                    ImGui.Image(P.PluginUi.ExpertSettingsUI.expertIcon.Handle, new(P.PluginUi.ExpertSettingsUI.expertIcon.Width * ImGuiHelpers.GlobalScale, ImGui.GetItemRectSize().Y), new(0, 0), new Vector2(1, 1), new(0.94f, 0.57f, 0f, 1f));
                 }
                 if (P.PluginUi.ExpertSettingsUI.DrawGlobalSettings(P.Config.ExpertSolverConfig))
                     P.Config.Save();
@@ -800,7 +800,7 @@ namespace Artisan.UI
                 if (P.PluginUi.ExpertSettingsUI.expertIcon is not null)
                 {
                     ImGui.SameLine();
-                    ImGui.Image(P.PluginUi.ExpertSettingsUI.expertIcon.Handle, new(P.PluginUi.ExpertSettingsUI.expertIcon.Width * ImGuiHelpers.GlobalScaleSafe, ImGui.GetItemRectSize().Y), new(0, 0), new Vector2(1, 1), new(0.94f, 0.57f, 0f, 1f));
+                    ImGui.Image(P.PluginUi.ExpertSettingsUI.expertIcon.Handle, new(P.PluginUi.ExpertSettingsUI.expertIcon.Width * ImGuiHelpers.GlobalScale, ImGui.GetItemRectSize().Y), new(0, 0), new Vector2(1, 1), new(0.94f, 0.57f, 0f, 1f));
                 }
             }
 

@@ -332,20 +332,21 @@ public static class Simulator
         {
             reason = action switch
             {
-                Skills.IntensiveSynthesis or Skills.PreciseTouch or Skills.TricksOfTrade => UI.L10n.Tr("Current condition is not Good/Excellent, and {0} is not active.", Skills.HeartAndSoul.NameOfAction()),
-                Skills.PrudentSynthesis or Skills.PrudentTouch => UI.L10n.Tr("You currently have {0} active.", Skills.WasteNot.NameOfAction()),
-                Skills.MuscleMemory or Skills.Reflect => UI.L10n.Tr("You are not on the first step of the craft."),
-                Skills.TrainedFinesse => UI.L10n.Tr("You have less than {0} stacks of {1}.", 10, Buffs.InnerQuiet.NameOfBuff()),
-                Skills.ByregotsBlessing => UI.L10n.Tr("You have 0 stacks of {0}.", Buffs.InnerQuiet.NameOfBuff()),
-                Skills.TrainedEye => craft.CraftExpert ? UI.L10n.Tr("This is an expert craft.") : step.Index != 1 ? UI.L10n.Tr("You are not on the first step of the craft.") : UI.L10n.Tr("Craft level is not at least 10 levels below your current level."),
-                Skills.Manipulation => UI.L10n.Tr("You haven't unlocked {0}.", Skills.Manipulation.NameOfAction()),
-                Skills.CarefulObservation => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : UI.L10n.Tr("You already used {0} {1} times.", Skills.CarefulObservation.NameOfAction(), 3) : UI.L10n.Tr("You are not a specialist."),
-                Skills.HeartAndSoul => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : UI.L10n.Tr("{0} is no longer available for this craft.", Skills.HeartAndSoul.NameOfAction()) : UI.L10n.Tr("You are not a specialist."),
-                Skills.TrainedPerfection => UI.L10n.Tr("You have already used {0}.", Skills.TrainedPerfection.NameOfAction()),
-                Skills.DaringTouch => UI.L10n.Tr("{0} did not succeed.", Skills.HastyTouch.NameOfAction()),
-                Skills.QuickInnovation => !craft.Specialist ? UI.L10n.Tr("You are not a specialist.") : Crafting.DelineationCount() == 0 ? UI.L10n.Tr("You have run out of Delineations.") : step.QuickInnoLeft == 0 ? UI.L10n.Tr("{0} is no longer available for this craft.", Skills.QuickInnovation.NameOfAction()) : step.InnovationLeft > 0 ? UI.L10n.Tr("You have an active {0} buff.", Buffs.Innovation.NameOfBuff()) : "",
-                Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? UI.L10n.Tr("This craft cannot use {0}.", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleActive ? UI.L10n.Tr("{0} is already active.", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleCharges == 0 ? UI.L10n.Tr("You have no more {0} charges.", Skills.MaterialMiracle.NameOfAction()) : "",
-                Skills.SteadyHand => !craft.MissionHasSteadyHand ? UI.L10n.Tr("This craft cannot use {0}.", Skills.SteadyHand.NameOfAction()) : step.SteadyHandCharges == 0 ? UI.L10n.Tr("You have no more {0} charges.", Skills.SteadyHand.NameOfAction()) : "",
+                Skills.IntensiveSynthesis or Skills.PreciseTouch or Skills.TricksOfTrade => UI.L10n.Tr("当前状态不是好/极好，且未激活 {0}。", Skills.HeartAndSoul.NameOfAction()),
+                Skills.PrudentSynthesis or Skills.PrudentTouch => UI.L10n.Tr("你当前有 {0} 生效。", Skills.WasteNot.NameOfAction()),
+                Skills.MuscleMemory or Skills.Reflect => UI.L10n.Tr("你不在制作的第一步。"),
+                Skills.TrainedFinesse => UI.L10n.Tr("你的 {1} 层数少于 {0}。", 10, Buffs.InnerQuiet.NameOfBuff()),
+                Skills.ByregotsBlessing => UI.L10n.Tr("你的 {0} 层数为 0。", Buffs.InnerQuiet.NameOfBuff()),
+                Skills.TrainedEye => craft.CraftExpert ? UI.L10n.Tr("这是专家配方。") : step.Index != 1 ? UI.L10n.Tr("你不在制作的第一步。") : UI.L10n.Tr("配方等级并未比你的当前等级低至少 10 级。"),
+                Skills.Manipulation => UI.L10n.Tr("你尚未解锁 {0}。", Skills.Manipulation.NameOfAction()),
+                Skills.CarefulObservation => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("你的命题卡已用完。") : UI.L10n.Tr("你已经使用过 {0} {1} 次。", Skills.CarefulObservation.NameOfAction(), 3) : UI.L10n.Tr("你不是专家。"),
+                Skills.HeartAndSoul => craft.Specialist ? Crafting.DelineationCount() == 0 ? UI.L10n.Tr("你的命题卡已用完。") : UI.L10n.Tr("{0} 已不再可用于本次制作。", Skills.HeartAndSoul.NameOfAction()) : UI.L10n.Tr("你不是专家。"),
+                Skills.TrainedPerfection => UI.L10n.Tr("你已经使用过 {0}。", Skills.TrainedPerfection.NameOfAction()),
+                Skills.DaringTouch => UI.L10n.Tr("{0} 未成功。", Skills.HastyTouch.NameOfAction()),
+                Skills.QuickInnovation => !craft.Specialist ? UI.L10n.Tr("你不是专家。") : Crafting.DelineationCount() == 0 ? UI.L10n.Tr("你的命题卡已用完。") : step.QuickInnoLeft == 0 ? UI.L10n.Tr("{0} 已不再可用于本次制作。", Skills.QuickInnovation.NameOfAction()) : step.InnovationLeft > 0 ? UI.L10n.Tr("你有一个 {0} 增益。", Buffs.Innovation.NameOfBuff()) : "",
+                Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? UI.L10n.Tr("本次制作不能使用 {0}。", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleActive ? UI.L10n.Tr("{0} 已经生效。", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleCharges == 0 ? UI.L10n.Tr("你已没有更多 {0} 次数。", Skills.MaterialMiracle.NameOfAction()) : "",
+                Skills.SteadyHand => !craft.MissionHasSteadyHand ? UI.L10n.Tr("本次制作不能使用 {0}。", Skills.SteadyHand.NameOfAction()) : step.SteadyHandCharges == 0 ? UI.L10n.Tr("你已没有更多 {0} 次数。", Skills.SteadyHand.NameOfAction()) : "",
+                _ => throw new NotImplementedException(),
             };
 
             return true;
@@ -556,6 +557,7 @@ public static class Simulator
             Condition.GoodOmen => ConditionFlags.GoodOmen,
             Condition.Robust => ConditionFlags.Robust,
             Condition.Unknown => throw new NotImplementedException(),
+            _ => throw new NotImplementedException(),
         };
     }
 

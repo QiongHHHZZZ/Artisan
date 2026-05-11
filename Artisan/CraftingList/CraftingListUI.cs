@@ -223,7 +223,7 @@ namespace Artisan.CraftingLists
 
                 return output;
             }
-            catch (Exception ex)
+            catch
             {
                 return output;
             }
@@ -274,9 +274,9 @@ namespace Artisan.CraftingLists
             }
         }
 
-        public static void AddAllSubcrafts(Recipe selectedRecipe, NewCraftingList selectedList, int amounts = 1, int loops = 1)
+        public static void AddAllSubcrafts(Recipe SelectedRecipe, NewCraftingList selectedList, int amounts = 1, int loops = 1)
         {
-            foreach (var subItem in selectedRecipe.Ingredients().Where(x => x.Amount > 0))
+            foreach (var subItem in SelectedRecipe!.Ingredients().Where(x => x.Amount > 0))
             {
                 var subRecipe = CraftingListHelpers.GetIngredientRecipe(subItem.Item.RowId);
                 if (subRecipe != null)
@@ -312,7 +312,7 @@ namespace Artisan.CraftingLists
                     for (int i = 1; i <= ing.Amount; i++)
                     {
                         ingredientList.Add((int)ing.Item.RowId);
-                        if (CraftingListHelpers.GetIngredientRecipe(ing.Item.RowId).Value.RowId != 0 && addSubList)
+                        if (CraftingListHelpers.GetIngredientRecipe(ing.Item.RowId)!.Value.RowId != 0 && addSubList)
                         {
                             AddRecipeIngredientsToList(CraftingListHelpers.GetIngredientRecipe(ing.Item.RowId), ref ingredientList);
                         }

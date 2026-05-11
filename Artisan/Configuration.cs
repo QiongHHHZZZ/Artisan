@@ -30,13 +30,21 @@ namespace Artisan
                 autoMode = value;
             }
         }
+
+        public int MaxMaterialMiracles = 0;
+        public int MinimumStepsBeforeMiracle = 10;
+        [NonSerialized]
+        public int? TempMaxMaterialMiracles = null;
+        [NonSerialized]
+        public int? TempMinimumStepsBeforeMiracle = null;
+        public int StandardMMUses => TempMaxMaterialMiracles ?? MaxMaterialMiracles;
+        public int StandardMMSteps => TempMinimumStepsBeforeMiracle ?? MinimumStepsBeforeMiracle;
+
         public bool DisableFailurePrediction = false;
         public int MaxPercentage = 100;
         public bool UseTricksGood = false;
         public int MaxIQPrepTouch = 10;
-        public int MaxMaterialMiracles = 0;
-		public int MinimumStepsBeforeMiracle = 10;
-		public bool LowStatsMode = false;
+        public bool LowStatsMode = false;
         public bool UseTricksExcellent = false;
         public bool UseSpecialist = false;
         public bool ShowEHQ = true;
@@ -172,6 +180,9 @@ namespace Artisan
         public RaphaelSolverSettings RaphaelSolverConfig = new();
         public ConcurrentDictionary<string, MacroSolverSettings.Macro> RaphaelSolverCacheV4 = [];
         public ConcurrentDictionary<string, MacroSolverSettings.Macro> RaphaelSolverCacheV5 = [];
+        [NonSerialized] // stored in a separate dedicated file
+        public ConcurrentDictionary<RaphaelOptions, MacroSolverSettings.Macro> RaphaelSolverCacheV6 = [];
+        public bool RaphaelV5Converted = false;
         public bool ShowLevelingRecipeProgress = true;
         public bool ShowOtherRecipeProgress = true;
         public bool ExitCraftStanceEndurance = true;
@@ -180,8 +191,25 @@ namespace Artisan
         public TrackConditions DebugTrackConditions = new TrackConditions();
         public bool DebugTrackConditionData = false;
 
+        [NonSerialized]
+        public readonly DirectoryInfo ConfigDirectory;
+
+        public Configuration()
+        {
+            ConfigDirectory = Svc.PluginInterface.ConfigDirectory;
+            try
+            {
+                Directory.CreateDirectory(ConfigDirectory.FullName);
+            }
+            catch (Exception e)
+            {
+                Svc.Log.Error($"Could not create config directory \"{ConfigDirectory.FullName}\":\n{e}");
+            }
+        }
+
         public void Save()
         {
+            RaphaelCache.WriteRaphaelCache(this);
             Svc.PluginInterface.SavePluginConfig(this);
         }
 
@@ -210,7 +238,11 @@ namespace Artisan
                 var json = JObject.Parse(contents);
                 var version = (int?)json["Version"] ?? 0;
                 ConvertConfig(json, version);
-                return json.ToObject<Configuration>() ?? new();
+                var loadedConfig = json.ToObject<Configuration>() ?? new();
+
+                RaphaelCache.LoadRaphaelCache(loadedConfig, false);
+
+                return loadedConfig;
             }
             catch (Exception e)
             {

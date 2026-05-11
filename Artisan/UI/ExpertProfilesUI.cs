@@ -24,7 +24,6 @@ namespace Artisan.UI
         private static string T(string key, params object[] args) => L10n.Tr(key, args);
 
         internal static ExpertProfile selectedProfile = new();
-        public static bool Processing;
         private static readonly ExpertProfileList EPL = new();
 
         internal static void Draw()
@@ -232,19 +231,18 @@ namespace Artisan.UI
         {
             var profile = Profiles[idx];
             using var id = ImRaii.PushId(profile.ID);
-            using var disabled = ImRaii.Disabled(ExpertProfilesUI.Processing && ExpertProfilesUI.selectedProfile.ID == profile.ID);
+            using var disabled = ImRaii.Disabled(ExpertProfilesUI.selectedProfile.ID == profile.ID);
 
             var selected = ImGui.Selectable(T("{0} (ID: {1})", profile.Name, profile.ID), idx == _currentIdx);
             if (selected)
             {
                 _currentIdx = idx;
-                if (!ExpertProfilesUI.Processing)
-                    ExpertProfilesUI.selectedProfile = profile;
+                ExpertProfilesUI.selectedProfile = profile;
 
                 OpenEditor(profile.ID);
             }
 
-            if (!ExpertProfilesUI.Processing && ImGui.IsItemClicked(ImGuiMouseButton.Right))
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 if (_currentIdx == idx)
                 {
@@ -280,8 +278,7 @@ namespace Artisan.UI
                 P.Config.ExpertSolverProfiles.AddNewExpertProfile(profile);
                 P.Config.Save();
                 _currentIdx = Profiles.Count - 1;
-                if (!ExpertProfilesUI.Processing)
-                    ExpertProfilesUI.selectedProfile = profile;
+                ExpertProfilesUI.selectedProfile = profile;
                 return true;
             }
             catch (Exception ex)
@@ -302,8 +299,7 @@ namespace Artisan.UI
             P.Config.ExpertSolverProfiles.AddNewExpertProfile(newProfile);
             P.Config.Save();
             _currentIdx = Profiles.Count - 1;
-            if (!ExpertProfilesUI.Processing)
-                ExpertProfilesUI.selectedProfile = newProfile;
+            ExpertProfilesUI.selectedProfile = newProfile;
             return true;
         }
 
@@ -319,10 +315,9 @@ namespace Artisan.UI
             Profiles.RemoveAt(_currentIdx);
             P.Config.Save();
 
-            if (!ExpertProfilesUI.Processing)
-                ExpertProfilesUI.selectedProfile = new ExpertProfile();
-
+            ExpertProfilesUI.selectedProfile = new ExpertProfile();
             return true;
         }
+
     }
 }
