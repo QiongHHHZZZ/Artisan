@@ -4,7 +4,7 @@
   "Punchline": "一个“简单”的制作插件。",
   "Description": "一体化制作插件。",
   "InternalName": "Artisan",
-  "AssemblyVersion": "4.0.5.4000",
+  "AssemblyVersion": "4.0.5.6000",
   "ApplicableVersion": "any",
   "IconUrl": "https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/icons/artisan.png",
   "Tags": [
@@ -14,7 +14,7 @@
   "DalamudApiLevel": 15,
   "LoadPriority": 0,
   "AcceptsFeedback": true,
-  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.4000/Artisan.zip",
-  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.4000/Artisan.zip",
+  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.6000/Artisan.zip",
+  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.6000/Artisan.zip",
   "ChangeLog": "- 更新 Raphael 缓存，使其后续更灵活，并提供了全新界面。\n- 列表新增一键切换所有条目跳过状态的按钮。\n- 修复了手册可能导致制作卡住的问题。"
 }
