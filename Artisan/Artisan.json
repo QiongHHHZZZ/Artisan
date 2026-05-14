@@ -16,5 +16,5 @@
   "AcceptsFeedback": true,
   "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.6000/Artisan.zip",
   "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.6000/Artisan.zip",
-  "ChangeLog": "- 更新 Raphael 缓存，使其后续更灵活，并提供了全新界面。\n- 列表新增一键切换所有条目跳过状态的按钮。\n- 修复了手册可能导致制作卡住的问题。"
+  "ChangeLog": "- 当装扮物品可制作时，在装扮物品和投影台中添加右键菜单。"
 }

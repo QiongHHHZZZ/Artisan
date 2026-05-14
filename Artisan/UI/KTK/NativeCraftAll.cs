@@ -32,7 +32,7 @@ namespace Artisan.UI.KTK
             };
             regularRecipeNoteController?.Enable();
 
-            regularRecipeNoteController = new()
+            moonRecipeNoteController = new()
             {
                 AddonName = "WKSRecipeNotebook",
                 OnSetup = MoonOnSetup,
@@ -40,7 +40,7 @@ namespace Artisan.UI.KTK
                 OnFinalize = OnFinalize,
                 OnUpdate = OnUpdate
             };
-            regularRecipeNoteController?.Enable();
+            moonRecipeNoteController?.Enable();
         }
 
         private void OnUpdate(AtkUnitBase* addon)
@@ -66,12 +66,13 @@ namespace Artisan.UI.KTK
             var synthButton = addon->GetNodeById(50);
             if (synthButton is null) return;
 
-            var synthBg = synthButton->GetAsAtkComponentButton()->ButtonBGNode->GetAsAtkNineGridNode();
-
             var buttonY = synthButton->Y;
             var buttonX = synthButton->X - synthButton->Width;
 
-            var text = addon->GetTextNodeById(34)->NodeText.ToString();
+            var textNode = addon->GetTextNodeById(34);
+            if (textNode is null) return;
+
+            var text = textNode->NodeText.ToString();
             SynthesizeableCount = text == "" ? 0 : Convert.ToInt32(text.GetNumbers());
 
             SynthesizeAll = new()
@@ -124,8 +125,13 @@ namespace Artisan.UI.KTK
         private void OnRefresh(AtkUnitBase* addon)
         {
             if (!P.Config.UseNativeButtons) return;
+            if (SynthesizeAll is null) return;
+            if (SynthesizeXCounter is null) return;
 
-            var text = addon->NameString == "WKSRecipeNotebook" ? addon->GetTextNodeById(34)->NodeText.ToString() : addon->GetTextNodeById(78)->NodeText.ToString();
+            var textNode = addon->NameString == "WKSRecipeNotebook" ? addon->GetTextNodeById(34) : addon->GetTextNodeById(78);
+            if (textNode is null) return;
+
+            var text = textNode->NodeText.ToString();
             SynthesizeableCount = text == "" ? 0 : Convert.ToInt32(text.GetNumbers());
 
             SynthesizeXCounter.Max = SynthesizeableCount;
@@ -152,13 +158,18 @@ namespace Artisan.UI.KTK
             if (addon->RootNode is null) return;
 
             var synthButton = addon->GetNodeById(104);
+            if (synthButton is null) return;
+
             var synthBg = synthButton->GetAsAtkComponentButton()->ButtonBGNode->GetAsAtkNineGridNode();
-            if (synthButton is null || synthBg is null) return;
+            if (synthBg is null) return;
 
             var buttonY = synthButton->Y - 32;
             var buttonX = synthButton->X;
 
-            var text = addon->GetTextNodeById(78)->NodeText.ToString();
+            var textNode = addon->GetTextNodeById(78);
+            if (textNode is null) return;
+
+            var text = textNode->NodeText.ToString();
             SynthesizeableCount = text == "" ? 0 : Convert.ToInt32(text.GetNumbers());
 
             SynthesizeAll = new()
