@@ -53,7 +53,7 @@ namespace Artisan.CraftingLists
                     var list = new NewCraftingList();
                     list.ID = (int)quest.RowId;
                     list.Locked = true;
-                    list.Name = $"{questCats.First().JournalGenre.Value.Name} - {quest.Name} - Lv.{quest.ClassJobLevel.First().ToString("00")}";
+                    list.Name = $"{questCats.First().JournalGenre.Value.Name} - {quest.Name} - 等级 {quest.ClassJobLevel.First():00}";
                     list.IsPremade = true;
 
                     foreach (var reqItem in reqItems)
