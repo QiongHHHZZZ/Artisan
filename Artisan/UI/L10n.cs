@@ -722,7 +722,7 @@ internal static class L10n
         ["Craft All ({0})"] = "全部制作（{0}）",
         ["Button added by Artisan."] = "此按钮由 Artisan 添加。",
         ["Begin Crafting List"] = "开始制作清单",
-        ["User Lists"] = "用户清单",
+        ["User Lists"] = "自定义清单",
         ["Premade Lists"] = "预制清单",
         ["Quest Data"] = "任务数据",
         ["List Editor"] = "清单编辑器",
