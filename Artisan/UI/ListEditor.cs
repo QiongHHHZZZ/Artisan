@@ -65,8 +65,6 @@ internal class ListEditor : Window, IDisposable
 
     internal Dictionary<uint, int> subtableList = new();
 
-    private ListFolders ListsUI = new();
-
     private int timesToAdd = 1;
 
     public readonly RecipeSelector RecipeSelector;
@@ -97,11 +95,11 @@ internal class ListEditor : Window, IDisposable
 
     public bool loading;
 
-    public ListEditor(int listId)
-        : base($"{L10n.Tr("List Editor")}###{listId}")
+    public ListEditor(NewCraftingList list)
+        : base($"{T("List Editor")}###{list.ID}")
     {
-        SelectedList = P.Config.NewCraftingLists.First(x => x.ID == listId);
-        RecipeSelector = new RecipeSelector(SelectedList.ID);
+        SelectedList = list;
+        RecipeSelector = new RecipeSelector(SelectedList);
         RecipeSelector.ItemAdded += RefreshTable;
         RecipeSelector.ItemDeleted += RefreshTable;
         RecipeSelector.ItemSkipTriggered += RefreshTable;
@@ -279,10 +277,13 @@ internal class ListEditor : Window, IDisposable
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(T("Copy From Other List")))
+                if (!SelectedList.IsPremade)
                 {
-                    DrawCopyFromList();
-                    ImGui.EndTabItem();
+                    if (ImGui.BeginTabItem(T("Copy From Other List")))
+                    {
+                        DrawCopyFromList();
+                        ImGui.EndTabItem();
+                    }
                 }
 
                 ImGui.EndTabBar();
@@ -1148,7 +1149,8 @@ internal class ListEditor : Window, IDisposable
 
     private void DrawRecipes()
     {
-        DrawRecipeData();
+        if (!SelectedList.IsPremade)
+            DrawRecipeData();
 
         ImGui.Spacing();
         var detailsTopY = ImGui.GetCursorPosY();
@@ -1221,6 +1223,10 @@ internal class ListEditor : Window, IDisposable
 
         ImGuiEx.LineCentered(() => ImGuiEx.TextUnderlined($"{recipe.ItemResult.Value.Name}"));
 
+        var disabled = SelectedList.IsPremade;
+
+        if (disabled)
+            ImGui.BeginDisabled();
         ImGui.TextWrapped(T("Adjust Quantity"));
         ImGuiEx.SetNextItemFullWidth(-30);
         ImGui.InputInt("###AdjustQuantity", ref count);
@@ -1257,6 +1263,9 @@ internal class ListEditor : Window, IDisposable
             selectedListRecipe.ListItemOptions = new();
         }
 
+        if (disabled)
+            ImGui.EndDisabled();
+
         var options = selectedListRecipe.ListItemOptions;
 
         if (recipe.CanQuickSynth)
@@ -1292,6 +1301,8 @@ internal class ListEditor : Window, IDisposable
             ImGui.TextWrapped(T("This item cannot be quick synthed."));
         }
 
+        if (disabled)
+            ImGui.BeginDisabled();
         // Retrieve the list of recipes matching the selected recipe name from the preprocessed lookup table.
         var matchingRecipes = LuminaSheets.recipeLookup?[selectedListItem.NameOfRecipe()].ToList() ?? new List<Recipe>();
 
@@ -1337,6 +1348,9 @@ internal class ListEditor : Window, IDisposable
                 ImGui.EndCombo();
             }
         }
+
+        if (disabled)
+            ImGui.EndDisabled();
 
         var config = P.Config.RecipeConfigs.GetValueOrDefault(selectedListItem) ?? new();
         {
@@ -1535,19 +1549,23 @@ internal class RecipeSelector : ItemSelector<ListItem>
     private bool _focusAddPopup;
     private const string AddRecipePopupId = "##RecipeSelectorAddLocalized";
 
-    public RecipeSelector(int list)
-        : base(
-            P.Config.NewCraftingLists.First(x => x.ID == list).Recipes.Distinct().ToList(),
+    public RecipeSelector(NewCraftingList list)
+        : base(list.Recipes.Distinct().ToList(),
             Flags.Move)
     {
-        List = P.Config.NewCraftingLists.First(x => x.ID == list);
+        List = list;
+        if (list.IsPremade)
+            this.ListFlags = Flags.Move;
     }
 
     public void DrawLocalized(float width, System.Action? onChanged = null)
     {
         Draw(width);
-        DrawLocalizedButtons(width, onChanged);
-        DrawAddPopup(onChanged);
+        if (!List.IsPremade)
+        {
+            DrawLocalizedButtons(width, onChanged);
+            DrawAddPopup(onChanged);
+        }
     }
 
     private void DrawLocalizedButtons(float width, System.Action? onChanged)
@@ -1705,7 +1723,8 @@ internal class RecipeSelector : ItemSelector<ListItem>
     {
         List.Recipes.Move(idx1, idx2);
         Items.Move(idx1, idx2);
-        P.Config.Save();
+        if (!List.IsPremade)
+            P.Config.Save();
         return true;
     }
 }
@@ -1720,10 +1739,15 @@ internal class ListFolders : ItemSelector<NewCraftingList>
     private const string AddListPopupId = "##ListFoldersAddLocalized";
     private const string DuplicateListPopupId = "##ListFoldersDuplicateLocalized";
 
-    public ListFolders()
-        : base(P.Config.NewCraftingLists, Flags.Move)
+    protected bool Premade;
+
+    public ListFolders(List<NewCraftingList> source, bool premade = false)
+        : base(source, Flags.Move)
     {
         CurrentIdx = -1;
+        Premade = premade;
+        if (premade)
+            base.ListFlags = Flags.Filter;
     }
 
     public void DrawLocalized(float width)
@@ -1738,9 +1762,12 @@ internal class ListFolders : ItemSelector<NewCraftingList>
                 SetCurrent(FilteredItems.First());
         }
 
-        DrawLocalizedButtons(width);
-        DrawAddPopup();
-        DrawDuplicatePopup();
+        if (!Premade)
+        {
+            DrawLocalizedButtons(width);
+            DrawAddPopup();
+            DrawDuplicatePopup();
+        }
     }
 
     private void DrawLocalizedFilter(float width)
@@ -1885,6 +1912,8 @@ internal class ListFolders : ItemSelector<NewCraftingList>
 
     protected override bool OnDelete(int idx)
     {
+        if (Premade) return false;
+
         if (P.ws.Windows.TryGetFirst(
                 x => x.WindowName.Contains(CraftingListUI.selectedList.ID.ToString()) && x.GetType() == typeof(ListEditor),
                 out var window))
@@ -1903,30 +1932,30 @@ internal class ListFolders : ItemSelector<NewCraftingList>
     protected override bool OnDraw(int idx, out bool changes)
     {
         changes = false;
-        var l = P.Config.NewCraftingLists[idx];
-        var disabled = (CraftingListUI.Processing && CraftingListUI.selectedList.ID == P.Config.NewCraftingLists[idx].ID) || l.Locked;
+        var l = Premade ? P.PremadeLists.PremadeCraftingLists[idx] : P.Config.NewCraftingLists[idx];
+        var disabled = (CraftingListUI.Processing && CraftingListUI.selectedList.ID == l.ID) || l.Locked;
         if (disabled)
             ImGui.BeginDisabled();
 
         using var id = ImRaii.PushId(idx);
-        var selected = ImGui.Selectable($"{P.Config.NewCraftingLists[idx].Name} ({L10n.Tr("ID")}: {P.Config.NewCraftingLists[idx].ID})", idx == CurrentIdx);
+        var selected = ImGui.Selectable(L10n.Tr("{0} (ID: {1})", l.Name ?? string.Empty, l.ID), idx == CurrentIdx);
         if (selected)
         {
-            if (!P.ws.Windows.Any(x => x.WindowName.Contains(P.Config.NewCraftingLists[idx].ID.ToString())))
+            if (!P.ws.Windows.Any(x => x.WindowName.Contains(l.ID.ToString())))
             {
                 Interface.SetupValues();
-                ListEditor editor = new(P.Config.NewCraftingLists[idx].ID);
+                ListEditor editor = new(l);
             }
             else
             {
                 P.ws.Windows.TryGetFirst(
-                    x => x.WindowName.Contains(P.Config.NewCraftingLists[idx].ID.ToString()),
+                    x => x.WindowName.Contains(l.ID.ToString()),
                     out var window);
                 window.BringToFront();
             }
 
             if (!CraftingListUI.Processing)
-                CraftingListUI.selectedList = P.Config.NewCraftingLists[idx];
+                CraftingListUI.selectedList = l;
         }
 
         if (!CraftingListUI.Processing)
@@ -1941,7 +1970,7 @@ internal class ListFolders : ItemSelector<NewCraftingList>
                 else
                 {
                     CurrentIdx = idx;
-                    CraftingListUI.selectedList = P.Config.NewCraftingLists[idx];
+                    CraftingListUI.selectedList = l;
                 }
             }
         }
