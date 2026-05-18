@@ -220,6 +220,12 @@ public unsafe static class PreCrafting
         }
     }
 
+    private static void CloseSaddleBagIfOpen()
+    {
+        if (TryGetAddonByName<AddonInventoryBuddy>("InventoryBuddy", out var addon))
+            addon->Close(true);
+    }
+
     private static void PauseOrDisableModes()
     {
         if (Endurance.Enable)
@@ -403,6 +409,8 @@ public unsafe static class PreCrafting
         if (IsItemEquipped(ItemId))
             return TaskResult.Done;
 
+        CloseSaddleBagIfOpen();
+
         var itemSheet = LuminaSheets.ItemSheet[ItemId];
         var pos = FindItemInInventory(ItemId, [InventoryType.Inventory1, InventoryType.Inventory2, InventoryType.Inventory3, InventoryType.Inventory4, InventoryType.ArmoryMainHand, InventoryType.ArmoryHands]);
         if (pos == null)
@@ -428,6 +436,8 @@ public unsafe static class PreCrafting
         if ((!P.Config.UseConsumablesQuickSynth && type == CraftType.Quick) ||
             (!P.Config.UseConsumablesTrial && type == CraftType.Trial))
             return TaskResult.Done;
+
+        CloseSaddleBagIfOpen();
 
         if (Occupied())
             return TaskResult.Retry;
