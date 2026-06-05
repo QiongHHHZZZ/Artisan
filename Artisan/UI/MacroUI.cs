@@ -351,7 +351,7 @@ namespace Artisan.UI
 
             for (int i = 0; i < skillIds.Count(); i++)
             {
-                var prev2Act = (Skills)skillIds.ElementAtOrDefault(i - 2);
+                var secondPrevAct = (Skills)skillIds.ElementAtOrDefault(i - 2);
                 var prevAct = (Skills)skillIds.ElementAtOrDefault(i - 1);
                 var act = (Skills)skillIds.ElementAt(i);
                 var nextAct = (Skills)skillIds.ElementAtOrDefault(i + 1);
@@ -372,7 +372,7 @@ namespace Artisan.UI
                     res[i].ReplaceOnExclude = true;
                 }
 
-                if (act == Skills.HastyTouch && prevAct == Skills.HastyTouch && prev2Act == Skills.SteadyHand)
+                if (act == Skills.HastyTouch && prevAct == Skills.HastyTouch && secondPrevAct == Skills.SteadyHand)
                 {
                     Svc.Log.Debug("Updating a Hasty to Daring");
                     res[i].Action = Skills.DaringTouch;
