@@ -4,7 +4,7 @@
   "Punchline": "一个“简单”的制作插件。",
   "Description": "一体化制作插件。",
   "InternalName": "Artisan",
-  "AssemblyVersion": "4.0.5.10000",
+  "AssemblyVersion": "4.0.5.11000",
   "ApplicableVersion": "any",
   "IconUrl": "https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/icons/artisan.png",
   "Tags": [
@@ -14,7 +14,7 @@
   "DalamudApiLevel": 15,
   "LoadPriority": 0,
   "AcceptsFeedback": true,
-  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.10000/Artisan.zip",
-  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.10000/Artisan.zip",
-  "ChangeLog": "- 尝试防止在 Raphael 缓存为空时访问缓存导致崩溃。"
+  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.11000/Artisan.zip",
+  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.11000/Artisan.zip",
+  "ChangeLog": "- 为 Raphael 生成的宏增加更多后处理，以修复星辉稳手、仓促加工和冒进加工的错误使用。\n- 修复模拟器结果遇到最低品质要求达成状态时可能报错的问题。"
 }
