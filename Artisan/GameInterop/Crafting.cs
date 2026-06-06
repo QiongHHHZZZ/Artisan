@@ -126,6 +126,10 @@ public static unsafe class Crafting
             LevelTable = lt,
         };
 
+        var normalExpertConditions = ConditionFlags.Normal | ConditionFlags.Good | ConditionFlags.Excellent | ConditionFlags.Poor;
+        if (res.CraftExpert && res.ConditionFlags == normalExpertConditions)
+            res.CraftExpert = false;
+
         if (res.CraftCollectible)
         {
             switch (res.CollectableMetadataKey)
@@ -845,4 +849,3 @@ public static unsafe class Crafting
         Svc.Log.Verbose("CEH hook exit");
     }
 }
-
