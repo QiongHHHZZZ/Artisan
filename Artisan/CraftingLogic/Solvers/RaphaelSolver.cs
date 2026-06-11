@@ -435,10 +435,10 @@ namespace Artisan.CraftingLogic.Solvers
                 if (showSpecialist)
                 {
                     P.PluginUi.ExpertSettingsUI.CheckboxWithIcons($"{keyStr}HS", ref P.Config.RaphaelSolverConfig.UseHeartAndSoul, "允许 [s!HeartAndSoul]");
-                    ImGuiComponents.HelpMarker($"生成的宏每次制作需要消耗 1 张命题卡。");
+                    ImGuiComponents.HelpMarker($"生成的宏每次制作需要消耗 1 张能工巧匠图纸。");
 
                     P.PluginUi.ExpertSettingsUI.CheckboxWithIcons($"{keyStr}QI", ref P.Config.RaphaelSolverConfig.UseQuickInno, "允许 [s!QuickInnovation]");
-                    ImGuiComponents.HelpMarker($"生成的宏每次制作需要消耗 1 张命题卡。");
+                    ImGuiComponents.HelpMarker($"生成的宏每次制作需要消耗 1 张能工巧匠图纸。");
                 }
 
                 if (showReliability || showBackload || showSpecialist)
