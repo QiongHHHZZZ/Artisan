@@ -118,8 +118,6 @@ namespace Artisan.UI
                         ImGui.EndTabItem();
                     }
                 }
-
-                UpdateCraftForRaphael();
             }
             catch { }
 
@@ -135,8 +133,15 @@ namespace Artisan.UI
                     _selectedCraft.InitialQuality = startingQuality;
                     if (RaphaelCache.HasSolution(_selectedCraft, out _))
                     {
-                        var raph = new RaphaelSolverDefintion().Flavours(null!).First();
-                        _selectedSolver = new(raph.Name, raph.CreateSolver(_selectedCraft));
+                        try
+                        {
+                            var raph = new RaphaelSolverDefintion().Flavours(_selectedCraft).First();
+                            _selectedSolver = new(raph.Name, raph.CreateSolver(_selectedCraft));
+                        }
+                        catch(Exception ex)
+                        {
+                            ex.Log();
+                        }
                     }
                 }
             }
@@ -574,32 +579,36 @@ namespace Artisan.UI
             if (_selectedCraft != null && _selectedSolver != null && (SimGS != null || CustomStatMode))
             {
                 var raphConfig = RaphaelCache.GetRaphConfig(_selectedCraft, true);
-                if (solverIsRaph && !RaphaelCache.HasSolution(_selectedCraft, raphConfig, out var _))
+                if (solverIsRaph)
                 {
-                    var key = RaphaelCache.GetOptions(_selectedCraft, raphConfig);
-                    if (!RaphaelCache.Tasks.ContainsKey(key))
+                    if (!RaphaelCache.HasSolution(_selectedCraft, raphConfig, out var _))
                     {
-                        if (ImGui.Button(T("Generate Solution")))
+                        var key = RaphaelCache.GetOptions(_selectedCraft, raphConfig);
+                        if (!RaphaelCache.Tasks.ContainsKey(key))
                         {
-                            if (RaphaelCache.CLIExists())
+                            if (ImGui.Button(T("Generate Solution")))
                             {
-                                Svc.Log.Debug("Raphael set as config but has no solution, generating now...");
-                                RaphaelCache.Build(_selectedCraft, raphConfig);
-                                return; // wait for solution to be ready
+                                if (RaphaelCache.CLIExists())
+                                {
+                                    Svc.Log.Debug("Raphael set as config but has no solution, generating now...");
+                                    RaphaelCache.Build(_selectedCraft, raphConfig);
+                                    return; // wait for solution to be ready
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        ImGui.Text(T("Generating solution, please wait."));
-                        if (ImGui.Button(T("Cancel Raphael Generation")))
+                        else
                         {
-                            RaphaelCache.Tasks.TryRemove(key, out var task);
-                            task.Cancellation.Cancel();
+                            ImGui.Text(T("Generating solution, please wait."));
+                            if (ImGui.Button(T("Cancel Raphael Generation")))
+                            {
+                                RaphaelCache.Tasks.TryRemove(key, out var task);
+                                task?.Cancellation.Cancel();
+                            }
                         }
+                        ResetSim();
+                        return;
                     }
-                    ResetSim();
-                    return;
+                    UpdateCraftForRaphael();
                 }
                 ImGuiEx.SetNextItemFullWidth();
                 if (ImGui.Button(T("Run Simulated Solver")))

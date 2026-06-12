@@ -1,11 +1,17 @@
 ﻿using ECommons.DalamudServices;
 using ECommons.Reflection;
+using System;
 
 namespace Artisan.IPC;
 
-internal static class AutoRetainerIPC
+internal class AutoRetainerIPC : IDisposable
 {
     internal static bool ReEnable = false;
+
+    public AutoRetainerIPC()
+    {
+    }
+
     internal static bool IsEnabled()
     {
         if (DalamudReflector.TryGetDalamudPlugin("AutoRetainer", out var pl, false, true))
@@ -31,5 +37,9 @@ internal static class AutoRetainerIPC
             Svc.PluginInterface.GetIpcSubscriber<bool, object>("AutoRetainer.SetSuppressed").InvokeAction(false);
             ReEnable = false;
         }
+    }
+
+    public void Dispose()
+    {
     }
 }

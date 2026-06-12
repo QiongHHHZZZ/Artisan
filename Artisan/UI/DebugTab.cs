@@ -15,6 +15,7 @@ using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -693,6 +694,9 @@ namespace Artisan.UI
                 {
                     PreCrafting.TaskEquipItem(49374);
                 }
+
+                if (ImGui.Button(T("Toggle Walk")))
+                    Control.Instance()->IsWalking = !Control.Instance()->IsWalking;
 
                 if (ImGui.Button($"{T("Pandora IPC")}"))
                 {

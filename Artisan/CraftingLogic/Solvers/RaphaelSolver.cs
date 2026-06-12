@@ -152,7 +152,14 @@ namespace Artisan.CraftingLogic.Solvers
                         {
                             if (!string.IsNullOrWhiteSpace(error))
                             {
-                                DuoLog.Error(L10n.Tr("Raphael was unable to solve this recipe. Please report this to the Discord with this line:\n\n{0}", process.StartInfo.Arguments));
+                                if (craft.StatLevel >= 65 && !craft.UnlockedManipulation)
+                                {
+                                    DuoLog.Error(L10n.Tr("Raphael was unable to solve this recipe. You haven't unlocked {0}. Go do your job quests then try again.", Skills.Manipulation.NameOfAction()));
+                                }
+                                else
+                                {
+                                    DuoLog.Error(L10n.Tr("Raphael was unable to solve this recipe. Please report this to the Discord with this line:\n\n{0}", process.StartInfo.Arguments));
+                                }
                             }
 
                             info.Succeeded = false;
@@ -168,7 +175,7 @@ namespace Artisan.CraftingLogic.Solvers
                         {
                             ID = GetNewID(),
                             Name = GetTextKey(craft, config),
-                            Steps = MacroUI.ParseMacro(cleansedOutput),
+                            Steps = MacroUI.ParseMacro(cleansedOutput, craft),
                             Options = new RaphaelOptions()
                             {
                                 SkipQualityIfMet = false,
