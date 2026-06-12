@@ -446,8 +446,8 @@ public class RecipeConfig
     {
         if (craft.StatLevel >= 65 && !craft.UnlockedManipulation)
         {
-            ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, "You can now go unlock Manipulation for this job.");
-            ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, "It is highly recommended to do so as it will make crafting much easier.");
+            ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, T("You can now go unlock Manipulation for this job."));
+            ImGuiEx.TextCentered(ImGuiColors.DalamudYellow, T("It is highly recommended to do so as it will make crafting much easier."));
         }
         if (!Crafting.EnoughDelinsForCraft(this, craft, out var req))
         {
