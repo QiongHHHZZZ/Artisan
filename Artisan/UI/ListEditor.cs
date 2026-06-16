@@ -1106,7 +1106,7 @@ internal class ListEditor : Window, IDisposable
             ImGui.Unindent();
         }
 
-        if (!RawInformation.Character.CharacterInfo.MateriaExtractionUnlocked())
+        if (!CharacterInfo.MateriaExtractionUnlocked())
             ImGui.BeginDisabled();
 
         var materia = SelectedList.Materia;
@@ -1116,7 +1116,7 @@ internal class ListEditor : Window, IDisposable
             P.Config.Save();
         }
 
-        if (!RawInformation.Character.CharacterInfo.MateriaExtractionUnlocked())
+        if (!CharacterInfo.MateriaExtractionUnlocked())
         {
             ImGui.EndDisabled();
 
@@ -1747,7 +1747,7 @@ internal class ListFolders : ItemSelector<NewCraftingList>
         CurrentIdx = -1;
         Premade = premade;
         if (premade)
-            base.ListFlags = Flags.Filter;
+            ListFlags = Flags.Filter;
     }
 
     public void DrawLocalized(float width)

@@ -419,7 +419,7 @@ public class RecipeConfig
             }
             if (ImGui.IsItemClicked())
             {
-                P.PluginUi.OpenWindow = UI.OpenWindow.ExpertProfiles;
+                P.PluginUi.OpenWindow = OpenWindow.ExpertProfiles;
                 P.PluginUi.IsOpen = true;
             }
             ImGui.SameLine(130f.Scale());
@@ -486,7 +486,7 @@ public class RecipeConfig
 
             if (ImGui.IsItemClicked())
             {
-                P.PluginUi.OpenWindow = UI.OpenWindow.Simulator;
+                P.PluginUi.OpenWindow = OpenWindow.Simulator;
                 P.PluginUi.IsOpen = true;
                 SimulatorUI.SelectedRecipe = recipe;
                 SimulatorUI.ResetSim();
