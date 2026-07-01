@@ -346,8 +346,11 @@ public static class Simulator
                 Skills.QuickInnovation => !craft.Specialist ? UI.L10n.Tr("你不是专家。") : Crafting.DelineationCount() == 0 ? UI.L10n.Tr("你的能工巧匠图纸已用完。") : step.QuickInnoLeft == 0 ? UI.L10n.Tr("{0} 已不再可用于本次制作。", Skills.QuickInnovation.NameOfAction()) : step.InnovationLeft > 0 ? UI.L10n.Tr("你有一个 {0} 增益。", Buffs.Innovation.NameOfBuff()) : "",
                 Skills.MaterialMiracle => !craft.MissionHasMaterialMiracle ? UI.L10n.Tr("本次制作不能使用 {0}。", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleActive ? UI.L10n.Tr("{0} 已经生效。", Skills.MaterialMiracle.NameOfAction()) : step.MaterialMiracleCharges == 0 ? UI.L10n.Tr("你已没有更多 {0} 次数。", Skills.MaterialMiracle.NameOfAction()) : "",
                 Skills.SteadyHand => !craft.MissionHasSteadyHand ? UI.L10n.Tr("本次制作不能使用 {0}。", Skills.SteadyHand.NameOfAction()) : step.SteadyHandCharges == 0 ? UI.L10n.Tr("你已没有更多 {0} 次数。", Skills.SteadyHand.NameOfAction()) : "",
-                _ => throw new NotImplementedException(),
+                _ => "",
             };
+
+            if (step.RemainingCP < GetCPCost(step, action))
+                reason = UI.L10n.Tr("制作力不足。");
 
             return true;
         }

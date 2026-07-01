@@ -2,6 +2,7 @@
 using Artisan.RawInformation;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using KamiToolKit.Controllers;
+using KamiToolKit.Enums;
 using KamiToolKit.Nodes;
 using System;
 using System.Numerics;
@@ -14,7 +15,7 @@ namespace Artisan.UI.KTK
 
         AddonController? regularRecipeNoteController;
         AddonController? moonRecipeNoteController;
-        TextButtonNodeSynth? SynthesizeAll;
+        TextButtonNode? SynthesizeAll;
         NumericInputNode? SynthesizeXCounter;
         int val = 0;
         int SynthesizeableCount = 0;
@@ -86,7 +87,7 @@ namespace Artisan.UI.KTK
                 NodeId = 100000
             };
 
-            SynthesizeAll.AttachNode(synthButton, KamiToolKit.Classes.NodePosition.AfterTarget);
+            SynthesizeAll.AttachNode(synthButton, NodePosition.AfterTarget);
 
             SynthesizeXCounter = new()
             {
@@ -103,7 +104,7 @@ namespace Artisan.UI.KTK
                 NodeId = 100001
             };
 
-            SynthesizeXCounter.AttachNode(SynthesizeAll, KamiToolKit.Classes.NodePosition.AfterTarget);
+            SynthesizeXCounter.AttachNode(SynthesizeAll, NodePosition.AfterTarget);
             setup = true;
         }
 
@@ -183,7 +184,7 @@ namespace Artisan.UI.KTK
                 NodeId = 100000
             };
 
-            SynthesizeAll.AttachNode(synthButton, KamiToolKit.Classes.NodePosition.AfterTarget);
+            SynthesizeAll.AttachNode(synthButton, NodePosition.AfterTarget);
 
             SynthesizeXCounter = new()
             {
@@ -200,7 +201,7 @@ namespace Artisan.UI.KTK
                 NodeId = 100001
             };
 
-            SynthesizeXCounter.AttachNode(SynthesizeAll, KamiToolKit.Classes.NodePosition.AfterTarget);
+            SynthesizeXCounter.AttachNode(SynthesizeAll, NodePosition.AfterTarget);
             setup = true;
         }
 
