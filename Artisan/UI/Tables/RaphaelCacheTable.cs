@@ -51,24 +51,24 @@ namespace Artisan.UI.Tables
         private static float _colWidthMacroSteps;
         private static float _scale;
 
-        public readonly CraftLevelColumn _colCraftLevel = new() { Label = "Craft Level" };
-        public readonly ProgressColumn _colProgress = new() { Label = "Progress" };
-        public readonly QualityColumn _colQuality = new() { Label = "Quality" };
-        public readonly DurabilityColumn _colDurability = new() { Label = "Durability" };
-        public readonly StatLevelColumn _colStatLevel = new() { Label = "Stat Level" };
-        public readonly CraftsmanshipColumn _colCraftsmanship = new() { Label = "Craftsmanship" };
-        public readonly ControlColumn _colControl = new() { Label = "Control" };
-        public readonly CPColumn _colCP = new() { Label = "CP" };
-        public readonly IsExpertColumn _colIsExpert = new() { Label = "Expert" };
-        public readonly InitialQualityColumn _colInitialQuality = new() { Label = "Initial Quality" };
-        public readonly SpecialistColumn _colSpecialist = new() { Label = "Specialist" };
-        public readonly SteadyHandsColumn _colSteadyHands = new() { Label = "Steady Hand" };
-        public readonly UseHeartAndSoulColumn _colUseHeartAndSoul = new() { Label = "Heart & Soul" };
-        public readonly UseQuickInnoColumn _colUseQuickInno = new() { Label = "Quick Innovation" };
-        public readonly HasManipulationColumn _colHasManipulation = new() { Label = "Manipulation" };
-        public readonly EnsureReliabilityColumn _colEnsureReliability = new() { Label = "Ensure Reliability" };
-        public readonly BackloadProgressColumn _colBackloadProgress = new() { Label = "Backload Progress" };
-        public readonly MacroStepColumn _colMacroStep = new() { Label = "Macro Step Count" };
+        public readonly CraftLevelColumn _colCraftLevel = new() { Label = L10n.Tr("Craft Level") };
+        public readonly ProgressColumn _colProgress = new() { Label = L10n.Tr("Progress") };
+        public readonly QualityColumn _colQuality = new() { Label = L10n.Tr("Quality") };
+        public readonly DurabilityColumn _colDurability = new() { Label = L10n.Tr("Durability") };
+        public readonly StatLevelColumn _colStatLevel = new() { Label = L10n.Tr("Stat Level") };
+        public readonly CraftsmanshipColumn _colCraftsmanship = new() { Label = L10n.Tr("Craftsmanship") };
+        public readonly ControlColumn _colControl = new() { Label = L10n.Tr("Control") };
+        public readonly CPColumn _colCP = new() { Label = L10n.Tr("CP") };
+        public readonly IsExpertColumn _colIsExpert = new() { Label = L10n.Tr("Expert") };
+        public readonly InitialQualityColumn _colInitialQuality = new() { Label = L10n.Tr("Initial Quality") };
+        public readonly SpecialistColumn _colSpecialist = new() { Label = L10n.Tr("Specialist") };
+        public readonly SteadyHandsColumn _colSteadyHands = new() { Label = L10n.Tr("Steady Hand") };
+        public readonly UseHeartAndSoulColumn _colUseHeartAndSoul = new() { Label = L10n.Tr("Heart & Soul") };
+        public readonly UseQuickInnoColumn _colUseQuickInno = new() { Label = L10n.Tr("Quick Innovation") };
+        public readonly HasManipulationColumn _colHasManipulation = new() { Label = L10n.Tr("Manipulation") };
+        public readonly EnsureReliabilityColumn _colEnsureReliability = new() { Label = L10n.Tr("Ensure Reliability") };
+        public readonly BackloadProgressColumn _colBackloadProgress = new() { Label = L10n.Tr("Backload Progress") };
+        public readonly MacroStepColumn _colMacroStep = new() { Label = L10n.Tr("Macro Step Count") };
 
         private static float TextWidth(string text) => ImGui.CalcTextSize(text).X + ImGui.GetStyle().ItemSpacing.X;
 

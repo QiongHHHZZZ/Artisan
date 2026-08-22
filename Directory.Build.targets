@@ -1,4 +1,12 @@
 <Project>
+  <PropertyGroup Condition="'$(DALAMUD_HOME)' != ''">
+    <DalamudLibPath>$(DALAMUD_HOME)</DalamudLibPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DALAMUD_HOME)' == '' and $([MSBuild]::IsOSPlatform('Windows')) and Exists('$(AppData)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll')">
+    <DalamudLibPath>$(AppData)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'KamiToolKit'">
     <TargetFramework>net10.0-windows7.0</TargetFramework>
   </PropertyGroup>
