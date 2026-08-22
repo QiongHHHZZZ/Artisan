@@ -134,10 +134,7 @@ namespace Artisan
                 var filteredList = RecipeInformation.CompletedRecipes.Where(x => x.Key.Job == job).ToDictionary(x => x.Key.DivisionID, x => x.Value);
 
                 uint visited = 0;
-                uint toVisit = (((uint)Math.Round(jobLevel / 5.0) * 5) / 5);
-                var maxLevel = Svc.Data.GetExcelSheet<RecipeLevelTable>().Max(x => x.ClassJobLevel);
-                if (jobLevel >= maxLevel - 5)
-                    toVisit -= 1;
+                var toVisit = Svc.Data.GetExcelSheet<NotebookDivision>().Where(x => x.RowId < 1000 && x.CraftOpeningLevel <= jobLevel && x.NotebookDivisionCategory.RowId == 0).LastOrDefault().RowId;
 
                 foreach (var subNode in n->UldManager.Nodes)
                 {

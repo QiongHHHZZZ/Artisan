@@ -16,5 +16,6 @@
   "AcceptsFeedback": true,
   "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.16000/Artisan.zip",
   "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.16000/Artisan.zip",
+  "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
   "ChangeLog": "- Raphael 宏缓存改为按当前登录角色分别保存。"
 }

@@ -31,10 +31,11 @@ namespace Artisan.UI.Tables
 
     internal class RaphaelCacheTable : Table<RaphaelOptions>, IDisposable
     {
-        private static float _colWidthLevel;
+        private static float _colWidthCraftLevel;
         private static float _colWidthProgress;
         private static float _colWidthQuality;
         private static float _colWidthDurability;
+        private static float _colWidthStatLevel;
         private static float _colWidthCraftsmanship;
         private static float _colWidthControl;
         private static float _colWidthCP;
@@ -50,10 +51,11 @@ namespace Artisan.UI.Tables
         private static float _colWidthMacroSteps;
         private static float _scale;
 
-        public readonly LevelColumn _colLevel = new() { Label = "Level" };
+        public readonly CraftLevelColumn _colCraftLevel = new() { Label = "Craft Level" };
         public readonly ProgressColumn _colProgress = new() { Label = "Progress" };
         public readonly QualityColumn _colQuality = new() { Label = "Quality" };
         public readonly DurabilityColumn _colDurability = new() { Label = "Durability" };
+        public readonly StatLevelColumn _colStatLevel = new() { Label = "Stat Level" };
         public readonly CraftsmanshipColumn _colCraftsmanship = new() { Label = "Craftsmanship" };
         public readonly ControlColumn _colControl = new() { Label = "Control" };
         public readonly CPColumn _colCP = new() { Label = "CP" };
@@ -75,9 +77,10 @@ namespace Artisan.UI.Tables
             if (_scale != ImGuiHelpers.GlobalScale)
             {
                 _scale = ImGuiHelpers.GlobalScale;
-                _colWidthLevel = TextWidth(_colLevel.Label) / _scale + Table.ArrowWidth;
+                _colWidthCraftLevel = TextWidth(_colCraftLevel.Label) / _scale + Table.ArrowWidth;
                 _colWidthProgress = TextWidth(_colProgress.Label) / _scale + Table.ArrowWidth;
                 _colWidthQuality = TextWidth(_colQuality.Label) / _scale + Table.ArrowWidth;
+                _colWidthStatLevel = TextWidth(_colStatLevel.Label) / _scale + Table.ArrowWidth;
                 _colWidthDurability = TextWidth(_colDurability.Label) / _scale + Table.ArrowWidth;
                 _colWidthCraftsmanship = TextWidth(_colCraftsmanship.Label) / _scale + Table.ArrowWidth;
                 _colWidthControl = TextWidth(_colControl.Label) / _scale + Table.ArrowWidth;
@@ -97,7 +100,7 @@ namespace Artisan.UI.Tables
 
         public RaphaelCacheTable(List<RaphaelOptions> cacheList) : base("RaphaelCacheTable", cacheList)
         {
-            List<Column<RaphaelOptions>> headers = [_colLevel, _colProgress, _colQuality, _colDurability, _colCraftsmanship, _colControl, _colCP, _colIsExpert, _colInitialQuality, _colSpecialist, _colSteadyHands, _colUseHeartAndSoul, _colUseQuickInno, _colHasManipulation, _colEnsureReliability, _colBackloadProgress, _colMacroStep];
+            List<Column<RaphaelOptions>> headers = [_colCraftLevel, _colProgress, _colQuality, _colDurability, _colStatLevel, _colCraftsmanship, _colControl, _colCP, _colIsExpert, _colInitialQuality, _colSpecialist, _colSteadyHands, _colUseHeartAndSoul, _colUseQuickInno, _colHasManipulation, _colEnsureReliability, _colBackloadProgress, _colMacroStep];
             this.Headers = [.. headers];
 
             Sortable = true;
@@ -121,12 +124,12 @@ namespace Artisan.UI.Tables
             }
         }
 
-        public sealed class LevelColumn : ClickableColumn
+        public sealed class CraftLevelColumn : ClickableColumn
         {
-            public LevelColumn() => Flags |= ImGuiTableColumnFlags.NoHide;
+            public CraftLevelColumn() => Flags |= ImGuiTableColumnFlags.NoHide;
 
             public override string ToName(RaphaelOptions m) => m.Level.ToString();
-            public override float Width => _colWidthLevel * ImGuiHelpers.GlobalScale;
+            public override float Width => _colWidthCraftLevel * ImGuiHelpers.GlobalScale;
             public override int Compare(RaphaelOptions lhs, RaphaelOptions rhs) => lhs.Level.CompareTo(rhs.Level);
     }
 
@@ -154,6 +157,16 @@ namespace Artisan.UI.Tables
             public override int Compare(RaphaelOptions lhs, RaphaelOptions rhs)
             {
                 return lhs.Durability - rhs.Durability;
+            }
+        }
+
+        public sealed class StatLevelColumn : ClickableColumn
+        {
+            public override string ToName(RaphaelOptions m) => m.StatLevel.ToString();
+            public override float Width => _colWidthStatLevel * ImGuiHelpers.GlobalScale;
+            public override int Compare(RaphaelOptions lhs, RaphaelOptions rhs)
+            {
+                return lhs.StatLevel - rhs.StatLevel;
             }
         }
 
