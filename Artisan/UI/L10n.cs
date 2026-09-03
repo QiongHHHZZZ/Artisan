@@ -83,6 +83,38 @@ internal static class L10n
         ["not enough"] = "条件不足",
     };
 
+    private static readonly IReadOnlyDictionary<string, string> RelicToolTitleZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["Relic Tool"] = "生产职业遗物工具",
+    };
+
+    private static readonly IReadOnlyDictionary<string, string> RelicToolStepZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["Skysteel +1"] = "天钢 +1",
+        ["Dragonsung"] = "龙诗",
+        ["Augmented Dragonsung"] = "改良型龙诗",
+        ["Skysung"] = "天歌",
+        ["Skybuilders'"] = "天穹",
+        ["Augmented"] = "改良型",
+        ["Crystalline"] = "结晶",
+        ["Chora-Zoi's"] = "乔拉佐伊的",
+        ["Brilliant"] = "辉煌",
+        ["Vrandtic"] = "弗兰提克",
+        ["Lodestar"] = "北极星",
+    };
+
+    private static readonly IReadOnlyDictionary<string, string> RelicToolJobZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["Carpenter"] = "刻木匠",
+        ["Blacksmith"] = "锻铁匠",
+        ["Armorer"] = "铸甲匠",
+        ["Goldsmith"] = "雕金匠",
+        ["Leatherworker"] = "制革匠",
+        ["Weaver"] = "裁衣匠",
+        ["Alchemist"] = "炼金术士",
+        ["Culinarian"] = "烹调师",
+    };
+
     private static readonly IReadOnlyDictionary<string, string> ZhCn = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["Open Config"] = "打开设置",
@@ -1241,6 +1273,7 @@ internal static class L10n
         ["Skipping {0} due to having enough in inventory [Skip Items you already have enough of]"] = "由于库存已足够，跳过 {0}【已启用“跳过已拥有足够数量的物品”】。",
         ["Insufficient materials for {0}. Moving on."] = "{0} 材料不足，已跳过并继续。",
         ["Insufficient level to craft this item. Moving on."] = "制作等级不足，已跳过并继续。",
+        ["Insufficient level for {0}. Moving on."] = "{0} 的制作等级不足，已跳过并继续。",
         ["For some reason tried to quick synth 0 of {0}. Skipping."] = "异常：尝试对 {0} 执行 0 次快速制作，已跳过。",
         ["Unable to parse action: {0}"] = "无法解析动作：{0}",
         ["You haven't unlocked the recipe book "] = "你尚未解锁该配方所需秘籍 ",
@@ -1348,6 +1381,30 @@ internal static class L10n
 
     internal static string Tr(string key, params object[] args)
         => string.Format(CultureInfo.CurrentCulture, Tr(key), args);
+
+    internal static string TranslateRelicToolListName(string name)
+    {
+        if (!UseChineseUi())
+            return name;
+
+        const string separator = " — ";
+        int stepStart = name.IndexOf(separator, StringComparison.Ordinal);
+        int jobStart = name.LastIndexOf(separator, StringComparison.Ordinal);
+        if (stepStart < 0 || jobStart <= stepStart)
+            return name;
+
+        string title = name[..stepStart];
+        string step = name[(stepStart + separator.Length)..jobStart];
+        string job = name[(jobStart + separator.Length)..];
+        if (!RelicToolTitleZhCn.TryGetValue(title, out var translatedTitle)
+            || !RelicToolStepZhCn.TryGetValue(step, out var translatedStep)
+            || !RelicToolJobZhCn.TryGetValue(job, out var translatedJob))
+        {
+            return name;
+        }
+
+        return $"{translatedTitle}{separator}{translatedStep}{separator}{translatedJob}";
+    }
 
     private static bool UseChineseUi()
         => true;

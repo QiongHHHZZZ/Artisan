@@ -1,4 +1,5 @@
 using Artisan.RawInformation;
+using Artisan.UI;
 using ECommons.DalamudServices;
 using Lumina.Excel.Sheets;
 using System;
@@ -33,8 +34,14 @@ internal static partial class RelicToolPremadeLists
         bool added = false;
         foreach (RelicToolPremadeEntry def in Definitions)
         {
-            if (premadeCraftingLists.Any(x => x.ID == def.Id))
+            NewCraftingList? existingList = premadeCraftingLists.FirstOrDefault(x => x.ID == def.Id);
+            if (existingList != null)
             {
+                if (existingList.IsPremade)
+                {
+                    existingList.Name = L10n.TranslateRelicToolListName(def.Name);
+                }
+
                 continue;
             }
 
@@ -93,7 +100,7 @@ internal static partial class RelicToolPremadeLists
         list = new NewCraftingList
         {
             ID = def.Id,
-            Name = def.Name,
+            Name = L10n.TranslateRelicToolListName(def.Name),
             IsPremade = true,
         };
         list.Locked = true;
