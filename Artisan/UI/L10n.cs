@@ -1397,12 +1397,12 @@ internal static class L10n
         string step = name[(stepStart + separator.Length)..jobStart];
         string job = name[(jobStart + separator.Length)..];
         if (!RelicToolTitleZhCn.TryGetValue(title, out var translatedTitle)
-            || !RelicToolStepZhCn.TryGetValue(step, out var translatedStep)
-            || !RelicToolJobZhCn.TryGetValue(job, out var translatedJob))
+            || !RelicToolStepZhCn.TryGetValue(step, out var translatedStep))
         {
             return name;
         }
 
+        var translatedJob = RelicToolJobZhCn.GetValueOrDefault(job, job);
         return $"{translatedTitle}{separator}{translatedStep}{separator}{translatedJob}";
     }
 
