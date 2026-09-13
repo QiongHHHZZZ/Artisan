@@ -108,8 +108,19 @@ namespace Artisan.CraftingLists
             bool added = false;
             for (uint i = minRow; i <= maxRow; i++)
             {
-                if (premadeCraftingLists.Any(x => x.ID == (int)(baseId + i)))
+                var existingList = premadeCraftingLists.FirstOrDefault(x => x.ID == (int)(baseId + i));
+                if (existingList != null)
                 {
+                    if (existingList.IsPremade && existingList.Name?.StartsWith($"{label} — ", StringComparison.Ordinal) == true)
+                    {
+                        var translatedName = L10n.TranslateDeliveryListName(existingList.Name);
+                        if (existingList.Name != translatedName)
+                        {
+                            existingList.Name = translatedName;
+                            added = true;
+                        }
+                    }
+
                     Svc.Log.Debug($"Premade list for Studium Quest {i} already exists, skipping.");
                     continue;
                 }
@@ -123,7 +134,7 @@ namespace Artisan.CraftingLists
                     {
                         ID = (int)(baseId + i),
                         Locked = true,
-                        Name = $"{label} — {crafter}",
+                        Name = L10n.TranslateDeliveryListName($"{label} — {crafter}"),
                         IsPremade = true
                     };
 

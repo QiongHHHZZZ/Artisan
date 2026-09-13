@@ -126,6 +126,9 @@ internal static class L10n
         ["Raphael Cache"] = "Raphael 缓存",
         ["Recipe Assigner"] = "配方分配",
         ["Crafting Lists"] = "制作清单",
+        ["Studium Deliveries"] = "魔法大学交付",
+        ["Crystarium Deliveries"] = "水晶都工匠交付",
+        ["Wachu Deliveries"] = "图拉尔工匠交付",
         ["List Builder"] = "清单构建",
         ["FC Workshops"] = "部队工房",
         ["Craft Menu"] = "制作菜单",
@@ -1381,6 +1384,24 @@ internal static class L10n
 
     internal static string Tr(string key, params object[] args)
         => string.Format(CultureInfo.CurrentCulture, Tr(key), args);
+
+    internal static string TranslateDeliveryListName(string name)
+    {
+        if (!UseChineseUi())
+            return name;
+
+        const string separator = " — ";
+        int jobStart = name.IndexOf(separator, StringComparison.Ordinal);
+        if (jobStart < 0)
+            return name;
+
+        string title = name[..jobStart];
+        if (title is not ("Studium Deliveries" or "Crystarium Deliveries" or "Wachu Deliveries"))
+            return name;
+
+        string job = name[(jobStart + separator.Length)..];
+        return $"{Tr(title)}{separator}{RelicToolJobZhCn.GetValueOrDefault(job, job)}";
+    }
 
     internal static string TranslateRelicToolListName(string name)
     {
