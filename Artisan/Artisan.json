@@ -17,5 +17,5 @@
   "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.20000/Artisan.zip",
   "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.20000/Artisan.zip",
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- Raphael 宏缓存改为按当前登录角色分别保存。\n- Add premade lists for relic tools.\n- Add IPC for macro information."
+  "ChangeLog": "- 允许将预制清单复制到用户清单。\n- 修复预制清单导出。\n- Raphael 宏缓存改为按当前登录角色分别保存。\n- Add premade lists for relic tools.\n- Add IPC for macro information."
 }
