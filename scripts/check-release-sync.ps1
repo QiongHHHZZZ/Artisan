@@ -69,6 +69,9 @@ Assert-Condition ($asset.size -gt 0) "Release asset size is zero: $assetName"
 Write-Host "[PASS] Release asset exists: $($asset.browser_download_url)"
 
 $pluginMaster = Invoke-RestMethod -Uri $pluginMasterUrl -Headers $headers -Method Get
+if ($pluginMaster -is [string]) {
+    $pluginMaster = $pluginMaster.TrimStart([char]0xFEFF) | ConvertFrom-Json
+}
 $artisan = $pluginMaster | Where-Object { $_.InternalName -eq 'Artisan' } | Select-Object -First 1
 
 Assert-Condition ($null -ne $artisan) "Artisan entry not found in pluginmaster.json"
