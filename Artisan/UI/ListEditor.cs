@@ -115,11 +115,11 @@ internal class ListEditor : Window, IDisposable
         if (P.Config.DefaultColourValidation) ColourValidation = true;
     }
 
-    public async Task GenerateTableAsync(CancellationTokenSource source)
+    public void GenerateTable(CancellationTokenSource source)
     {
         Table?.Dispose();
-        var list = await IngredientHelper.GenerateList(SelectedList, source);
-        if (list is null)
+        var list = IngredientHelper.GenerateList(SelectedList, source.Token);
+        if (list is null || source.IsCancellationRequested)
         {
             Svc.Log.Debug($"Table list empty, aborting.");
             return;
@@ -135,7 +135,7 @@ internal class ListEditor : Window, IDisposable
         if (RegenerateTask == null || RegenerateTask.IsCompleted)
         {
             Svc.Log.Debug($"Starting regeneration");
-            RegenerateTask = Task.Run(() => GenerateTableAsync(source), token);
+            RegenerateTask = Task.Run(() => GenerateTable(source), token);
         }
         else
         {
@@ -145,7 +145,7 @@ internal class ListEditor : Window, IDisposable
 
             source = new();
             token = source.Token;
-            RegenerateTask = Task.Run(() => GenerateTableAsync(source), token);
+            RegenerateTask = Task.Run(() => GenerateTable(source), token);
         }
     }
 
@@ -969,15 +969,23 @@ internal class ListEditor : Window, IDisposable
             ImGui.TextUnformatted(T("Ingredient table is still populating. Please wait."));
             var a = IngredientHelper.CurrentIngredient;
             var b = IngredientHelper.MaxIngredient;
-            ImGui.ProgressBar((float)a / b, new(ImGui.GetContentRegionAvail().X, default), $"{a * 100.0f / b:f2}% ({a}/{b})");
+            var progress = b == 0 ? 0 : (float)a / b;
+            ImGui.ProgressBar(progress, new(ImGui.GetContentRegionAvail().X, default), $"{progress * 100:f2}%");
             return;
         }
-        ImGui.BeginChild("###IngredientsListTable", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - (ColourValidation ? (RetainerInfo.ATools ? 90f.Scale() : 60f.Scale()) : 30f.Scale())));
+        var legendRows = ColourValidation ? (RetainerInfo.ATools ? 3 : 2) : 0;
+        var legendRowHeight = Math.Max(23f, ImGui.GetTextLineHeight()) + ImGui.GetStyle().ItemSpacing.Y;
+        var footerHeight = ImGui.GetFrameHeightWithSpacing() + legendRows * legendRowHeight;
+        ImGui.BeginChild("###IngredientsListTable", new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - footerHeight));
         Table._nameColumn.ShowColour = ColourValidation;
         Table._inventoryColumn.HQOnlyCrafts = HQSubcraftsOnly;
         Table._retainerColumn.HQOnlyCrafts = HQSubcraftsOnly;
         Table._nameColumn.ShowHQOnly = HQSubcraftsOnly;
-        Table.Draw(ImGui.GetTextLineHeightWithSpacing());
+        var frameTimer = System.Diagnostics.Stopwatch.StartNew();
+        Table.UpdateSubcraftCounts();
+        Table.Draw(ImGui.GetTextLineHeight() + 2 * ImGui.GetStyle().CellPadding.Y);
+        if (frameTimer.ElapsedMilliseconds > 50)
+            Svc.Log.Debug($"[IngredientTable] Slow frame: {frameTimer.ElapsedMilliseconds} ms for {Table.ListItems.Count} items");
         ImGui.EndChild();
 
         ImGui.Checkbox(T("Only show HQ crafts"), ref HQSubcraftsOnly);
@@ -1038,6 +1046,58 @@ internal class ListEditor : Window, IDisposable
 
         }
 
+        if (GatherChill.IsEnabled())
+        {
+            ImGui.SameLine();
+            if (ImGui.Button(T("Send Remaining to Gather & Chill")))
+            {
+                var items = Table.ListItems
+                    .Where(x => x.Remaining > 0 && !x.Sources.Contains(1) && !Feesh.IsFish(x.Data.RowId) && GatherChill.CanGather(x.Data.RowId))
+                    .Select(x => (x.Data.RowId, x.Remaining))
+                    .ToArray();
+
+                if (items.Length > 0)
+                {
+                    var added = GatherChill.OverwriteGatherList(items);
+                    Notify.Success(T("Sent {0} items to Gather & Chill.", added));
+                    if (added > 0)
+                        GatherChill.OpenWindow();
+                }
+                else
+                {
+                    Notify.Error(T("No remaining items that Gather & Chill can gather."));
+                }
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGuiEx.Tooltip(T("Replaces Gather & Chill's gather list with all remaining gatherable ingredients."));
+            }
+        }
+
+        if (Feesh.IsEnabled())
+        {
+            ImGui.SameLine();
+            if (ImGui.Button(T("Send Remaining to Feesh")))
+            {
+                var items = Table.ListItems
+                    .Where(x => x.Remaining > 0 && !x.Sources.Contains(1) && Feesh.CanFish(x.Data.RowId))
+                    .Select(x => (x.Data.RowId, x.Remaining))
+                    .ToArray();
+
+                if (items.Length == 0)
+                    Notify.Error(T("No remaining fish that Feesh can catch."));
+                else if (Feesh.CatchList(items))
+                    Notify.Success(T("Feesh is catching {0} fish.", items.Length));
+                else
+                    Notify.Error(T("Feesh could not start catching. Its log says why."));
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGuiEx.Tooltip(T("Has Feesh catch all remaining fish. They are kept safe from Feesh's bag cleaning until this list is finished or deleted."));
+            }
+        }
 
         ImGui.SameLine();
         if (ImGui.Button(T("Need Help?")))
@@ -1096,7 +1156,7 @@ internal class ListEditor : Window, IDisposable
         ImGui.BulletText(T("Right clicking on an ingredient name opens a context menu with further options."));
         ImGui.BulletText(T("Clicking and dragging on the space on the headers between columns (as shown by it lighting up) allows you to re-order the columns."));
         ImGui.BulletText(T("Don't see any items? Check the table headers for a red heading. This indicates this column is being filtered on. Right clicking the header will clear the filter."));
-        ImGui.BulletText(T("You can extend the functionality of the table by installing the following plugins:\n- Allagan Tools (Enables all retainer features)\n- Item Vendor Lookup\n- Gatherbuddy\n- Monster Loot Hunter"));
+        ImGui.BulletText(T("You can extend the functionality of the table by installing the following plugins:\n- Allagan Tools (Enables all retainer features)\n- Item Vendor Lookup\n- Gatherbuddy\n- Gather & Chill (Gather items or add them to its gather list)\n- WahTools (Catch fish with Feesh)\n- Monster Loot Hunter"));
         ImGui.BulletText(T("Tip: Filter on \"Remaining Needed\" and \"Sources\" when gathering to help filter on items missing, along with sorting by gathered zone\nto help reduce travel times."));
 
         ImGui.SetCursorPosY(windowSize.Y - ImGui.GetFrameHeight() - ImGui.GetStyle().WindowPadding.Y);
@@ -1948,6 +2008,8 @@ internal class ListFolders : ItemSelector<NewCraftingList>
 
         P.Config.NewCraftingLists.RemoveAt(idx);
         P.Config.Save();
+
+        Feesh.ReleaseAll();
 
         if (!CraftingListUI.Processing)
             CraftingListUI.selectedList = new NewCraftingList();

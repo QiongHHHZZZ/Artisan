@@ -4,7 +4,7 @@
   "Punchline": "一个“简单”的制作插件。",
   "Description": "一体化制作插件。",
   "InternalName": "Artisan",
-  "AssemblyVersion": "4.0.5.21000",
+  "AssemblyVersion": "4.0.5.23000",
   "ApplicableVersion": "any",
   "IconUrl": "https://raw.githubusercontent.com/QiongHHHZZZ/DalamudPlugins/main/icons/artisan.png",
   "Tags": [
@@ -14,8 +14,8 @@
   "DalamudApiLevel": 15,
   "LoadPriority": 0,
   "AcceptsFeedback": true,
-  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.21000/Artisan.zip",
-  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.21000/Artisan.zip",
+  "DownloadLinkInstall": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.23000/Artisan.zip",
+  "DownloadLinkUpdate": "https://github.com/QiongHHHZZZ/Artisan/releases/download/v4.0.5.23000/Artisan.zip",
   "DownloadLinkTesting": "https://love.puni.sh/plugins/Artisan/Testing/latest.zip",
-  "ChangeLog": "- 允许将预制清单复制到用户清单。\n- 修复预制清单导出。\n- Raphael 宏缓存改为按当前登录角色分别保存。\n- Add premade lists for relic tools.\n- Add IPC for macro information."
+  "ChangeLog": "- 同步上游 4.0.5.23。\n- 新增 Gather & Chill 采集列表联动（配料表“发送剩余至 Gather & Chill”）。\n- 新增 Feesh 钓鱼联动（配料表“发送剩余至 Feesh”）。\n- 恢复 Gatherbuddy 集成。\n- Universalis 移除“仅限当前大区”选项，改为全局查询。\n- 配料表性能优化：子配方数量每帧更新，行高与图例区自适应。\n- 补充新增按钮与提示的中文翻译。"
 }
